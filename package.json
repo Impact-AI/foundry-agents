@@ -27,7 +27,7 @@
 		"eventsource": "^3.0.7",
 		"happy-dom": "21.0.4",
 		"mermaid": "11.17.2",
-		"typescript": "^5.9.3"
+		"typescript": "^7.0.2"
 	},
 	"overrides": {
 		"@ai-sdk/google-vertex": "^4.0.223",
