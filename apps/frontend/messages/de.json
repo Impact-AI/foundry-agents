@@ -507,7 +507,7 @@
 			"body": "Auf der Einstellungsseite kannst du:",
 			"export": "deine Kontodaten, Erinnerungen im aktiven Gedächtnisspeicher und Unterhaltungstexte mit Platzhaltern für Bilder als eine Datei herunterladen. Gespeicherte Werkzeugaufrufe und -ergebnisse, Modellüberlegungen, Protokolle und externe Traces sind nicht enthalten; für weitergehende Auskunftsanfragen wende dich an die Organisation, die diese App betreibt;",
 			"correct": "sehen und korrigieren, was der Assistent sich über dich merkt, eine Aussage nach der anderen, oder sie entfernen — dein Recht darauf, dass das, was über dich gespeichert ist, berichtigt wird;",
-			"delete": "die Löschung deines Kontos und der Daten anfordern, die die Anwendung löschen kann. Für verbleibende Dienstkopien, Sicherungen, Protokolle, externe Traces und Browserkopien gelten die auf dieser Seite und im Datenschutzhinweis der Organisation beschriebenen Ausnahmen. Bricht eine Löschung ab, ist das Konto gesperrt; erneutes Löschen in den Einstellungen schließt die verbleibenden Schritte der Anwendung ab."
+			"delete": "die Löschung deines Kontos und der Daten anfordern, die die Anwendung löschen kann. Für verbleibende Dienstkopien, Sicherungen, Protokolle, externe Traces und Browserkopien gelten die auf dieser Seite und im Datenschutzhinweis der Organisation beschriebenen Ausnahmen. Bricht eine Löschung ab, ist das Konto gesperrt. Erneutes Löschen in den Einstellungen versucht die verbleibenden Schritte auszuführen; wende dich an die betreibende Organisation, wenn die Löschung weiterhin fehlschlägt."
 		},
 		"cookies": {
 			"heading": "Cookies und Speicherung",
@@ -536,7 +536,7 @@
 		"handshake_failed": "Der Sprachkanal ließ sich nicht öffnen.",
 		"settings_refused": "Der Sprachdienst hat die Audioeinstellungen dieser Sitzung abgelehnt — öffne den Kanal wieder, und wenn du die Sprachabstimmung geändert hast, versuch eine andere Rauschunterdrückung.",
 		"account_deactivated": "Dieses Konto wurde deaktiviert.",
-		"erase_incomplete": "Es konnte nicht alles gelöscht werden. Versuche es erneut, dann wird auch der Rest gelöscht.",
+		"erase_incomplete": "Nicht alles konnte gelöscht werden. Versuche es erneut, um die verbleibenden Schritte zu wiederholen. Wende dich an die betreibende Organisation, wenn die Löschung weiterhin fehlschlägt.",
 		"unsupported_type": "Diese Art von Datei kann hier nicht angezeigt werden.",
 		"unavailable": "Der Dienst ist gerade nicht verfügbar. Versuch es in Kürze noch einmal.",
 		"backend_unreachable": "Der Dienst ist gerade nicht erreichbar. Versuch es in Kürze noch einmal.",
