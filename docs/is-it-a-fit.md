@@ -1,6 +1,6 @@
 # Is it a fit?
 
-**Choose Agent on Azure when you need a custom Azure-hosted assistant with voice, document retrieval and business-system views, and your team can take responsibility for its implementation and operations, subject to the applicable licenses.** It provides an application foundation; your team implements customer integrations, authorization mappings, domain behaviour and production acceptance.
+**Choose Agent on Azure when you need a custom Azure-hosted assistant with voice, document retrieval and business-system views, and your team can take responsibility for its implementation and operations, subject to the applicable licenses.** It provides an application foundation; your team implements customer integrations, authorization mappings, domain behavior and production acceptance.
 
 | Decision | When it applies |
 | --- | --- |
