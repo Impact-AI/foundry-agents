@@ -507,7 +507,7 @@
 			"body": "Dalla pagina delle impostazioni puoi:",
 			"export": "scaricare in un unico file i dati del tuo account, i ricordi nello spazio di memoria attivo e il testo delle conversazioni, con segnaposto per le immagini. Chiamate agli strumenti, relativi risultati, ragionamenti del modello, registri e tracce esterne conservati non sono inclusi; per richieste di accesso ulteriori contatta l’organizzazione che gestisce questa app;",
 			"correct": "vedere e correggere ciò che l'assistente ricorda di te, un'affermazione alla volta, o rimuoverla — il tuo diritto a che ciò che è conservato su di te sia corretto;",
-			"delete": "richiedere l’eliminazione del tuo account e dei dati che l’applicazione può cancellare. Le copie conservate dai servizi, i backup, i registri, le tracce esterne e le copie nel browser seguono le eccezioni descritte in questa pagina e nell’informativa dell’organizzazione. Se l’eliminazione si interrompe, l’account resta bloccato; ripeterla nelle impostazioni completa i passaggi rimanenti dell’applicazione."
+			"delete": "richiedere l’eliminazione del tuo account e dei dati che l’applicazione può cancellare. Le copie conservate dai servizi, i backup, i registri, le tracce esterne e le copie nel browser seguono le eccezioni descritte in questa pagina e nell’informativa dell’organizzazione. Se l’eliminazione si interrompe, l’account resta bloccato. Ripeterla nelle impostazioni tenta di eseguire i passaggi rimanenti; contatta l’organizzazione che gestisce l’app se l’eliminazione continua a non riuscire."
 		},
 		"cookies": {
 			"heading": "Cookie e archiviazione",
@@ -536,7 +536,7 @@
 		"handshake_failed": "Il canale vocale non si è aperto.",
 		"settings_refused": "Il servizio vocale ha rifiutato le impostazioni audio di questa sessione — riapri il canale e, se hai cambiato la regolazione della voce, prova un'altra riduzione del rumore.",
 		"account_deactivated": "Questo account è stato disattivato.",
-		"erase_incomplete": "Non è stato possibile eliminare tutto. Riprova, e il resto verrà eliminato.",
+		"erase_incomplete": "Non è stato possibile eliminare tutto. Riprova per ripetere i passaggi rimanenti. Contatta l’organizzazione che gestisce l’app se l’eliminazione continua a non riuscire.",
 		"unsupported_type": "Questo tipo di file non può essere mostrato qui.",
 		"unavailable": "Il servizio non è disponibile in questo momento. Riprova tra poco.",
 		"backend_unreachable": "Il servizio non è raggiungibile in questo momento. Riprova tra poco.",
