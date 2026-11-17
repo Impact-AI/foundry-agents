@@ -121,7 +121,7 @@ After an upgrade of any of these, check them on a deployment ([what only a deplo
 
 | Part | Terms | Who stands behind it |
 | --- | --- | --- |
-| Agent on Azure's code and documentation | The [MIT License](../LICENSE), copyright Microsoft Corporation, provided "as is", without warranty; the Impact SDK setup plugin is Apache-2.0 instead | Impact AI creates and maintains it in the open, without a service level ([support](../SUPPORT.md)). Bugs and questions go to the repository's issues. A team that adopts it owns its fork. |
+| Agent on Azure's code and documentation | The [MIT License](../LICENSE), copyright Microsoft Corporation, provided "as is", without warranty; the Impact SDK setup plugin is Apache-2.0 instead | Impact AI creates and maintains it in the open, without a service level ([support](../SUPPORT.md)). Bugs and questions go to the repository's issues. A team that adopts it controls and maintains its fork, subject to the applicable licenses. |
 | The Azure services it deploys | The customer's agreement with Microsoft | Microsoft, under that agreement, including preview terms for the preview services above. Problems with an Azure service go to an Azure support request. |
 | Implementation, support and optional products | A separate contract with Impact AI | Impact AI, for what that contract covers, including a service level. Impact AI offers maintenance of an adapted application: fixing application bugs, applying dependency and security updates, upgrading to new versions of Agent on Azure, and changing customer-specific code; the contract sets which of these apply. Impact AI Admin Center and Impact AI Control Plane are optional, with their own terms ([optional products](impact-ai.md#optional-products-and-integrations)). |
 
