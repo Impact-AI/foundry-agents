@@ -507,7 +507,7 @@
 			"body": "Depuis la page des paramètres, tu peux :",
 			"export": "télécharger dans un fichier les données de ton compte, les souvenirs du stockage de mémoire actif et le texte des conversations, avec des emplacements pour les images. Les appels d’outils, leurs résultats, les raisonnements du modèle, les journaux et les traces externes conservés ne sont pas inclus ; pour toute demande d’accès complémentaire, contacte l’organisation qui exploite cette app ;",
 			"correct": "voir et corriger ce que l'assistant retient de toi, une affirmation à la fois, ou la retirer — ton droit à ce que ce qui est conservé sur toi soit rectifié ;",
-			"delete": "demander la suppression de ton compte et des données que l’application peut effacer. Les copies conservées par les services, les sauvegardes, les journaux, les traces externes et les copies du navigateur suivent les exceptions décrites ici et dans la notice de l’organisation. Si la suppression s’interrompt, le compte reste bloqué ; la relancer dans les paramètres termine les étapes restantes de l’application."
+			"delete": "demander la suppression de ton compte et des données que l’application peut effacer. Les copies conservées par les services, les sauvegardes, les journaux, les traces externes et les copies du navigateur suivent les exceptions décrites ici et dans la notice de l’organisation. Si la suppression s’interrompt, le compte reste bloqué. La relancer dans les paramètres tente d’exécuter les étapes restantes ; contacte l’organisation qui gère l’application si la suppression continue d’échouer."
 		},
 		"cookies": {
 			"heading": "Cookies et stockage",
@@ -536,7 +536,7 @@
 		"handshake_failed": "Le canal vocal n'a pas pu être ouvert.",
 		"settings_refused": "Le service vocal a refusé les réglages audio de cette session — rouvre le canal et, si tu as modifié le réglage de la voix, essaie une autre réduction du bruit.",
 		"account_deactivated": "Ce compte a été désactivé.",
-		"erase_incomplete": "Tout n'a pas pu être supprimé. Réessayez, et le reste le sera aussi.",
+		"erase_incomplete": "Tout n’a pas pu être supprimé. Réessaie pour relancer les étapes restantes. Contacte l’organisation qui gère l’application si la suppression continue d’échouer.",
 		"unsupported_type": "Ce type de fichier ne peut pas être affiché ici.",
 		"unavailable": "Le service n'est pas disponible pour le moment. Réessaie dans un instant.",
 		"backend_unreachable": "Le service est injoignable pour le moment. Réessaie dans un instant.",
