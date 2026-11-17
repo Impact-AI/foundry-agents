@@ -2,7 +2,9 @@
 
 ## Reporting a vulnerability
 
-Do not open a public issue for a security problem. Use the repository's private vulnerability reporting (GitHub → **Security** → **Report a vulnerability**) so the report reaches the maintainers alone. Say which part is affected, how to reproduce it, and what it lets an attacker do. If private reporting is unavailable to you, email security@impact.ai, the maintainers' security contact, instead. You will get an acknowledgement within five working days, and a fix or a statement of why none is needed before anything is published.
+Do not open a public issue for a security problem. Use the repository's private vulnerability reporting (GitHub → **Security** → **Report a vulnerability**) so the report reaches the maintainers alone. Say which part is affected, how to reproduce it, and what it lets an attacker do. If private reporting is unavailable to you, email security@impact.ai, the maintainers' security contact, instead. Maintainers review and respond to reports on a best-effort basis, without a guaranteed response time, fix or delivery date. We seek to coordinate disclosure with reporters and communicate an appropriate next step after assessment; this does not guarantee a fix or control when others publish.
+
+Support for a deployed or customized application is available only under a separate paid contract, whose terms define the scope and any service levels.
 
 ## What is in scope
 

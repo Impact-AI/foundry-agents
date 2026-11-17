@@ -104,7 +104,7 @@ The records in the [worked example](worked-example.md) are a default, not a fall
 
 ## Taking upstream fixes
 
-A team that adopts Agent on Azure forks the repository and owns the fork: it decides what runs, and nothing reaches it on its own. The maintainers' fixes and additions arrive when the team merges them from upstream:
+A team that adopts Agent on Azure forks the repository and controls and maintains its fork, subject to the applicable licenses: it decides what runs, and nothing reaches it on its own. The maintainers' fixes and additions arrive when the team merges them from upstream:
 
 ```sh
 git remote add upstream https://github.com/Impact-AI/foundry-agents.git

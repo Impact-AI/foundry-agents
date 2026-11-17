@@ -107,7 +107,7 @@ A turn the content filter refuses ends with `turn.blocked`, and the person is to
 
 ## Generated content
 
-**Machine-readable marking of live voice (AI Act Art. 50(2)) is not built.** The assistant's voice is synthesized by Azure (a Foundry voice agent on Voice Live) and relayed to the browser by the backend, which passes it on unaltered and does not mark it. Agent on Azure assumes Voice Live and Azure neural voices add no watermark at source. The interface tells every listener, at every place voice is offered, that they are talking to an AI (Art. 50(1)), and nothing is marked. If your product must mark synthetic audio (for example, one used by children), mark it where the audio already passes through Agent on Azure's own code: in the backend's relay, or in the playback `AudioWorklet` before it plays, with a watermark such as AudioSeal.
+**Machine-readable marking of live voice is not implemented by this application.** The assistant's voice is synthesized by Azure and relayed to the browser by the backend, which passes it on unaltered and adds no machine-readable marking. Whether the selected Azure service provides marking at source has not been verified. The interface discloses that the assistant and its voice are AI-generated; that disclosure does not establish that machine-readable marking requirements are met. Assess the obligations applicable to the deployed product, including AI Act Art. 50, and verify the selected services and any additional implementation before making a compliance claim.
 
 ## Browser-facing headers
 
