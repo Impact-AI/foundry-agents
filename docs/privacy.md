@@ -125,9 +125,9 @@ Settings provides the self-service controls below. They do not cover every store
 
 | Right | How | What happens |
 | --- | --- | --- |
-| Access and portability | "Download a copy" (`GET /account/export`) | One JSON file (`personal-data-export/3`), streamed: the account with the person's fields and every statement the assistant remembers, and every conversation with its messages as the person saw them (the words, and a marker for each picture). The tool calls, their results and the model's reasoning, which the history also stores, are not in the file. |
+| Access and portability | "Download a copy" (`GET /account/export`) | One JSON file (`personal-data-export/3`), streamed: the account with the person's fields and the memories in the active memory store, and every conversation with its messages as the person saw them (the words, and a marker for each picture). The tool calls, their results and the model's reasoning, which the history also stores, are not in the file. |
 | Rectification | Edit the fields; correct, remove or forget what is remembered, a statement at a time | A corrected statement is the person's words, and what later extractions start from. |
-| Erasure | Delete the account (`DELETE /account`), after a confirmation | The account is shut at once, then everything held under it is swept in order (see **Erasure** below). |
+| Erasure | Delete the account (`DELETE /account`), after a confirmation | The account is shut at once, then the application-managed data is swept in order, subject to the retention and service exceptions below (see **Erasure** and **Known gaps**). |
 
 ### Requests beyond the self-service controls
 
