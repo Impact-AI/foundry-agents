@@ -1,0 +1,12 @@
+{
+	"extends": "./tsconfig.json",
+	"compilerOptions": {
+		// The tests run under Bun and import `bun:test`; they render no DOM.
+		"types": ["bun", "react", "react-dom"],
+		"lib": ["esnext", "dom", "dom.iterable"],
+		"incremental": false,
+		"plugins": []
+	},
+	"include": ["**/*.test.ts", "**/*.test.tsx", "types/**/*.d.ts"],
+	"exclude": ["node_modules", ".next"]
+}

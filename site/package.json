@@ -1,0 +1,17 @@
+{
+	"name": "agent-azure-site",
+	"type": "module",
+	"private": true,
+	"scripts": {
+		"dev": "vitepress dev",
+		"build": "vitepress build",
+		"preview": "vitepress preview",
+		"check-anchors": "bun check-anchors.ts"
+	},
+	"devDependencies": {
+		"github-slugger": "2.0.0",
+		"mermaid": "11.17.2",
+		"svg-pan-zoom": "3.6.2",
+		"vitepress": "1.6.4"
+	}
+}

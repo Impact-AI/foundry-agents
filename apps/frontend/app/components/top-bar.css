@@ -1,0 +1,134 @@
+/*
+ * The bar: a frosted band over the field, sticky over the page. Its height
+ * is `--topbar-h`, which the workspace's arithmetic reads. The account's
+ * disc lives here too, because the bar is the one place it stands.
+ */
+.topbar {
+	position: sticky;
+	top: 0;
+	z-index: 20;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--space-3);
+	height: var(--topbar-h);
+	padding: env(safe-area-inset-top, 0px) var(--gutter) 0;
+	border-bottom: 1px solid var(--line);
+	background: var(--band);
+	-webkit-backdrop-filter: blur(16px);
+	backdrop-filter: blur(16px);
+}
+
+.topbar-lead {
+	display: flex;
+	align-items: center;
+	gap: var(--space-3);
+	min-width: 0;
+}
+
+.topbar-brand {
+	font-weight: var(--weight-bold);
+	letter-spacing: 0.01em;
+	text-decoration: none;
+	color: var(--text);
+}
+
+/* The deployment's logo, when it has one: the name's height, before it. */
+.topbar-brand .brand-logo {
+	height: 1.5em;
+	width: auto;
+	max-width: 7.5rem;
+	margin-inline-end: var(--space-2);
+	vertical-align: middle;
+	object-fit: contain;
+}
+
+/* The library by hand: its words beside the glyph; on a phone, the glyph alone at the thumb's size. */
+.topbar-library {
+	padding-left: var(--space-2);
+}
+@media (max-width: 480px) {
+	.topbar-library {
+		width: var(--thumb);
+		min-height: var(--thumb);
+		padding: 0;
+	}
+	.topbar-library-label {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		overflow: hidden;
+		clip: rect(0, 0, 0, 0);
+		white-space: nowrap;
+	}
+}
+
+.topbar-home {
+	animation: home-in var(--dur-slow) var(--ease) both;
+}
+
+.topbar-home.is-closing {
+	animation: home-out var(--dur-slow) var(--ease) forwards;
+	pointer-events: none;
+}
+
+@keyframes home-in {
+	from {
+		opacity: 0;
+		transform: translateX(-6px);
+	}
+	to {
+		opacity: 1;
+		transform: none;
+	}
+}
+
+@keyframes home-out {
+	to {
+		opacity: 0;
+		transform: translateX(-6px);
+	}
+}
+
+.account-disc {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 36px;
+	height: 36px;
+	padding: 0;
+	border: 1px solid var(--line-strong);
+	border-radius: 50%;
+	background: var(--glass-2);
+	color: var(--text);
+	font-size: var(--text-xs);
+	font-weight: var(--weight-semibold);
+	letter-spacing: 0.04em;
+	cursor: pointer;
+	transition:
+		border-color var(--dur) var(--ease),
+		background var(--dur) var(--ease);
+}
+
+.account-disc[aria-expanded="true"],
+.account-disc:focus-visible {
+	border-color: var(--accent);
+	background: var(--accent-soft);
+}
+
+@media (hover: hover) {
+	.account-disc:hover {
+		border-color: var(--accent);
+		background: var(--accent-soft);
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.topbar-home,
+	.topbar-home.is-closing {
+		animation: none;
+	}
+	.account-disc {
+		transition: none;
+	}
+}

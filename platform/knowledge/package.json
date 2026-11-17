@@ -1,0 +1,27 @@
+{
+	"name": "@platform/knowledge",
+	"version": "0.0.0",
+	"type": "module",
+	"private": true,
+	"description": "Retrieval-augmented generation over documents through one Azure AI Search index: Azure's indexer ingests a library from Blob with each file's readers in its metadata, Prompt Shields reads every chunk, and the planned and relaxed hybrid query carries the GA security filter.",
+	"exports": {
+		".": "./src/index.ts",
+		"./testing": "./src/testing/index.ts"
+	},
+	"scripts": {
+		"typecheck": "tsc --noEmit"
+	},
+	"dependencies": {
+		"@azure/search-documents": "^13.0.0",
+		"@platform/config": "workspace:*",
+		"@platform/llm": "workspace:*",
+		"@platform/storage": "workspace:*",
+		"ai": "^7.0.166",
+		"zod": "^3.25.0"
+	},
+	"devDependencies": {
+		"@platform/test-support": "workspace:*",
+		"@types/bun": "^1.3.14",
+		"typescript": "^5"
+	}
+}

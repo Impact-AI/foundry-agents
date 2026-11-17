@@ -1,0 +1,25 @@
+{
+	"name": "@platform/identity",
+	"version": "0.0.0",
+	"type": "module",
+	"private": true,
+	"description": "Who a person is and what they get: sign-in claim rules, the access policy, the account that is one person, and the signed assertions services present to each other.",
+	"exports": {
+		".": "./src/index.ts",
+		"./claims": "./src/claims/index.ts",
+		"./claims/provider": "./src/claims/provider.ts",
+		"./assertions": "./src/assertions.ts",
+		"./deployment-rules": "./src/deployment-rules.ts"
+	},
+	"scripts": {
+		"typecheck": "tsc --noEmit"
+	},
+	"dependencies": {
+		"@platform/config": "workspace:*",
+		"@platform/cosmos": "workspace:*"
+	},
+	"devDependencies": {
+		"@types/bun": "^1.3.14",
+		"typescript": "^5"
+	}
+}

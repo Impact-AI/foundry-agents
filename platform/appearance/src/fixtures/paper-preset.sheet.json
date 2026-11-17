@@ -1,0 +1,8 @@
+{
+	"css": ":root[data-appearance]{--font-sans:Georgia, \"Iowan Old Style\", \"Times New Roman\", serif;--font-base:17px;--text-xs:0.64rem;--text-sm:0.8rem;--text-md:1rem;--text-lg:1.25rem;--text-xl:1.563rem;--text-2xl:1.953rem;--text-3xl:clamp(1.953rem, 3vw, 3.052rem);--space-1:5px;--space-2:10px;--space-3:15px;--space-4:20px;--space-5:25px;--space-6:30px;--space-8:40px;--space-10:50px;--gutter:20px;--radius-sm:12px;--radius:18px;--radius-lg:24px;--radius-xl:33px;--brand-surface:#0b0f17;--brand-ambient:#be96ff;--brand-primary:#7fb2ff;--brand-warning:#ff8a7a;--brand-success:#6fd9a3;--brand-aux:#8aadf3;--brand-on-primary:#081120;--chan-0:#14c7a9;--chan-1:#10889f;--chan-2:#7ab5f1;--chan-3:#5971ee;--chan-4:#b4a6f6;--chan-5:#a155ee}@media (prefers-color-scheme: light){:root[data-appearance]:not([data-scheme=\"dark\"]){--brand-surface:#f4f1ea;--brand-ambient:#d9cfb8;--brand-primary:#a33d1b;--brand-warning:#b0301f;--brand-success:#2a6f47;--brand-aux:#5b6fb3;--brand-on-primary:#ffffff;--chan-0:#224846;--chan-1:#3f7487;--chan-2:#2e4363;--chan-3:#6065b5;--chan-4:#483777;--chan-5:#8c55b0}}:root[data-appearance][data-scheme=\"light\"]{--brand-surface:#f4f1ea;--brand-ambient:#d9cfb8;--brand-primary:#a33d1b;--brand-warning:#b0301f;--brand-success:#2a6f47;--brand-aux:#5b6fb3;--brand-on-primary:#ffffff;--chan-0:#224846;--chan-1:#3f7487;--chan-2:#2e4363;--chan-3:#6065b5;--chan-4:#483777;--chan-5:#8c55b0}",
+	"attributes": {
+		"data-appearance": "",
+		"data-palette": "",
+		"data-scheme": "light"
+	}
+}

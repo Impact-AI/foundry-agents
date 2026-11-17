@@ -1,0 +1,12 @@
+{
+	"extends": "../tsconfig.json",
+	"compilerOptions": {
+		// Run by Playwright under Node: no DOM component is imported here, and
+		// what runs in the page is the page's own code.
+		"types": ["node"],
+		"incremental": false,
+		"plugins": []
+	},
+	"include": ["**/*.ts"],
+	"exclude": ["test-results", "playwright-report"]
+}

@@ -1,0 +1,50 @@
+{
+	"scheme": "light",
+	"palette": {
+		"dark": {
+			"surface": "#0b0f17",
+			"ambient": "#be96ff",
+			"primary": "#7fb2ff",
+			"warning": "#ff8a7a",
+			"success": "#6fd9a3",
+			"aux": "#8aadf3"
+		},
+		"light": {
+			"surface": "#f4f1ea",
+			"ambient": "#d9cfb8",
+			"primary": "#a33d1b",
+			"warning": "#b0301f",
+			"success": "#2a6f47",
+			"aux": "#5b6fb3"
+		}
+	},
+	"type": {
+		"font": "serif",
+		"size": 17,
+		"steps": "wide"
+	},
+	"space": {
+		"density": "spacious"
+	},
+	"shape": {
+		"radius": 18
+	},
+	"layout": {
+		"key": "focus-conversation",
+		"split": 45
+	},
+	"brand": {
+		"name": {
+			"en": "Harbor Desk",
+			"it": "Sportello Porto"
+		},
+		"welcome": {
+			"en": "What can I find for you today?",
+			"it": ""
+		},
+		"logo": "appearance/logo/3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f.png"
+	},
+	"preview": {
+		"origins": ["https://admin.example.com"]
+	}
+}

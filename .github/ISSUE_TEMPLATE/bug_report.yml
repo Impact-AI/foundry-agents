@@ -1,0 +1,64 @@
+name: Bug report
+description: Something in Agent on Azure does not work as documented.
+labels: [bug, triage]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the report. Issues are read on a best-effort basis, with no guaranteed response or fix date (see SUPPORT.md).
+        **Do not include secrets, subscription or tenant ids, resource names, or personal data.** A security problem goes through private vulnerability reporting (SECURITY.md), not an issue.
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: "The commit you deployed (`git rev-parse --short HEAD`), and the azd and Bun versions (`azd version`, `bun --version`)."
+      placeholder: "abc1234, azd 1.x, bun 1.x"
+    validations:
+      required: true
+  - type: dropdown
+    id: mode
+    attributes:
+      label: Deployment mode
+      options:
+        - Demo
+        - Hardened
+        - Demo or hardened with settings changed (say which below)
+        - Local development only
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: From a fresh clone, the commands you ran and the settings you changed.
+      placeholder: |
+        1. azd env set ...
+        2. azd up
+        3. ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: The output of the step that failed, with secrets, ids and names removed.
+      render: shell
+  - type: checkboxes
+    id: sanitized
+    attributes:
+      label: Before you submit
+      options:
+        - label: I removed secrets, subscription and tenant ids, resource names and personal data from everything above.
+          required: true

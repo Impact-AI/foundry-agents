@@ -1,0 +1,14 @@
+[
+	{
+		"id": "GHSA-mrhx-c7xc-m3w5",
+		"package": "zod",
+		"lockfile": ".",
+		"reason": "The fix is in a major the libraries that own a run's schemas are not written for, so the validator stays and its cost is bounded where a body is read: a parsed body is held to a count of array elements and object keys before a schema reads it (overElementLimit in platform/http, at the frontend's chat route and the backend's run route), and every other schema reads a frame of a few kilobytes. It ends when those libraries move to the fixed major."
+	},
+	{
+		"id": "GHSA-587h-7wmj-h5pm",
+		"package": "vite",
+		"lockfile": "site",
+		"reason": "The development server's editor launcher. The site is built to static files and published as those; the server runs only on the machine of whoever is editing a page. VitePress 1 holds Vite at a major with no fixed release; it ends with a VitePress release on a fixed Vite."
+	}
+]

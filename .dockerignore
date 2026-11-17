@@ -1,0 +1,31 @@
+# Both Dockerfiles build from the repository root; this is what never reaches
+# the build context. azd's remote build tars the working tree, so a gitignored
+# path is build input unless it is named here too.
+node_modules
+**/node_modules
+.git
+.github
+.claude
+.agents
+plugins
+.azure
+.next*
+**/.next*
+dist
+**/dist
+coverage
+infra
+hooks
+docs
+*.md
+.env
+**/.env
+**/.env.*
+**/*.bak
+**/*.local
+**/e2e/test-results
+**/e2e/playwright-report
+.DS_Store
+# A local Redis writes its snapshot where it was started.
+dump.rdb
+**/dump.rdb

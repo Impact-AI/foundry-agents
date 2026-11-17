@@ -1,0 +1,20 @@
+{
+  "interface": {
+    "displayName": "Impact AI"
+  },
+  "name": "impact-ai",
+  "plugins": [
+    {
+      "category": "Developer Tools",
+      "name": "impact-sdk-setup",
+      "policy": {
+        "authentication": "ON_INSTALL",
+        "installation": "AVAILABLE"
+      },
+      "source": {
+        "path": "./plugins/impact-sdk-setup",
+        "source": "local"
+      }
+    }
+  ]
+}

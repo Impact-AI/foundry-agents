@@ -1,0 +1,29 @@
+{
+	"name": "@platform/voice",
+	"version": "0.0.0",
+	"type": "module",
+	"private": true,
+	"description": "Live voice with a Foundry voice agent, relayed by the backend: one WebSocket from the browser, one to the voice agent on the managed identity, both held by the replica the browser reached, every session metered.",
+	"exports": {
+		".": "./src/index.ts",
+		"./testing": "./src/testing/index.ts"
+	},
+	"scripts": {
+		"typecheck": "tsc --noEmit"
+	},
+	"dependencies": {
+		"@platform/agent": "workspace:*",
+		"@platform/config": "workspace:*",
+		"@platform/identity": "workspace:*",
+		"@platform/metering": "workspace:*",
+		"@platform/observability": "workspace:*",
+		"@platform/prompt": "workspace:*",
+		"@platform/redis": "workspace:*",
+		"zod": "^3.25.0"
+	},
+	"devDependencies": {
+		"@platform/test-support": "workspace:*",
+		"@types/bun": "^1.3.14",
+		"typescript": "^5"
+	}
+}

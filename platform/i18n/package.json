@@ -1,0 +1,17 @@
+{
+	"name": "@platform/i18n",
+	"version": "0.0.0",
+	"type": "module",
+	"private": true,
+	"description": "How a language reaches every channel: the product's locale registry, one resolution order for a request, validation of a client-supplied locale, and the language name a model is told.",
+	"exports": {
+		".": "./src/index.ts"
+	},
+	"scripts": {
+		"typecheck": "tsc --noEmit"
+	},
+	"devDependencies": {
+		"@types/bun": "^1.3.14",
+		"typescript": "^5"
+	}
+}

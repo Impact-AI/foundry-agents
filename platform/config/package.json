@@ -1,0 +1,27 @@
+{
+	"name": "@platform/config",
+	"version": "0.0.0",
+	"type": "module",
+	"private": true,
+	"description": "Reading configuration on Azure: App Configuration, the process's one credential, and the startup guard.",
+	"exports": {
+		".": "./src/index.ts",
+		"./env": "./src/env.ts",
+		"./merge": "./src/merge.ts",
+		"./singleton": "./src/singleton.ts",
+		"./testing": "./src/testing.ts",
+		"./deployment-guard": "./src/deployment-guard.ts"
+	},
+	"scripts": {
+		"typecheck": "tsc --noEmit"
+	},
+	"dependencies": {
+		"@azure/app-configuration": "^1.12.1",
+		"@azure/identity": "^4.13.1"
+	},
+	"devDependencies": {
+		"@platform/test-support": "workspace:*",
+		"@types/bun": "^1.3.14",
+		"typescript": "^5"
+	}
+}

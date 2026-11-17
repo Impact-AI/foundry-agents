@@ -1,0 +1,32 @@
+{
+	"name": "@platform/observability",
+	"version": "0.0.0",
+	"type": "module",
+	"private": true,
+	"description": "What a process may say about itself: OpenTelemetry for a Bun server and for Next, the scrub every span and log record passes before export, the probe filter, the live sampling ratio, and the two structured lines — a refusal and a model call — that reach the store as spans.",
+	"exports": {
+		".": "./src/index.ts",
+		"./bun": "./src/bun.ts",
+		"./next": "./src/next.ts",
+		"./settings": "./src/settings.ts"
+	},
+	"scripts": {
+		"typecheck": "tsc --noEmit"
+	},
+	"dependencies": {
+		"@azure/monitor-opentelemetry": "^1.21.0",
+		"@azure/monitor-opentelemetry-exporter": "1.0.0-beta.45",
+		"@opentelemetry/api": "^1.9.1",
+		"@opentelemetry/context-async-hooks": "^2.10.0",
+		"@opentelemetry/core": "^2.10.0",
+		"@opentelemetry/resources": "^2.10.0",
+		"@opentelemetry/sdk-logs": "^0.221.0",
+		"@opentelemetry/sdk-trace-base": "^2.10.0",
+		"@platform/config": "workspace:*"
+	},
+	"devDependencies": {
+		"@platform/test-support": "workspace:*",
+		"@types/bun": "^1.3.14",
+		"typescript": "^5"
+	}
+}

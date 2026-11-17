@@ -1,0 +1,404 @@
+/* The site's colors: an Azure-like blue for the brand, in both themes. */
+:root {
+	--vp-c-brand-1: #0f6cbd;
+	--vp-c-brand-2: #115ea3;
+	--vp-c-brand-3: #0f548c;
+	--vp-c-brand-soft: rgba(15, 108, 189, 0.14);
+	--vp-home-hero-name-color: transparent;
+	--vp-home-hero-name-background: linear-gradient(120deg, #0f6cbd 20%, #6b4fbb);
+}
+
+.dark {
+	--vp-c-brand-1: #62abf5;
+	--vp-c-brand-2: #479ef5;
+	--vp-c-brand-3: #2886de;
+	--vp-c-brand-soft: rgba(98, 171, 245, 0.16);
+	--vp-home-hero-name-background: linear-gradient(120deg, #62abf5 20%, #a58cf0);
+}
+
+/* The makers above the title: logos when supplied, names otherwise. */
+.makers {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 12px 28px;
+	margin-bottom: 20px;
+}
+
+.maker-logo {
+	height: 32px;
+	width: auto;
+}
+
+/* A maker's two logos, one per theme. The dark one carries its letters'
+   shadow inside its edges, so it is drawn taller to show the mark at the
+   light one's size, without growing the row. */
+.maker-logo.dark-only {
+	height: 44px;
+	margin: -6px 0;
+}
+
+/* A maker's two logos, one per theme. */
+.dark .maker-logo.light-only,
+html:not(.dark) .maker-logo.dark-only {
+	display: none;
+}
+
+.maker-name {
+	font-size: 13px;
+	font-weight: 600;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+	color: var(--vp-c-text-2);
+	border: 1px solid var(--vp-c-divider);
+	border-radius: 999px;
+	padding: 4px 12px;
+}
+
+/* The landing page's sections below the feature cards. */
+.home-section {
+	max-width: 1152px;
+	margin: 0 auto;
+	padding: 48px 24px 0;
+}
+
+.vp-doc .home-section h2 {
+	border-top: none;
+	margin: 48px 0 0;
+	padding-top: 0;
+}
+
+.vp-doc .home-section h2:first-child {
+	margin-top: 0;
+}
+
+.vp-doc ol.steps {
+	counter-reset: step;
+	list-style: none;
+	padding-left: 0;
+}
+
+.steps > li {
+	counter-increment: step;
+	position: relative;
+	padding-left: 44px;
+	margin: 20px 0;
+}
+
+.steps > li::before {
+	content: counter(step);
+	position: absolute;
+	left: 0;
+	top: 0;
+	width: 28px;
+	height: 28px;
+	border-radius: 50%;
+	background: var(--vp-c-brand-soft);
+	color: var(--vp-c-brand-1);
+	font-weight: 600;
+	display: grid;
+	place-items: center;
+}
+
+.doc-cards {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+	gap: 16px;
+	margin: 16px 0;
+}
+
+.doc-card,
+.vp-doc a.doc-card {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	border: 1px solid var(--vp-c-bg-soft);
+	background: var(--vp-c-bg-soft);
+	border-radius: 12px;
+	padding: 20px;
+	text-decoration: none;
+	transition: border-color 0.2s;
+}
+
+a.doc-card:hover,
+.vp-doc a.doc-card:hover {
+	border-color: var(--vp-c-brand-1);
+}
+
+.doc-card-title {
+	font-weight: 600;
+	color: var(--vp-c-text-1);
+}
+
+.doc-card-details {
+	font-size: 14px;
+	color: var(--vp-c-text-2);
+}
+
+/*
+ * In the page a diagram fits its column, an overview whose text may be small,
+ * and sits in the middle when it is narrower. Its "Expand diagram" button, in
+ * its top right corner, opens it over the whole window to zoom and pan.
+ */
+.mermaid-figure {
+	position: relative;
+	margin: 16px 0;
+}
+
+.mermaid-diagram {
+	cursor: zoom-in;
+}
+
+.mermaid-diagram svg {
+	display: block;
+	margin: 0 auto;
+	max-width: 100%;
+	height: auto;
+}
+
+.mermaid-expand,
+.mermaid-tool {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 32px;
+	height: 32px;
+	padding: 0 8px;
+	border: 1px solid var(--vp-c-divider);
+	border-radius: 6px;
+	background: var(--vp-c-bg);
+	color: var(--vp-c-text-1);
+	font-size: 16px;
+	line-height: 1;
+	cursor: pointer;
+}
+
+.mermaid-expand {
+	position: absolute;
+	top: 0;
+	right: 0;
+	opacity: 0.85;
+}
+
+.mermaid-expand:hover,
+.mermaid-tool:hover {
+	border-color: var(--vp-c-brand-1);
+	opacity: 1;
+}
+
+.mermaid-expand:focus-visible,
+.mermaid-tool:focus-visible {
+	outline: 2px solid var(--vp-c-brand-1);
+	outline-offset: 2px;
+	opacity: 1;
+}
+
+.mermaid-stage:focus-visible {
+	outline: 2px solid var(--vp-c-brand-1);
+	outline-offset: -2px;
+}
+
+/* The page behind an open diagram keeps still. */
+html:has(.mermaid-dialog[open]) {
+	overflow: hidden;
+}
+
+.mermaid-dialog {
+	position: fixed;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	max-width: none;
+	max-height: none;
+	margin: 0;
+	padding: 0;
+	border: 0;
+	background: var(--vp-c-bg);
+	color: var(--vp-c-text-1);
+}
+
+.mermaid-dialog[open] {
+	display: flex;
+	flex-direction: column;
+}
+
+.mermaid-dialog::backdrop {
+	background: var(--vp-c-bg);
+}
+
+.mermaid-toolbar {
+	display: flex;
+	justify-content: flex-end;
+	gap: 8px;
+	padding: 8px 16px;
+	border-bottom: 1px solid var(--vp-c-divider);
+}
+
+.mermaid-stage {
+	flex: 1;
+	min-height: 0;
+	overflow: hidden;
+	cursor: grab;
+	touch-action: none;
+}
+
+.mermaid-stage:active {
+	cursor: grabbing;
+}
+
+.mermaid-stage svg {
+	display: block;
+}
+
+/*
+ * Mermaid sizes each label's box from text it measures off the page, at the
+ * line height it sets on the label. The page's paragraph rule would give the
+ * label's paragraph a taller line, and the box would clip its last line.
+ */
+.vp-doc .mermaid-diagram foreignObject p,
+.vp-doc .mermaid-stage foreignObject p {
+	line-height: inherit;
+	margin: 0;
+}
+
+@media (max-width: 767px) {
+	.vp-doc th,
+	.vp-doc td {
+		padding: 8px 10px;
+	}
+}
+
+/*
+ * On a phone a table of prose columns stacks: each row is a card, and each
+ * cell shows its column's heading above it, from the `data-label` that
+ * `tables.ts` copies there. The heading row is kept for screen readers.
+ */
+@media (max-width: 639px) {
+	.vp-doc table.stacks {
+		display: block;
+		overflow: visible;
+		border: none;
+	}
+
+	.vp-doc table.stacks thead {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		overflow: hidden;
+		clip-path: inset(50%);
+		white-space: nowrap;
+	}
+
+	.vp-doc table.stacks tbody,
+	.vp-doc table.stacks tr,
+	.vp-doc table.stacks td {
+		display: block;
+		width: 100%;
+	}
+
+	.vp-doc table.stacks tr {
+		border: 1px solid var(--vp-c-divider);
+		border-radius: 8px;
+		margin: 0 0 12px;
+		padding: 4px 0;
+		background-color: var(--vp-c-bg);
+	}
+
+	.vp-doc table.stacks tr:nth-child(2n) {
+		background-color: var(--vp-c-bg-soft);
+	}
+
+	.vp-doc table.stacks td {
+		border: none;
+		padding: 6px 12px;
+		overflow-wrap: anywhere;
+	}
+
+	.vp-doc table.stacks td[data-label]:not([data-label=""])::before {
+		content: attr(data-label);
+		display: block;
+		margin-bottom: 2px;
+		font-size: 12px;
+		font-weight: 600;
+		letter-spacing: 0.02em;
+		color: var(--vp-c-text-2);
+	}
+}
+
+/* The landing page: the workspace under the hero, the "Start here" row, the video. */
+.hero-shot {
+	max-width: 1152px;
+	margin: 0 auto;
+	padding: 0 24px 8px;
+}
+
+.hero-shot img {
+	display: block;
+	width: 100%;
+	height: auto;
+	border: 1px solid var(--vp-c-divider);
+	border-radius: 12px;
+	box-shadow: 0 12px 40px rgba(0, 0, 0, 0.14);
+}
+
+.start-here {
+	max-width: 1152px;
+	margin: 0 auto;
+	padding: 40px 24px 8px;
+}
+
+.start-here.vp-doc h2 {
+	border-top: none;
+	margin: 0;
+	padding-top: 0;
+}
+
+/* The feature row's heading, which the theme's own row does not carry. */
+.start-here.vp-doc h2#what-comes-assembled {
+	margin-top: 40px;
+}
+
+.doc-card-links {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 4px 16px;
+	margin-top: auto;
+	padding-top: 6px;
+	font-weight: 600;
+}
+
+.home-video {
+	margin: 16px 0;
+}
+
+.home-video video {
+	display: block;
+	width: 100%;
+	max-width: 960px;
+	height: auto;
+	aspect-ratio: 16 / 10;
+	background: var(--vp-c-bg-soft);
+	border: 1px solid var(--vp-c-divider);
+	border-radius: 12px;
+}
+
+.home-video figcaption {
+	margin-top: 8px;
+	font-size: 14px;
+	color: var(--vp-c-text-2);
+}
+
+/* The hero's text is a sentence, not a slogan: drawn smaller than the name. */
+@media (min-width: 640px) {
+	.VPHero .text {
+		font-size: 36px;
+		line-height: 44px;
+	}
+}
+
+@media (min-width: 960px) {
+	.VPHero .text {
+		font-size: 40px;
+		line-height: 48px;
+	}
+}

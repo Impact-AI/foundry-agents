@@ -1,0 +1,21 @@
+{
+	"name": "agent-sample",
+	"image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
+	"features": {
+		"ghcr.io/devcontainers/features/azure-cli:1": {},
+		"ghcr.io/azure/azure-dev/azd:0": {},
+		"ghcr.io/devcontainers/features/docker-in-docker:2": {},
+		"ghcr.io/shyim/devcontainers-features/bun:0": { "version": "1.4.4" }
+	},
+	"postCreateCommand": "bun install --frozen-lockfile",
+	"forwardPorts": [3000, 4111],
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"ms-azuretools.azure-dev",
+				"ms-azuretools.vscode-bicep",
+				"biomejs.biome"
+			]
+		}
+	}
+}

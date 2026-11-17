@@ -1,0 +1,46 @@
+# dependencies (bun install)
+node_modules
+
+# build output
+dist
+out
+*.tgz
+*.tsbuildinfo
+coverage
+*.lcov
+
+# Next.js: globbed, so a second build directory (NEXT_DIST_DIR) is never
+# untracked-but-not-ignored.
+.next
+.next*/
+next-env.d.ts
+
+# dotenv files hold live credentials; match by prefix and by suffix so any
+# variant someone creates in passing is covered. The examples stay tracked.
+.env
+.env.*
+*.env
+!.env.example
+!.env*.example
+
+# azd's environments: each holds a deployment's values, including secrets.
+.azure/
+
+# `az bicep build` writes this beside main.bicep; it is a build artifact.
+infra/main.json
+
+# The end-to-end suite's output.
+**/e2e/test-results
+**/e2e/playwright-report
+
+# Redis persistence file, written by a local redis-server started for the suites.
+dump.rdb
+
+# editors and the OS
+.idea
+.DS_Store
+.claude/settings.local.json
+.claude/worktrees/
+
+# The documentation site's build scratch (its output is dist/, its cache in node_modules).
+site/.vitepress/.temp
