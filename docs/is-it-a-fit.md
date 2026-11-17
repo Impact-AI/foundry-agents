@@ -126,7 +126,7 @@ After an upgrade of any of these, check them on a deployment ([what only a deplo
 | Implementation, support and optional products | A separate contract with Impact AI | Impact AI, for what that contract covers, including a service level. Impact AI offers maintenance of an adapted application: fixing application bugs, applying dependency and security updates, upgrading to new versions of Agent on Azure, and changing customer-specific code; the contract sets which of these apply. Impact AI Admin Center and Impact AI Control Plane are optional, with their own terms ([optional products](impact-ai.md#optional-products-and-integrations)). |
 
 - **Versions.** There are no tagged releases. A team forks or copies the repository, tracks the main branch, and merges upstream changes when it chooses ([taking upstream fixes](adapting.md#taking-upstream-fixes)).
-- **Security.** The [security policy](../SECURITY.md) asks for vulnerabilities through the repository's private vulnerability reporting, never a public issue. It promises an acknowledgement within five working days.
+- **Security.** The [security policy](../SECURITY.md) asks for vulnerabilities through the repository's private vulnerability reporting, never a public issue. Maintainers assess and respond on a best-effort basis, with no guaranteed response, fix or delivery date. Support for a deployed or customized application requires a separate paid contract.
 
 ## What does it cost to run?
 
