@@ -30,7 +30,7 @@
 		"@platform/redis": "workspace:*",
 		"ai": "^7.0.166",
 		"gpt-tokenizer": "^4.1.0",
-		"openai": "7.53.0",
+		"openai": "7.55.0",
 		"zod": "^3.25.0"
 	},
 	"devDependencies": {
