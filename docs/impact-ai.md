@@ -8,49 +8,35 @@ The application does not need an Impact AI account, SDK or product. Each product
 
 | Option | Purpose | Status |
 | --- | --- | --- |
-| [Impact AI Admin Center](#impact-ai-admin-center) | Make maintaining the application easier: prompts, guardrail wording, tool switches, documents and supported runtime settings through forms instead of code | A separate product, not included in this repository and not needed to use it; Impact AI connects it to your deployment |
+| [Impact AI Admin Center](#impact-ai-admin-center) | Make maintaining the application easier: prompts, guardrail wording, tool switches, documents and supported runtime settings through forms instead of code | A separate product; connection scope and supported controls must be agreed and verified for the customer deployment |
 | [Impact AI Control Plane](#impact-ai-control-plane) | Test, monitor and improve the application: evaluations, traces and comparisons | Its SDK setup plugin for Codex (pre-release) ships in this repository; evaluations and comparisons are not yet available for Agent on Azure |
 
 For either, [contact Impact AI](https://www.impact.ai/).
 
 ## Impact AI Admin Center
 
-Impact AI Admin Center is a separate product, not included in this repository and not needed to use it. It makes maintaining agent-based applications easier: teams change prompts, guardrail wording, tool switches, documents and supported settings through forms instead of code. Developers still build new capabilities and integrations in code. Which controls are available depends on what Impact AI connects for your deployment, and the descriptions below are Impact AI's.
-
-In this repository, a document enters a library only through the [ingest script](documents.md#load-a-library). Admin Center makes ingestion easier: a team uploads documents from a form, and they go through the same pipeline the script feeds. It adds no second way for end users to upload files.
+Impact AI Admin Center is a separate product, not included in this repository and not needed to use it. It gives application and business teams forms for changing supported prompts, guardrail wording, tool switches, documents and runtime settings without editing code. Developers still implement new capabilities and integrations.
 
 ### What teams can do from it
 
-Impact AI describes Admin Center's controls as follows.
+The controls offered for a customer application depend on the integration agreed with Impact AI. Confirm and demonstrate each supported control on that application before including it in the delivery scope. The existence of this repository's settings and extension points does not establish Admin Center compatibility.
 
-- **Keep the library current.** Upload documents into the ingestion pipeline, set who may read each one, and preview what a search finds.
-- **Change how the assistant behaves.** Edit and publish persona versions and roll back to an earlier one, adjust the guardrail wording, and switch existing tools on or off.
-- **Tune supported runtime settings.** The chat model's reasoning effort, the voices, usage limits and retrieval settings. These take effect on a running deployment within about 30 seconds, and voice changes apply to the next session. Choosing another memory store needs a backend restart, and changing a model deployment needs a deployment ([what can change easily](adapting.md#what-can-change-easily)).
-- **Set the branding.** A form over the [branding settings](configuration.md#appearance): the palette, the type, spacing, corners, the assistant's name and welcome line in each language, and the logo. The form writes the settings document and uploads the logo in one step.
-- **Manage operators and accounts.** Roles for each operator, account deactivation, and backup and restore.
-
-Skills are code in Agent on Azure ([what you change, and what it costs](adapting.md#what-you-change-and-what-it-costs)), so Admin Center does not edit them.
+Runtime configuration is distinct from changing the application: a supported setting can take effect after a refresh, a voice change may apply to the next session, and a new model deployment or capability may require a deployment. The application-specific timing and restart requirements are in [adapting](adapting.md#what-can-change-easily).
 
 ### Without Admin Center
 
-The application runs fully without it. These changes have an equivalent in this repository:
+The application runs fully without it:
 
-- Documents and who may read them, through the [ingest script](documents.md#load-a-library).
-- Persona versions, through the [persona CLI](operations.md#changing-the-persona).
-- Guardrail wording, tool switches and runtime settings, by editing the settings documents in App Configuration ([tuning while it runs](operations.md#tuning-while-it-runs)).
-- Branding, in two steps by hand: for a logo, upload the image to the deployment's storage account first, then edit the branding settings in App Configuration to name it ([branding settings](configuration.md#appearance), [the logo](configuration.md#the-logo)).
-
-Search preview, operator roles and account deactivation have no equivalent tool here. Backup and restore rely on the Azure services' own features, described in [backups and recovery](operations.md#backups-and-recovery).
+- Load documents and their reader mappings through the [ingest script](documents.md#load-a-library).
+- Publish and activate persona versions through the [persona CLI](operations.md#changing-the-persona).
+- Edit guardrail wording, tool switches and supported runtime settings in App Configuration ([tuning while it runs](operations.md#tuning-while-it-runs)).
+- Configure branding through the [appearance settings](configuration.md#appearance), uploading a logo before naming it in the settings.
 
 ### Getting it
 
-Admin Center is not part of this repository and is not covered by its MIT License. Impact AI connects it to your deployment; [contact Impact AI](https://www.impact.ai/) to discuss it.
+[Contact Impact AI](https://www.impact.ai/) to agree the customer application's controls and integration scope. Before activation, agree the required access, data flows, retention, operator responsibilities and disconnection procedure. No particular connector topology or installation procedure is established by this repository.
 
-How Impact AI's connector works, as Impact AI describes it, for your security review:
-
-- **What is installed.** Impact AI's connector is installed in your own Azure resource group, with roles limited to the resources it manages there. It makes outgoing connections only; nothing in your network is opened to Impact AI.
-- **What it reads and writes.** The connector reads and writes the settings, documents, prompts and branding that Admin Center's controls change, in your deployment's own stores. Which data is shared with Impact AI, and for how long, is agreed before it is switched on.
-- **Disconnecting.** Remove the connector and its role assignments. The application keeps running, with the settings Admin Center last wrote, and you manage them as before through App Configuration and the ingestion scripts.
+Admin Center has separate terms. Support for an adapted customer application, including integration work and maintenance, requires a separate paid contract. Repository maintenance remains best effort ([support](../SUPPORT.md)).
 
 ## Impact AI Control Plane
 
