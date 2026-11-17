@@ -507,7 +507,7 @@
 			"body": "From the settings page you can:",
 			"export": "download your account details, memories in the active memory store and conversation text, with markers for pictures, as one file. Stored tool calls, tool results, model reasoning, logs and external traces are not included; contact the organization running this app for access requests beyond this download;",
 			"correct": "see and correct what the assistant remembers about you, a statement at a time, or remove it — your right to have what is held about you put right;",
-			"delete": "request deletion of your account and the data the application can erase. Retained service copies, backups, logs, external traces and browser copies are subject to the exceptions described on this page and in the organization’s notice. If deletion stops part way, the account cannot be used; retrying deletion in settings completes the application’s remaining steps."
+			"delete": "request deletion of your account and the data the application can erase. Retained service copies, backups, logs, external traces and browser copies are subject to the exceptions described on this page and in the organization’s notice. If deletion stops part way, the account cannot be used. Retrying deletion in settings attempts the remaining steps; contact the organization running this app if deletion continues to fail."
 		},
 		"cookies": {
 			"heading": "Cookies and storage",
@@ -536,7 +536,7 @@
 		"handshake_failed": "The voice channel couldn't be opened.",
 		"settings_refused": "The voice service refused this session's audio settings — reopen the channel, and if you changed Voice tuning, try another noise suppression.",
 		"account_deactivated": "This account has been deactivated.",
-		"erase_incomplete": "Not everything could be deleted. Try again, and the rest goes with it.",
+		"erase_incomplete": "Not everything could be deleted. Try again to retry the remaining steps. Contact the organization running this app if deletion continues to fail.",
 		"unsupported_type": "That kind of file can't be shown here.",
 		"unavailable": "The service isn't available right now. Try again shortly.",
 		"backend_unreachable": "The service can't be reached right now. Try again shortly.",
