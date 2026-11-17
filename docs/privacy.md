@@ -121,13 +121,22 @@ How the service and the models handle that data, including abuse monitoring, is 
 
 ## A person's rights
 
-All three are in **Settings** and need no operator.
+Settings provides the self-service controls below. They do not cover every store or every data-rights request; the deploying organization must also provide the request process described after the table.
 
 | Right | How | What happens |
 | --- | --- | --- |
-| Access and portability | "Download a copy" (`GET /account/export`) | One JSON file (`personal-data-export/3`), streamed: the account with the person's fields and every statement the assistant remembers, and every conversation with its messages as the person saw them (the words, and a marker for each picture). The tool calls, their results and the model's reasoning, which the history also stores, are not in the file. |
+| Access and portability | "Download a copy" (`GET /account/export`) | One JSON file (`personal-data-export/3`), streamed: the account with the person's fields and the memories in the active memory store, and every conversation with its messages as the person saw them (the words, and a marker for each picture). The tool calls, their results and the model's reasoning, which the history also stores, are not in the file. |
 | Rectification | Edit the fields; correct, remove or forget what is remembered, a statement at a time | A corrected statement is the person's words, and what later extractions start from. |
-| Erasure | Delete the account (`DELETE /account`), after a confirmation | The account is shut at once, then everything held under it is swept in order (see **Erasure** below). |
+| Erasure | Delete the account (`DELETE /account`), after a confirmation | The account is shut at once, then the application-managed data is swept in order, subject to the retention and service exceptions below (see **Erasure** and **Known gaps**). |
+
+### Requests beyond the self-service controls
+
+The deploying organization must publish a contact and assign an operator to handle requests that the download, correction and deletion controls do not cover. This is an organizational process to establish before launch, not an additional workflow implemented by this repository.
+
+1. Verify the requester and the relevant account without disclosing another person's data. Identify which history and memory stores, logging destinations and optional integrations have been used, including any earlier memory store.
+2. For an access request, check relevant personal data outside the standard download: stored tool calls and results, logs, external traces and memories in a previous store. Assess what must be supplied and protect other people's data and confidential information; the download is not a complete response by itself.
+3. For correction, forgetting or erasure, handle the relevant stores and providers under their supported procedures and the organization's applicable retention obligations. The account-deletion process is designed to clear both memory stores; the settings controls for individual memories and the standard export read only the active store. Do not claim that deleting an account removes external traces, backups or service-retained copies immediately.
+4. Record what was handled, any remaining retention and its reason, and the response sent to the requester. Keep the deployment's notice aligned with the actual services and periods. Verify deletion and access behavior on the deployed release separately from this written procedure.
 
 **Erasure.** Deleting the account runs these steps in order:
 

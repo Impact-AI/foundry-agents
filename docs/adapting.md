@@ -113,3 +113,7 @@ git merge upstream/main
 ```
 
 The merge stays small when the customer's changes stay in the product layer: `apps/backend/src/product.ts` and `apps/backend/src/product/` on the backend, and the stage's panels (`apps/frontend/app/(app)/stage/`) and the message catalogs (`apps/frontend/messages/`) on the frontend. A change to `platform/`, `infra/` or the hooks is one the team carries through every merge. After merging, run `bun test` from the repository root, as [testing](testing.md) describes, before deploying.
+
+Before updating a customer application, the team responsible for that fork reviews the upstream changes and any migration instructions, keeps the deployed commit and configuration as a rollback reference, and backs up data that a migration could change. Resolve conflicts in the customer integration code, then run the repository checks and the customer's acceptance scenarios in a test environment before deploying. A code rollback alone may not undo a data migration.
+
+Maintainers provide fixes to the template repository on a best-effort basis; customer forks do not update automatically. Applying fixes, adapting customer-specific code, testing upgrades and agreeing rollback or recovery are the customer team's responsibility unless a separate paid contract assigns that work to Impact AI.
