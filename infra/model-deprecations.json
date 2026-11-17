@@ -1,0 +1,40 @@
+{
+	"_": [
+		"Every model version main.parameters.json pins, with the inference-deprecation date",
+		"Azure has announced for it. model-deprecations.test.ts reads the parameter file,",
+		"refuses a pin this file does not list, and fails the build from thirty days before",
+		"a listed date — unless an acknowledgement below says somebody has read the live",
+		"deployment and has a plan, and for how long that holds.",
+		"",
+		"Dates come from the Azure OpenAI model retirements page for the model and version,",
+		"read on the `checked` date. `unknown` means no retirement had been announced when",
+		"it was last read; it is not a promise. An acknowledgement may hold for at most",
+		"sixty days, so it cannot quietly become permanent."
+	],
+	"models": [
+		{
+			"model": "gpt-5.6-luna",
+			"version": "2026-07-09",
+			"inferenceDeprecated": "2028-01-11",
+			"checked": "2026-10-27"
+		},
+		{
+			"model": "gpt-5-mini",
+			"version": "2025-08-07",
+			"inferenceDeprecated": "2027-02-09",
+			"checked": "2026-10-27"
+		},
+		{
+			"model": "text-embedding-3-large",
+			"version": "1",
+			"inferenceDeprecated": "2028-02-09",
+			"checked": "2026-10-27"
+		},
+		{
+			"model": "gpt-realtime-2.1",
+			"version": "2026-07-07",
+			"inferenceDeprecated": "2027-06-25",
+			"checked": "2026-11-03"
+		}
+	]
+}

@@ -1,0 +1,44 @@
+{
+	"name": "agent-azure",
+	"license": "MIT",
+	"type": "module",
+	"private": true,
+	"workspaces": [
+		"platform/*",
+		"apps/*"
+	],
+	"scripts": {
+		"dev": "bun run --filter '*' dev",
+		"build": "bun run --filter '*' build",
+		"test": "bun test",
+		"lint": "biome lint .",
+		"format": "biome format --write .",
+		"check": "biome check --write .",
+		"hooks:install": "git config core.hooksPath .githooks",
+		"prepare": "git config core.hooksPath .githooks || true",
+		"typecheck": "bun run --filter '*' typecheck",
+		"e2e:build": "bun run --cwd apps/frontend e2e:build",
+		"e2e": "bun run --cwd apps/frontend e2e"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "2.5.8",
+		"@modelcontextprotocol/sdk": "^1.32.2",
+		"@types/bun": "^1.3.14",
+		"eventsource": "^3.0.7",
+		"happy-dom": "21.0.4",
+		"mermaid": "11.17.2",
+		"typescript": "^5.9.3"
+	},
+	"overrides": {
+		"@ai-sdk/google-vertex": "^4.0.223",
+		"@hono/node-server": "^1.19.18",
+		"dompurify": "^3.4.17",
+		"fast-uri": "^3.1.5",
+		"fast-xml-parser": "^5.12.0",
+		"graphql-scalars": "^2.0.1",
+		"hono": "^4.13.16",
+		"ip-address": "^10.3.1",
+		"nanoid": "^3.3.18",
+		"postcss": "^8.5.12"
+	}
+}

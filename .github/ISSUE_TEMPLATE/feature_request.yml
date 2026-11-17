@@ -1,0 +1,34 @@
+name: Feature request
+description: A change or addition you would like Agent on Azure to have.
+labels: [enhancement, triage]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Requests are read on a best-effort basis, with no commitment to a delivery date (see SUPPORT.md).
+        **Do not include customer data, tenant ids or resource names.**
+  - type: textarea
+    id: problem
+    attributes:
+      label: The problem
+      description: What you are trying to do, and what stops you today.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: The change you propose
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives you considered
+  - type: dropdown
+    id: contribute
+    attributes:
+      label: Would you open a pull request for it?
+      options:
+        - "Yes"
+        - "Maybe, with guidance"
+        - "No"

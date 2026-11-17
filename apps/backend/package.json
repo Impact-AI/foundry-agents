@@ -1,0 +1,39 @@
+{
+	"name": "@app/backend",
+	"version": "0.0.0",
+	"type": "module",
+	"private": true,
+	"description": "The sample's backend: one Bun process on Hono hosting the agent on Foundry Agent Service, the voice handlers, the knowledge base's pictures, identity and the person, conversations, what the assistant remembers, erasure and export, every route behind a caller assertion.",
+	"scripts": {
+		"dev": "bun --hot src/index.ts",
+		"start": "bun run src/index.ts",
+		"persona": "bun run src/persona.ts",
+		"emulator": "bun run src/emulator.ts",
+		"typecheck": "tsc --noEmit"
+	},
+	"dependencies": {
+		"@platform/agent": "workspace:*",
+		"@platform/appearance": "workspace:*",
+		"@platform/config": "workspace:*",
+		"@platform/cosmos": "workspace:*",
+		"@platform/http": "workspace:*",
+		"@platform/i18n": "workspace:*",
+		"@platform/identity": "workspace:*",
+		"@platform/knowledge": "workspace:*",
+		"@platform/llm": "workspace:*",
+		"@platform/metering": "workspace:*",
+		"@platform/observability": "workspace:*",
+		"@platform/prompt": "workspace:*",
+		"@platform/redis": "workspace:*",
+		"@platform/storage": "workspace:*",
+		"@platform/voice": "workspace:*",
+		"hono": "^4.13.16",
+		"zod": "^3.25.0"
+	},
+	"devDependencies": {
+		"@platform/test-support": "workspace:*",
+		"@types/bun": "^1.3.14",
+		"gpt-tokenizer": "^4.1.0",
+		"typescript": "^5"
+	}
+}

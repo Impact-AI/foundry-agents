@@ -1,0 +1,59 @@
+#!/bin/sh
+# Run the check CI runs, before the commit rather than after it — over the files
+# this commit contains.
+#
+# CI's lint step is `bunx biome ci .` (.github/workflows/ci.yml), the whole
+# tree. Whole-tree is the wrong scope for a hook: it fails on anything in the
+# working directory, including files this commit does not touch and files git
+# does not track, and a gate that fails on work you did not do is one people
+# route around with `--no-verify`, which takes the real findings with it.
+#
+# So: staged paths only. That is the set of files this commit adds to what CI
+# will see. Whole-tree stays CI's job, where a red build belongs to the branch
+# rather than to whoever commits next.
+#
+# Three flags, each earning its place:
+#   - `--diff-filter=ACMR` drops deletions; a path that no longer exists is not
+#     a path biome can read.
+#   - `--files-ignore-unknown=true`, because named paths are checked whether or
+#     not biome understands them, and a commit of docs, bicep or SQL would
+#     otherwise fail on the file type alone.
+#   - `--no-errors-on-unmatched`, so a staged set biome has nothing to say about
+#     is not an error either.
+#
+# One known imprecision: biome reads the file on disk, not the staged blob. On a
+# partially staged file (`git add -p`) it reports on lines you did not stage.
+# The alternative is checking out every staged blob to a temporary tree, which
+# is a lot of machinery for a case that is rare and whose failure mode is a true
+# finding reported early.
+#
+# Not run here: `bun run typecheck` and `bun test`. Both belong in CI, not in
+# front of every commit; this hook is for the failure that is cheap to catch
+# and easy to miss, not for every failure.
+#
+# Installed by `bun run hooks:install`, which package.json's `prepare` runs on
+# `bun install`. To skip once: `git commit --no-verify`.
+
+if ! command -v bunx >/dev/null 2>&1; then
+	echo "pre-commit: bunx not found, skipping the lint check." >&2
+	exit 0
+fi
+
+if [ -z "$(git diff --cached --name-only --diff-filter=ACMR)" ]; then
+	exit 0
+fi
+
+echo "pre-commit: biome ci (staged files)"
+if ! git diff --cached --name-only --diff-filter=ACMR -z |
+	xargs -0 bunx @biomejs/biome ci --no-errors-on-unmatched --files-ignore-unknown=true; then
+	cat >&2 <<'MSG'
+
+pre-commit: biome found errors in the staged files — this is what CI will fail on.
+
+  Fix them:      bun run check          (biome check --write .)
+  Then re-stage: git add -u
+  Skip the hook: git commit --no-verify
+
+MSG
+	exit 1
+fi

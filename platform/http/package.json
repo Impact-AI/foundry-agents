@@ -1,0 +1,22 @@
+{
+	"name": "@platform/http",
+	"version": "0.0.0",
+	"type": "module",
+	"private": true,
+	"description": "What a request or a response needs to cross infrastructure the process does not own: a streamed response kept alive through a proxy, the edge's body limit as configuration, and a body held to a byte ceiling before it is parsed.",
+	"exports": {
+		".": "./src/index.ts",
+		"./request-limit": "./src/request-limit.ts",
+		"./streaming": "./src/streaming/index.ts"
+	},
+	"scripts": {
+		"typecheck": "tsc --noEmit"
+	},
+	"dependencies": {
+		"@platform/config": "workspace:*"
+	},
+	"devDependencies": {
+		"@types/bun": "^1.3.14",
+		"typescript": "^5"
+	}
+}

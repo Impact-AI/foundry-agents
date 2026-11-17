@@ -1,0 +1,182 @@
+/* The library tile: the query line, then the cards on a snapping track. */
+.library {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-3);
+	min-height: 0;
+	flex: 1;
+}
+
+.library-query,
+.library-empty {
+	margin: 0;
+	color: var(--muted);
+	font-size: var(--text-sm);
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--space-1) var(--space-2);
+	align-items: center;
+}
+
+/* -------------------------------------------------------------- carousel -- */
+
+.carousel {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-3);
+	min-height: 0;
+	flex: 1;
+}
+
+.carousel-track {
+	display: flex;
+	gap: var(--gutter);
+	min-height: 0;
+	flex: 1;
+	overflow-x: auto;
+	overflow-y: hidden;
+	/* The track clips on both axes: this is the room a card's focus ring and its hover lift draw in. */
+	padding: var(--space-1);
+	scroll-padding-inline: var(--space-1);
+	scroll-snap-type: x mandatory;
+	scrollbar-width: none;
+	overscroll-behavior-x: contain;
+}
+
+.carousel-track::-webkit-scrollbar {
+	display: none;
+}
+
+/* One view: a grid of the cards that fit (Carousel.tsx measures the shape). */
+.carousel-view {
+	flex: none;
+	width: 100%;
+	min-height: 0;
+	display: grid;
+	grid-template-columns: repeat(var(--carousel-cols, 1), minmax(0, 1fr));
+	grid-template-rows: repeat(var(--carousel-rows, 1), minmax(0, 1fr));
+	gap: var(--gutter);
+	align-items: start;
+	scroll-snap-align: start;
+	scroll-snap-stop: always;
+}
+
+/* A card keeps to its cell: what gives is its picture, never its words. */
+.carousel-view > * {
+	min-height: 0;
+	max-height: 100%;
+}
+
+.carousel-foot {
+	flex: none;
+	/* Room for the arrows' focus ring: the tile clips at its edge. */
+	padding-block: var(--space-1);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: var(--space-3);
+}
+
+.carousel-position {
+	color: var(--muted);
+	font-size: var(--text-sm);
+	font-variant-numeric: tabular-nums;
+}
+
+/* --------------------------------------------------------- document card -- */
+
+.document-card {
+	display: flex;
+	flex-direction: column;
+	min-height: 0;
+	padding: 0;
+	border: 1px solid var(--line-strong);
+	border-radius: var(--radius);
+	background: var(--glass);
+	color: var(--text);
+	font: inherit;
+	text-align: left;
+	cursor: pointer;
+	overflow: hidden;
+	transition:
+		border-color var(--dur) var(--ease),
+		transform var(--dur) var(--ease);
+}
+
+/* The ring lies on the card's own border: one ring, no gap, and the picture is clipped short of it. */
+.document-card:focus-visible {
+	outline-offset: -1px;
+}
+
+@media (hover: hover) {
+	.document-card:hover {
+		border-color: var(--accent);
+		transform: translateY(-2px);
+	}
+}
+
+.document-card-figure {
+	position: relative;
+	/* 16:9 when there is room; in a tight cell it shrinks, down to a strip. */
+	flex: 0 1 auto;
+	aspect-ratio: 16 / 9;
+	min-height: 72px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: var(--glass-2);
+	overflow: hidden;
+}
+
+.document-card-figure .media-slot {
+	position: absolute;
+	inset: 0;
+}
+
+.document-card-figure img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	border-radius: 0;
+}
+
+.document-card-glyph {
+	display: inline-flex;
+	color: var(--muted);
+}
+
+.document-card-glyph svg {
+	width: 36px;
+	height: 36px;
+	stroke-width: 1.5;
+}
+
+.document-card-body {
+	flex: none;
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-2);
+	padding: var(--space-3) var(--space-4) var(--space-4);
+	min-height: 0;
+	overflow: hidden;
+}
+
+.document-card-title {
+	font-weight: var(--weight-semibold);
+	overflow-wrap: anywhere;
+}
+
+.document-card-summary {
+	color: var(--muted);
+	font-size: var(--text-sm);
+	display: -webkit-box;
+	-webkit-line-clamp: 3;
+	-webkit-box-orient: vertical;
+	overflow: hidden;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.document-card {
+		transition: none;
+	}
+}

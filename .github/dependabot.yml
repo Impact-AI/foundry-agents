@@ -1,0 +1,66 @@
+# Dependabot reads bun.lock for version updates but opens no security-update
+# pull requests for Bun, so the weekly bun run is also how a fixed release
+# arrives. A Bun bump is the workflows', the images' and the dev container's at
+# once, through .bun-version, and stays a hand edit, so the images' Bun base
+# is not Dependabot's to move; the frontend's Node base is.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      github-actions:
+        patterns: ["*"]
+    cooldown:
+      default-days: 7
+
+  - package-ecosystem: docker
+    directories:
+      - /apps/backend
+      - /apps/frontend
+    schedule:
+      interval: weekly
+    ignore:
+      - dependency-name: oven/bun
+    cooldown:
+      default-days: 7
+
+  # What the apps run on is proposed apart from what only builds and tests
+  # them, and its patches apart from its minors: a patch is where a fix
+  # arrives, and it is not held behind a larger change in the same pull request.
+  - package-ecosystem: bun
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      runtime-patches:
+        dependency-type: production
+        update-types: [patch]
+      runtime-minors:
+        dependency-type: production
+        update-types: [minor]
+      development:
+        dependency-type: development
+        update-types: [minor, patch]
+    # The OpenTelemetry packages move a major only together, and only once
+    # @azure/monitor-opentelemetry, which the frontend's distro and the
+    # backend's exporter build on, accepts that major; until then a major of
+    # one of them alone would install a second OpenTelemetry beside the
+    # distro's and fails the build.
+    ignore:
+      - dependency-name: "@opentelemetry/*"
+        update-types: ["version-update:semver-major"]
+    cooldown:
+      default-days: 7
+
+  # The documentation site has a lockfile of its own.
+  - package-ecosystem: bun
+    directory: /site
+    schedule:
+      interval: weekly
+    groups:
+      site:
+        update-types: [minor, patch]
+    cooldown:
+      default-days: 7

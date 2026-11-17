@@ -1,0 +1,25 @@
+{
+	"name": "@platform/llm",
+	"version": "0.0.0",
+	"type": "module",
+	"private": true,
+	"description": "What every call to a model deployment shares, keyless: the token, the one fetch, the settings, the roles and their deployments, a concurrency cap and a retry budget per role, and the small model behind titles and search plans, measured onto the usage line.",
+	"exports": {
+		".": "./src/index.ts",
+		"./testing": "./src/testing/index.ts"
+	},
+	"scripts": {
+		"typecheck": "tsc --noEmit"
+	},
+	"dependencies": {
+		"@ai-sdk/azure": "4.0.119",
+		"@platform/config": "workspace:*",
+		"@platform/observability": "workspace:*",
+		"ai": "^7.0.166"
+	},
+	"devDependencies": {
+		"@platform/test-support": "workspace:*",
+		"@types/bun": "^1.3.14",
+		"typescript": "^5"
+	}
+}

@@ -1,0 +1,99 @@
+/*
+ * The guide: the press-catcher, the light, and the card. The dimming is the
+ * light's own shadow, so the thing being described is the one thing at full
+ * strength and the hole glides from object to object.
+ */
+.guide {
+	position: fixed;
+	inset: 0;
+	z-index: 150;
+	overscroll-behavior: contain;
+}
+
+.guide-scrim {
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	margin: 0;
+	padding: 0;
+	border: 0;
+	background: none;
+	cursor: default;
+}
+
+.guide-spot {
+	position: absolute;
+	pointer-events: none;
+	box-shadow:
+		0 0 0 1px var(--accent-a40),
+		0 0 34px -6px var(--accent-a60),
+		0 0 0 100vmax var(--scrim);
+	transition:
+		top var(--dur-slow) var(--ease),
+		left var(--dur-slow) var(--ease),
+		width var(--dur-slow) var(--ease),
+		height var(--dur-slow) var(--ease),
+		border-radius var(--dur-slow) var(--ease);
+}
+
+.guide-spot--none {
+	top: 50%;
+	left: 50%;
+	width: 0;
+	height: 0;
+	border-radius: 0;
+	box-shadow: 0 0 0 100vmax var(--scrim);
+}
+
+.guide-card {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: min(340px, calc(100vw - 2 * var(--gutter)));
+	border: 1px solid var(--line);
+	border-radius: var(--radius-lg);
+	background: var(--pane-solid);
+	box-shadow: var(--shadow-lg);
+	color: var(--text);
+	outline: none;
+}
+
+.guide-card-body {
+	animation: guide-copy-in var(--dur) var(--ease) both;
+}
+
+@keyframes guide-copy-in {
+	from {
+		opacity: 0;
+		transform: translateY(4px);
+	}
+	to {
+		opacity: 1;
+		transform: none;
+	}
+}
+
+.guide-title {
+	font-size: var(--text-lg);
+}
+
+.guide-line,
+.guide-press,
+.guide-again {
+	font-size: var(--text-sm);
+	color: var(--muted);
+}
+
+.guide-press {
+	color: var(--text);
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.guide-spot {
+		transition: none;
+	}
+	.guide-card-body {
+		animation: none;
+	}
+}

@@ -1,0 +1,15 @@
+{
+  "helperVersion": "0.1.0-rc.7",
+  "packages": {
+    "javascript": {
+      "name": "impact-ai",
+      "version": "0.4.0-rc.10"
+    },
+    "python": {
+      "name": "impact",
+      "version": "1.2.0rc10"
+    }
+  },
+  "sourceCommit": "6a6269962fb837e0096e7065b6051510f94dbb6b",
+  "uncommitted": false
+}

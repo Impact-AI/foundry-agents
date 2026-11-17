@@ -1,0 +1,91 @@
+{
+	"$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"environmentName": { "value": "${AZURE_ENV_NAME}" },
+		"location": { "value": "${AZURE_LOCATION}" },
+		"principalId": { "value": "${AZURE_PRINCIPAL_ID}" },
+		"principalType": { "value": "${AZURE_PRINCIPAL_TYPE=User}" },
+		"operatorPrincipalId": { "value": "${OPERATOR_PRINCIPAL_ID=}" },
+		"operatorPrincipalType": { "value": "${OPERATOR_PRINCIPAL_TYPE=User}" },
+		"hardened": { "value": "${HARDENED=false}" },
+		"privateNetworking": { "value": "${PRIVATE_NETWORKING=}" },
+		"useFrontDoor": { "value": "${USE_FRONT_DOOR=}" },
+		"lockDataResources": { "value": "${LOCK_DATA_RESOURCES=}" },
+		"keyVaultPurgeProtection": { "value": "${KEY_VAULT_PURGE_PROTECTION=}" },
+		"zoneRedundant": { "value": "${ZONE_REDUNDANT=}" },
+		"publicOrigin": { "value": "${PUBLIC_ORIGIN=}" },
+		"searchLocation": { "value": "${AZURE_SEARCH_LOCATION=}" },
+		"searchReplicas": { "value": "${SEARCH_REPLICAS=1}" },
+		"backendMinReplicas": { "value": "${BACKEND_MIN_REPLICAS=1}" },
+		"frontendMinReplicas": { "value": "${FRONTEND_MIN_REPLICAS=1}" },
+		"seedSampleLibrary": { "value": "${SEED_SAMPLE_LIBRARY=true}" },
+		"knowledgeBase": { "value": "${KNOWLEDGE_BASE=false}" },
+		"memoryStore": { "value": "${MEMORY_STORE=}" },
+		"historyStore": { "value": "${HISTORY_STORE=}" },
+		"retrievalEngine": { "value": "${RETRIEVAL_ENGINE=}" },
+		"voiceEngine": { "value": "${VOICE_ENGINE=}" },
+		"recordsApiUrl": { "value": "${RECORDS_API_URL=}" },
+		"recordsApiScope": { "value": "${RECORDS_API_SCOPE=}" },
+		"developerAccess": { "value": "${DEVELOPER_ACCESS=false}" },
+		"developerAccessSshKey": { "value": "${DEVELOPER_ACCESS_SSH_KEY=}" },
+		"developerVmSize": { "value": "${DEVELOPER_VM_SIZE=Standard_D2as_v5}" },
+		"agentEgress": { "value": "${AGENT_EGRESS=open}" },
+		"privateTelemetry": { "value": "${PRIVATE_TELEMETRY=}" },
+		"agentTracing": { "value": "${AGENT_TRACING=false}" },
+		"policyAudit": { "value": "${POLICY_AUDIT=true}" },
+		"backendImage": { "value": "${SERVICE_BACKEND_IMAGE_NAME=}" },
+		"frontendImage": { "value": "${SERVICE_FRONTEND_IMAGE_NAME=}" },
+		"backendExists": { "value": "${SERVICE_BACKEND_RESOURCE_EXISTS=false}" },
+		"frontendExists": { "value": "${SERVICE_FRONTEND_RESOURCE_EXISTS=false}" },
+		"servicesRunning": { "value": "${SERVICES_RUNNING=}" },
+		"vaultHolds": { "value": "${KEY_VAULT_HOLDS=}" },
+		"authSecret": { "value": "${AUTH_SECRET=}" },
+		"entraClientId": { "value": "${AUTH_MICROSOFT_ENTRA_ID_ID=}" },
+		"entraClientSecret": { "value": "${AUTH_MICROSOFT_ENTRA_ID_SECRET=}" },
+		"authMode": { "value": "${AUTH_MODE=local}" },
+		"authRequireRole": { "value": "${AUTH_REQUIRE_ROLE=false}" },
+		"realtimeCapacity": { "value": "${REALTIME_CAPACITY=1}" },
+		"realtimeAlternateCapacity": {
+			"value": "${REALTIME_ALTERNATE_CAPACITY=1}"
+		},
+		"knowledgeBaseCapacity": { "value": "${KNOWLEDGE_BASE_CAPACITY=10}" },
+		"models": {
+			"value": {
+				"chat": {
+					"name": "chat",
+					"model": "gpt-5.6-luna",
+					"version": "2026-07-09",
+					"sku": "GlobalStandard",
+					"capacity": 50
+				},
+				"smallChat": {
+					"name": "small",
+					"model": "gpt-5-mini",
+					"version": "2025-08-07",
+					"sku": "GlobalStandard",
+					"capacity": 50
+				},
+				"embedding": {
+					"name": "embedding",
+					"model": "text-embedding-3-large",
+					"version": "1",
+					"sku": "Standard",
+					"capacity": 50
+				},
+				"realtime": {
+					"name": "realtime",
+					"model": "gpt-realtime-2.1",
+					"version": "2026-07-07",
+					"sku": "GlobalStandard"
+				},
+				"knowledgeBase": {
+					"name": "knowledge",
+					"model": "gpt-5-mini",
+					"version": "2025-08-07",
+					"sku": "GlobalStandard"
+				}
+			}
+		}
+	}
+}

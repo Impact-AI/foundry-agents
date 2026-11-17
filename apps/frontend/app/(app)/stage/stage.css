@@ -1,0 +1,117 @@
+/*
+ * The stage's arrangement — where the instruments the conversation placed
+ * go. The count picks the grid: one fills the stage, two share it, three
+ * give the first the whole left column, four tile it two by two. Each tile
+ * stands on the panel ground (`globals.css`), arriving on `panel-in`, leaving on
+ * `panel-out`, moving on a transform the motion hooks play.
+ */
+.stage {
+	--stage-glyph: 32px;
+	flex: 1;
+	display: grid;
+	gap: var(--gutter);
+	min-width: 0;
+	min-height: 0;
+}
+
+.stage--1 {
+	grid-template-columns: minmax(0, 1fr);
+	grid-template-rows: minmax(0, 1fr);
+}
+
+.stage--2 {
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	grid-template-rows: minmax(0, 1fr);
+}
+
+.stage--3,
+.stage--4 {
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	grid-template-rows: repeat(2, minmax(0, 1fr));
+}
+
+.stage--3 > .stage-tile:first-child {
+	grid-row: 1 / -1;
+}
+
+/* ---------------------------------------------------------------- tile -- */
+
+.stage-tile {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+	min-height: 0;
+	overflow: clip;
+	overflow-clip-margin: 0;
+	animation: panel-in 640ms var(--ease) backwards;
+}
+
+.stage-tile:nth-child(2) {
+	animation-delay: 110ms;
+}
+.stage-tile:nth-child(3) {
+	animation-delay: 220ms;
+}
+.stage-tile:nth-child(4) {
+	animation-delay: 330ms;
+}
+
+.stage-tile.is-leaving {
+	animation: panel-out var(--dur-slow) var(--ease) forwards;
+	pointer-events: none;
+}
+
+.stage-tile-inner {
+	flex: 1;
+	min-height: 0;
+}
+
+.stage-tile-head {
+	min-height: var(--stage-glyph);
+}
+
+.stage-tile-label {
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	user-select: none;
+}
+
+.stage-tile-close {
+	width: var(--stage-glyph);
+	height: var(--stage-glyph);
+	margin-right: calc(-1 * var(--space-1));
+}
+
+.stage-tile-body {
+	position: relative;
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+	min-height: 0;
+}
+
+/* The documents scroll inside their tile; the figures fill it, and the reader scrolls its page above its pager. */
+.stage-tile--record .stage-tile-body,
+.stage-tile--library .stage-tile-body {
+	overflow-x: hidden;
+	overflow-y: auto;
+	overscroll-behavior-y: contain;
+	scrollbar-gutter: stable;
+}
+
+@media (pointer: coarse) {
+	.stage {
+		--stage-glyph: 44px;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.stage-tile,
+	.stage-tile.is-leaving {
+		animation: none;
+	}
+}

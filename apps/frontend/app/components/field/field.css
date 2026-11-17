@@ -1,0 +1,66 @@
+/*
+ * The field: a gradient ground with motes drifting over it, fixed under the
+ * whole document. The still frame and the live canvas keep one contract —
+ * fill the box, paint only — and trade places on one fade.
+ */
+.field {
+	position: fixed;
+	inset: 0;
+	z-index: 0;
+	overflow: hidden;
+	pointer-events: none;
+	background:
+		radial-gradient(120% 80% at 15% 0%, var(--field-glow-1) 0%, transparent 60%),
+		radial-gradient(
+			90% 70% at 90% 100%,
+			var(--field-glow-2) 0%,
+			transparent 55%
+		),
+		var(--bg);
+}
+
+.field-still,
+.field-live {
+	position: absolute;
+	inset: 0;
+	display: block;
+	width: 100%;
+	height: 100%;
+	pointer-events: none;
+}
+
+.field-live {
+	animation: field-up 900ms var(--ease) both;
+}
+
+.field:has(> .field-live) > .field-still {
+	animation: field-down 900ms var(--ease) both;
+}
+
+@keyframes field-up {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
+}
+
+@keyframes field-down {
+	from {
+		opacity: 1;
+	}
+	to {
+		opacity: 0;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.field-live,
+	.field:has(> .field-live) > .field-still {
+		animation: none;
+	}
+	.field:has(> .field-live) > .field-still {
+		opacity: 0;
+	}
+}

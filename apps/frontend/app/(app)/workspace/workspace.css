@@ -1,0 +1,179 @@
+/*
+ * The workspace: the stage's column and the conversation's, side by side on
+ * the field, the whole viewport under the bar. On a phone (the portrait
+ * block below) it is a pager instead — the conversation first, every tile a
+ * page after it — with the strip of what is open and the conversation's
+ * foot pinned under it. Nothing scrolls as a page; each page scrolls inside
+ * itself.
+ */
+.workspace {
+	position: relative;
+	z-index: 1;
+	/* Its height is the rule below, never the content: a flex-basis of 0 would let the columns push the page. */
+	flex: none;
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) minmax(340px, 38%);
+	grid-template-rows: minmax(0, 1fr);
+	gap: var(--gutter);
+	height: calc(var(--vvh, 100dvh) - var(--topbar-h));
+	min-height: 0;
+	padding: var(--gutter);
+}
+
+.workspace-main {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+	min-height: 0;
+}
+
+.chat-column {
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+	min-height: 0;
+}
+
+/* ------------------------------------------------------- the phone's pager -- */
+
+@media (max-width: 1080px) and (min-height: 481px) {
+	.main:has(> .workspace) {
+		height: calc(
+			var(--vvh, 100dvh) -
+			var(--topbar-h) -
+			var(--composer-fixed-h, 0px) -
+			var(--stage-pages-h, 0px)
+		);
+		min-height: 0;
+		overflow: hidden;
+		/* Not a flex basis of 0: the pages are 100% of the pager, which is 100% of this, and a percentage needs a definite height to stand on. */
+		flex: none;
+	}
+
+	.main:has(> .stage-pages) {
+		--stage-pages-h: 58px;
+	}
+
+	html[data-vv-keyboard] .main:has(> .stage-pages) {
+		--stage-pages-h: 0px;
+	}
+
+	html:has(.main > .workspace),
+	html:has(.main > .workspace) body {
+		overscroll-behavior: none;
+	}
+
+	.workspace {
+		flex: 1;
+		display: flex;
+		flex-direction: row;
+		height: auto;
+		min-height: 0;
+		padding: 6px 8px;
+		gap: 16px;
+		overflow-x: auto;
+		overflow-y: hidden;
+		scroll-snap-type: x mandatory;
+		scroll-padding-inline: 8px;
+		overscroll-behavior-x: contain;
+		scrollbar-width: none;
+		-webkit-overflow-scrolling: touch;
+	}
+
+	.workspace::-webkit-scrollbar {
+		display: none;
+	}
+
+	/* The boxes between the pager and its pages give up their boxes. */
+	.workspace > .workspace-main:has(> .stage),
+	.workspace .stage,
+	.workspace .chat-column {
+		display: contents;
+	}
+
+	/* The desk has no page: its openers are the chips under the composer. */
+	.workspace > .workspace-main:has(> .landing) {
+		display: none;
+	}
+
+	.workspace .chat-column .chat-pane,
+	.workspace .stage-tile {
+		flex: none;
+		width: 100%;
+		height: 100%;
+		min-height: 0;
+		scroll-snap-align: start;
+		scroll-snap-stop: always;
+	}
+
+	/* The conversation is the first page, whatever the source order says. */
+	.workspace .chat-column .chat-pane {
+		order: -1;
+	}
+
+	/* Its panel is solid rather than blurred: a blur would make it the containing block of the pinned foot inside it. */
+	.workspace .chat-column .panel.chat-pane {
+		background: var(--pane-solid);
+		-webkit-backdrop-filter: none;
+		backdrop-filter: none;
+	}
+
+	.workspace .stage-tile-head,
+	.workspace .stage-tile-label {
+		user-select: none;
+		-webkit-user-select: none;
+		-webkit-touch-callout: none;
+	}
+
+	.workspace .chart-plot {
+		touch-action: none;
+	}
+
+	/* The conversation's foot — the composer, or the voice pane in its place — is pinned to the viewport's foot, over the page. */
+	.workspace .chat-column .chat-foot {
+		position: fixed;
+		right: 0;
+		bottom: 0;
+		left: 0;
+		z-index: 30;
+		padding: var(--space-2) var(--space-2)
+			calc(var(--space-2) + env(safe-area-inset-bottom, 0px));
+		border-top: 1px solid var(--line);
+		background: var(--band);
+		-webkit-backdrop-filter: blur(16px);
+		backdrop-filter: blur(16px);
+	}
+
+	/* The next steps are one row that scrolls sideways, so the foot stays short. */
+	.workspace .chat-column .chat-suggests {
+		flex-wrap: nowrap;
+		overflow-x: auto;
+		scrollbar-width: none;
+		padding-bottom: 2px;
+	}
+
+	.workspace .chat-column .chat-suggests::-webkit-scrollbar {
+		display: none;
+	}
+
+	.workspace .chat-column .chat-suggest {
+		flex: none;
+		white-space: nowrap;
+	}
+
+	.voice-pane .waveform {
+		flex: none;
+		height: 150px;
+	}
+
+	/* The foot follows the visual viewport while the keyboard is up. */
+	html[data-vv-keyboard] .workspace .chat-column .chat-foot {
+		bottom: auto;
+		top: calc(
+			var(--vvt, 0px) +
+			var(--vvh, 100dvh) -
+			var(--composer-fixed-h, 0px)
+		);
+	}
+}

@@ -1,0 +1,547 @@
+{
+	"metadata": {
+		"title": "Asistente",
+		"description": "Habla con el asistente, por escrito o de viva voz."
+	},
+	"ai": {
+		"door": "El asistente es una inteligencia artificial, no una persona. Todo lo que dice, y la voz con la que lo dice, lo genera un ordenador.",
+		"first": "Hola — soy un asistente de inteligencia artificial. ¿De qué quieres hablar?",
+		"disclosure": "El asistente es una IA. Puede equivocarse.",
+		"voice": "Esta voz la genera un ordenador. El asistente es una IA."
+	},
+	"common": {
+		"appName": "Asistente",
+		"signOut": "Cerrar sesión",
+		"cancel": "Cancelar",
+		"save": "Guardar",
+		"close": "Cerrar",
+		"loading": "Cargando…",
+		"back": "Atrás",
+		"delete": "Eliminar",
+		"keep": "Conservar",
+		"retry": "Inténtalo de nuevo",
+		"dismiss": "Cerrar",
+		"menu": "Menú",
+		"backToChat": "Volver al chat"
+	},
+	"login": {
+		"heading": "Iniciar sesión",
+		"lede": "Inicia sesión con tu cuenta del trabajo o del centro de estudios para empezar a hablar.",
+		"signIn": "Iniciar sesión con Microsoft",
+		"redirecting": "Redirigiendo…",
+		"localLede": "Inicia sesión con un nombre para empezar a hablar. Esto es una demo: sin contraseña, sin proveedor de identidad.",
+		"localName": "Tu nombre",
+		"localSignIn": "Continuar",
+		"localHint": "Es solo el nombre con el que te llama el asistente. Cada inicio de sesión aquí es una persona nueva: cuando termina — cierras sesión, caduca o cambias de navegador — no hay forma de volver a ella.",
+		"privacy": "Qué sabe de ti esta app",
+		"errors": {
+			"not_allowed": "Esta cuenta no está permitida aquí. Si te parece un error, prueba con otra cuenta.",
+			"no_account": "El inicio de sesión no traía una cuenta que pudiéramos usar. Inténtalo de nuevo.",
+			"deactivated": "Esta cuenta ha sido desactivada.",
+			"unavailable": "El inicio de sesión no funciona en este momento. El problema está de nuestro lado, no del tuyo — inténtalo más tarde.",
+			"AccessDenied": "No hemos podido dejar entrar a esta cuenta. Inténtalo de nuevo, o vuelve con otra cuenta.",
+			"Configuration": "El inicio de sesión no funciona en este momento. El problema está de nuestro lado, no del tuyo — inténtalo más tarde.",
+			"OAuthCallbackError": "El proveedor de identidad no terminó el inicio de sesión. Inténtalo de nuevo.",
+			"OAuthAccountNotLinked": "Ya hay una cuenta aquí con esta dirección de correo. Inicia sesión como lo hiciste la primera vez.",
+			"CredentialsSignin": "Esas credenciales no han sido aceptadas.",
+			"generic": "El inicio de sesión no ha funcionado. Inténtalo de nuevo."
+		},
+		"leftOut": "Has cerrado sesión. Todo lo que hay en esta cuenta está donde lo dejaste.",
+		"localLeftOut": "Has cerrado sesión. Un inicio de sesión de demo no se puede retomar: el siguiente es una persona nueva, y lo que se dijo en este queda guardado en esta instalación.",
+		"leftErased": "Esta cuenta se ha eliminado, junto con cada conversación y todo lo que el asistente había anotado. No queda nada a lo que volver a entrar."
+	},
+	"menu": {
+		"account": "Cuenta",
+		"accountOf": "Cuenta de {name}",
+		"settings": "Ajustes"
+	},
+	"workspace": {
+		"label": "Espacio de trabajo",
+		"home": "Vaciar el escenario",
+		"library": "Biblioteca",
+		"records": "Fichas"
+	},
+	"stage": {
+		"close": "Cerrar",
+		"pages": "Qué hay en el escenario",
+		"pageChat": "Conversación",
+		"placed": "En el escenario: {section}.",
+		"removed": "Fuera del escenario: {section}.",
+		"cleared": "El escenario está vacío.",
+		"sections": {
+			"library": "Biblioteca",
+			"reader": "Lector",
+			"media": "Multimedia",
+			"chart": "Gráfico",
+			"record": "Ficha",
+			"records": "Fichas"
+		}
+	},
+	"library": {
+		"found": "{count, plural, one {# documento} other {# documentos}} para “{query}”",
+		"foundAll": "{count, plural, one {# documento} other {# documentos}}",
+		"empty": "Nada coincide. Pide otra cosa o amplía la búsqueda.",
+		"carousel": "Documentos",
+		"previous": "Documento anterior",
+		"next": "Documento siguiente",
+		"position": "{n} de {total}",
+		"range": "{first}–{last} de {total}",
+		"open": "Abrir “{title}”"
+	},
+	"reader": {
+		"noPages": "Este documento no tiene páginas que mostrar.",
+		"media": "Imágenes de este documento",
+		"enlarge": "Ampliar {title}",
+		"enlargePicture": "Ampliar la imagen",
+		"previous": "Página anterior",
+		"next": "Página siguiente",
+		"position": "Página {n} de {total}"
+	},
+	"media": {
+		"label": "Multimedia",
+		"close": "Cerrar",
+		"enlarge": "Ampliar {title}"
+	},
+	"chart": {
+		"alt": "Un gráfico: {title}",
+		"onStage": "El gráfico completo está en el escenario."
+	},
+	"record": {
+		"links": "Relacionado",
+		"kinds": {
+			"person": "Persona",
+			"project": "Proyecto",
+			"customer": "Cliente",
+			"asset": "Recurso"
+		},
+		"measures": "Cifras",
+		"measureNames": {
+			"billableHours": "Horas facturables",
+			"utilisation": "Utilización",
+			"spend": "Gasto",
+			"openIssues": "Incidencias abiertas",
+			"revenue": "Ingresos",
+			"supportTickets": "Tickets de soporte",
+			"uptime": "Disponibilidad",
+			"runningCost": "Coste operativo"
+		},
+		"units": {
+			"hours": "horas",
+			"issues": "incidencias",
+			"tickets": "tickets"
+		}
+	},
+	"records": {
+		"found": "{count, plural, one {# ficha} other {# fichas}} para “{query}”",
+		"foundAll": "{count, plural, one {# ficha} other {# fichas}}",
+		"empty": "Nada coincide. Pide otra cosa, o amplía la búsqueda."
+	},
+	"suggest": {
+		"library": "Enséñame la biblioteca de documentos",
+		"record": "¿Quién está trabajando en nuestros proyectos?",
+		"chart": "Haz un gráfico del gasto de un proyecto por trimestre",
+		"openFirst": "Abre el primer documento",
+		"narrowLibrary": "Acota la búsqueda",
+		"summarise": "Resume este documento",
+		"relatedRecords": "¿Quién participa en esto?",
+		"describeMedia": "¿Qué estoy viendo?",
+		"moreLike": "Enséñame más como esto",
+		"explainChart": "Explícame este gráfico",
+		"compareYear": "Compáralo con el año pasado",
+		"recordLinks": "Enséñame con qué está relacionado",
+		"recordChart": "Haz un gráfico de las cifras de esta ficha"
+	},
+	"thinking": {
+		"lines": [
+			"Busco en la biblioteca…",
+			"Reviso las fichas…",
+			"Pongo en orden las cifras…",
+			"Leo antes de responder…",
+			"Encuentro la página adecuada…",
+			"Lo pongo en el escenario…",
+			"Lo pienso bien…",
+			"Sopeso las fuentes…"
+		],
+		"rare": ["Mido dos veces…", "Afilo el lápiz…", "Desempolvo una carpeta…"]
+	},
+	"reasoning": {
+		"thinking": "Pensando…",
+		"briefly": "He pensado unos segundos",
+		"seconds": "{count, plural, one {He pensado # segundo} other {He pensado # segundos}}",
+		"minutes": "{count, plural, one {He pensado un minuto} other {He pensado # minutos}}",
+		"unmeasured": "Razonamiento"
+	},
+	"guide": {
+		"advance": "Continuar",
+		"close": "Cerrar la guía",
+		"eyebrow": "Guía",
+		"step": "{n} de {total}",
+		"back": "Atrás",
+		"next": "Siguiente",
+		"done": "Hecho",
+		"again": "El ? junto al campo de escritura la vuelve a abrir cuando quieras.",
+		"stops": {
+			"intro": {
+				"title": "Bienvenido al espacio de trabajo",
+				"line": "Tú hablas; el asistente responde con palabras y pone en el escenario, a tu lado, aquello de lo que habla. Esto es cada parte."
+			},
+			"chat": {
+				"title": "La conversación",
+				"line": "Pide un documento, una cifra, una persona, una imagen — con tus propias palabras.",
+				"press": "Intro envía; Mayús+Intro empieza una línea nueva. Los siguientes pasos, encima del campo, están a un clic.",
+				"pressTouch": "La flecha envía; el retorno empieza una línea nueva. Los siguientes pasos, encima del campo, están a un toque."
+			},
+			"voice": {
+				"title": "Habla, en cambio",
+				"line": "El canal de voz, en lugar de escribir.",
+				"press": "Pulsa para abrirlo: habla, y el asistente responde en voz alta — y maneja el escenario exactamente igual que cuando escribes."
+			},
+			"openers": {
+				"title": "Tres formas de empezar",
+				"line": "Cada una es una pregunta, lista para hacer.",
+				"press": "Pulsa una y mira cómo se llena el escenario."
+			},
+			"stage": {
+				"title": "El escenario",
+				"line": "Todo lo que el asistente te pone delante llega aquí: las tarjetas de la biblioteca, las páginas de un documento, una imagen, un gráfico, una ficha. Hasta cuatro a la vez; cada uno tiene su propio cierre."
+			},
+			"account": {
+				"title": "Tu cuenta",
+				"line": "Ajustes — quién eres para el asistente y qué recuerda de ti — y la salida.",
+				"press": "Pulsa el disco para abrirlos."
+			}
+		}
+	},
+	"landing": {
+		"eyebrow": "Espacio de trabajo",
+		"heading": "Pide, y aparece en el escenario.",
+		"lede": "El asistente responde con palabras y te pone las cosas delante: documentos de la biblioteca, una página de uno, una imagen, un gráfico, una ficha. Escribe, o habla.",
+		"openers": {
+			"library": {
+				"title": "La biblioteca",
+				"ask": "Enséñame la biblioteca de documentos"
+			},
+			"record": {
+				"title": "Las fichas",
+				"ask": "¿Quién está trabajando en nuestros proyectos?"
+			},
+			"chart": {
+				"title": "Un gráfico",
+				"ask": "Haz un gráfico del gasto de un proyecto por trimestre"
+			}
+		},
+		"note": "Todo lo que hay aquí es contenido de ejemplo: personas, proyectos, clientes y recursos ficticios."
+	},
+	"chat": {
+		"heading": "Chat",
+		"threadLabel": "Mensajes",
+		"placeholder": "Escribe un mensaje…",
+		"placeholderVoice": "Escribe al canal de voz…",
+		"newConversation": "Nueva",
+		"newConversationLabel": "Empezar una conversación nueva",
+		"imageSent": "Una imagen que enviaste",
+		"imageKeptHere": "Las imágenes se guardan solo en el dispositivo desde el que se enviaron.",
+		"imageAbsent": "Una imagen enviada desde otro dispositivo — nunca se guardó en un servidor.",
+		"attach": "Adjuntar una imagen",
+		"attachTooLarge": "Esta imagen es demasiado grande — elige una de menos de {limit}.",
+		"attachNotImage": "Solo se pueden adjuntar imágenes.",
+		"attachFailed": "No se ha podido preparar esta imagen. Prueba con otra.",
+		"camera": "Hacer una foto",
+		"send": "Enviar",
+		"stop": "Parar",
+		"queue": "Enviar cuando termine la respuesta",
+		"queued": "Pendiente de enviar: «{text}»",
+		"queuedEdit": "Editar",
+		"queuedVoice": "Se enviará cuando se cierre el canal de voz: “{text}”",
+		"runLost": "La respuesta se ha cortado. Envía tu mensaje otra vez.",
+		"blocked": "No puedo ayudarte con esta petición.",
+		"refused": "Has agotado tu cupo por ahora. Inténtalo de nuevo en {wait}.",
+		"refusedPool": "Todo el mundo está hablando a la vez y el cupo compartido se ha agotado. Inténtalo de nuevo en {wait}.",
+		"wait": {
+			"moment": "un momento",
+			"minutes": "{count, plural, one {un minuto} other {# minutos}}",
+			"hours": "{count, plural, one {una hora} other {# horas}}"
+		},
+		"pictureSent": "Aquí tienes una foto que acabo de hacer.",
+		"conversationLabel": "Conversación",
+		"guide": "Cómo funciona",
+		"addMenu": "Añadir a tu mensaje",
+		"dropHere": "Suelta aquí una imagen",
+		"attachments": "Imágenes para enviar",
+		"attachmentRemove": "Quitar esta imagen",
+		"answering": "El asistente está respondiendo",
+		"answered": "El asistente ha respondido.",
+		"speakerYou": "Has dicho:",
+		"speakerAssistant": "El asistente ha dicho:",
+		"sources": "Fuentes"
+	},
+	"camera": {
+		"label": "Cámara",
+		"opening": "Abriendo la cámara…",
+		"take": "Hacer la foto",
+		"retake": "Hacer otra",
+		"use": "Enviar esta",
+		"close": "Cerrar la cámara",
+		"denied": "La cámara está bloqueada para este sitio — permítela en los ajustes del sitio de tu navegador e inténtalo de nuevo.",
+		"unavailable": "No se ha podido abrir ninguna cámara en este dispositivo.",
+		"insecure": "La cámara necesita una conexión segura — abre esta página por https:// o en localhost.",
+		"alt": "La foto que acabas de hacer",
+		"preview": "Vista previa de la cámara"
+	},
+	"conversations": {
+		"heading": "Conversaciones",
+		"empty": "Todavía no hay conversaciones.",
+		"untitled": "Sin título",
+		"renameField": "Un nombre nuevo para esta conversación",
+		"delete": "Eliminar",
+		"confirmDelete": "¿Eliminar “{title}”? Desaparece para siempre — el asistente tampoco la recordará.",
+		"updated": "Último mensaje {when}",
+		"renameOne": "Renombrar “{title}”",
+		"deleteOne": "Eliminar “{title}”"
+	},
+	"voice": {
+		"heading": "Voz",
+		"engineLive": "Voz en directo",
+		"unavailable": "La voz no está configurada aquí — escribir sigue funcionando.",
+		"start": "Abrir el canal",
+		"stop": "Cerrar el canal",
+		"mute": "Silenciar el micrófono",
+		"unmute": "Reactivar el micrófono",
+		"muteWord": "Silenciar",
+		"unmuteWord": "Reactivar",
+		"status": {
+			"idle": "Canal cerrado",
+			"connecting": "Abriendo el canal…",
+			"listening": "Escuchando",
+			"thinking": "Pensando…",
+			"speaking": "Hablando",
+			"muted": "Micrófono silenciado"
+		},
+		"errors": {
+			"insecure": "La voz necesita una conexión segura — abre esta página por https:// o en localhost.",
+			"micDenied": "El micrófono está bloqueado para este sitio — permítelo en los ajustes del sitio de tu navegador e inténtalo de nuevo. Escribir sigue funcionando.",
+			"micNone": "No se ha encontrado ningún micrófono en este dispositivo — escribir sigue funcionando.",
+			"capture": "El micrófono está encendido pero no ha llegado ningún sonido al canal — comprueba qué micrófono usa tu navegador y vuelve a abrirlo. Escribir sigue funcionando.",
+			"micLost": "El micrófono se ha detenido — puede que se haya desconectado o que lo esté usando otra aplicación. Vuelve a abrir el canal cuando esté disponible. Puedes seguir escribiendo.",
+			"mic": "No se ha podido abrir el micrófono — puede que lo esté usando otra app.",
+			"setup": "No se ha podido abrir el canal de voz.",
+			"session": "El canal de voz ha tenido un error.",
+			"sessionIdle": "El canal se ha cerrado tras un rato de silencio — vuelve a abrirlo cuando quieras.",
+			"sessionLength": "Ha sido una sesión larga, así que el canal se ha cerrado — vuelve a abrirlo cuando quieras.",
+			"sessionExpired": "El servicio de voz ha terminado la sesión al llegar a su límite de tiempo — vuelve a abrirla cuando quieras.",
+			"sessionLost": "El canal se ha perdido de nuestro lado. Lo que se dijo está en la conversación — vuelve a abrirlo para continuar.",
+			"sessionRestart": "El servicio se está reiniciando, así que el canal se ha cerrado. Vuelve a abrirlo para seguir donde lo dejaste."
+		},
+		"open": "El canal de voz está abierto",
+		"closed": "El canal de voz está cerrado",
+		"working": "En ello…",
+		"micOff": "Sin micrófono en este canal",
+		"reopen": "Volver a abrir",
+		"blocked": "Esta respuesta se ha detenido — el asistente no puede ayudarte con eso.",
+		"unanswered": "El asistente no ha podido obtener la respuesta ahora mismo — vuelve a preguntar.",
+		"typedTooFast": "Ese mensaje no se ha recibido — llegan más rápido de lo que el canal los lee. Espera un momento y vuelve a enviarlo.",
+		"typedFull": "Este canal ya ha recibido todo el texto que puede — dilo en voz alta, o cierra el canal y escríbelo en el chat.",
+		"transcriptLabel": "Lo que se ha dicho",
+		"unheard": "Tu micrófono capta sonido, pero la voz no oye que hables — acércate o sube el nivel de entrada del micrófono."
+	},
+	"settings": {
+		"heading": "Ajustes",
+		"lede": "Tú, el idioma y el tamaño del texto de la app, y tu cuenta.",
+		"you": {
+			"heading": "Tú",
+			"lede": "Lo que el asistente sabe de ti porque se lo has contado. Lo lee en cada conversación.",
+			"name": "Nombre",
+			"namePlaceholder": "¿Cómo debería llamarte el asistente?",
+			"nameRequired": "Dale al asistente un nombre con el que llamarte.",
+			"nameHint": "Lo rellena tu inicio de sesión de Microsoft. Cámbialo aquí si quieres; un inicio de sesión posterior conserva tu versión.",
+			"about": "Sobre ti",
+			"aboutPlaceholder": "Cualquier cosa que el asistente deba saber de ti.",
+			"aboutHint": "Se lee en cada conversación. Limítalo a lo que quieres que sepa.",
+			"preferences": "Cómo hablarte",
+			"preferencesPlaceholder": "Respuestas cortas, palabras sencillas, sin bromas…",
+			"preferencesHint": "También se lee en cada conversación.",
+			"save": "Guardar",
+			"saving": "Guardando…",
+			"cancel": "Cancelar"
+		},
+		"memory": {
+			"heading": "Qué recuerda de ti el asistente",
+			"how": "El asistente conserva frases breves sobre ti, que saca de tus conversaciones. Si corriges una, parte de tus palabras a partir de entonces; si quitas una, desaparece.",
+			"label": "Qué recuerda el asistente",
+			"empty": "El asistente todavía no recuerda nada de ti. Lo que conserva aparece aquí después de que hayáis hablado un rato.",
+			"updated": "Actualizado el {date}",
+			"edit": "Editar",
+			"editOne": "Editar: {statement}",
+			"remove": "Quitar",
+			"removeOne": "Quitar: {statement}",
+			"save": "Guardar",
+			"saving": "Guardando…",
+			"cancel": "Cancelar",
+			"forget": "Olvidarlo todo",
+			"forgetHeading": "¿Olvidar todo lo que recuerda el asistente?",
+			"forgetBody": "Todo lo que recuerda de ti se elimina. Tus conversaciones se quedan, y volverá a recordar cosas a partir de la siguiente.",
+			"forgetConfirm": "Olvidarlo todo",
+			"forgetCancel": "Conservarlo",
+			"forgetting": "Olvidando…"
+		},
+		"languageHeading": "Idioma",
+		"languageHint": "El idioma de esta app, del chat y del canal de voz. Es el único ajuste de idioma que hay: viaja con este navegador, no contigo.",
+		"textHeading": "Tamaño del texto",
+		"textHint": "Ajusta lo grandes que son las palabras. El zoom del navegador estrecha la disposición en cambio — esto no.",
+		"textSizes": {
+			"standard": "Normal",
+			"large": "Grande",
+			"larger": "Más grande",
+			"largest": "Máximo"
+		},
+		"accountHeading": "Cuenta",
+		"emailLabel": "Correo",
+		"tierLabel": "Nivel",
+		"tiers": {
+			"base": "Base",
+			"premium": "Premium"
+		},
+		"dataHeading": "Tu información",
+		"dataHint": "Qué se guarda sobre esta cuenta, y qué puedes hacer al respecto.",
+		"privacyLink": "Qué sabe de ti esta app",
+		"exportData": "Descargar una copia",
+		"exportHint": "Tu cuenta y lo que escribiste sobre ti, cada conversación y todo lo que el asistente recuerda de ti — en un solo archivo.",
+		"exportWorking": "Reuniéndolo todo…",
+		"exportFailed": "No ha funcionado. Inténtalo de nuevo en un momento.",
+		"deleteAccount": "Eliminar esta cuenta",
+		"deleteHint": "Cada conversación y todo lo que el asistente recuerda. No se puede deshacer.",
+		"deleteConfirmHeading": "¿Eliminar esta cuenta?",
+		"deleteConfirmBody": "Todo lo que se le ha dicho al asistente y todo lo que recuerda de ti se eliminará, junto con la cuenta. No se puede deshacer.",
+		"deleteConfirmAdvice": "Si solo quieres una copia, descárgala primero — después no quedará nada que copiar.",
+		"deleteConfirm": "Eliminarlo todo",
+		"deleteCancel": "Conservar mi cuenta",
+		"deleteWorking": "Eliminando…",
+		"deleteFailed": "No ha terminado, y puede que una parte ya se haya eliminado. Vuelve a intentarlo en un momento para terminarlo.",
+		"eraseUnfinished": "Esta cuenta se está eliminando, o ya se ha eliminado, así que no se puede mostrar nada de ella. Vuelve a eliminarla para terminar: se borra lo que quede y se cierra la sesión.",
+		"tierHint": "Premium amplía los cupos de uso y permite sesiones de voz más largas, con una voz de alta definición.",
+		"voiceTuning": {
+			"heading": "Ajuste de voz",
+			"hint": "Para pruebas de voz: cambian solo tus propias sesiones de voz, no las de nadie más. Cambiar el motor restablece los controles que dependen de él.",
+			"reset": "Volver a los ajustes de esta instalación",
+			"openaiVoice": "{voice} (OpenAI)",
+			"openaiVoiceNoFillers": "Una voz de OpenAI habla sin muletillas, y solo de voz a voz.",
+			"semanticVadNoise": "Con la detección de turnos propia del modelo en tiempo real (semantic_vad) solo funciona la supresión de ruido general: la de auriculares y la personal necesitan un procesamiento de voz previo que esta sustituye.",
+			"managedModel": "{model} — {scope}",
+			"managedHint": "Un modelo administrado lo ejecuta el servicio de voz de Microsoft, no las implementaciones de modelos propias de esta instalación, así que lo que dices puede procesarse fuera de la región de esta instalación, según indica el ámbito mostrado.",
+			"nextSession": "Los cambios se aplican desde tu próxima sesión de voz.",
+			"deploymentValue": "{value} (de esta instalación)",
+			"serviceValue": "El del servicio",
+			"on": "Activado",
+			"off": "Desactivado",
+			"engines": {
+				"cascade": "En cascada (transcribe, responde, habla)",
+				"speechToSpeech": "De voz a voz"
+			},
+			"sources": {
+				"deployment": "Un modelo implementado aquí",
+				"managed": "Un modelo administrado"
+			},
+			"scopes": {
+				"global": "procesado globalmente",
+				"dataZone": "procesado en la zona de datos de esta región",
+				"byRegion": "procesado globalmente o en la zona de datos, según la región"
+			},
+			"controls": {
+				"engine": "Motor",
+				"modelSource": "Origen del modelo",
+				"managedModel": "Modelo administrado",
+				"realtimeModel": "Modelo en tiempo real",
+				"voice": "Voz",
+				"turnDetection": "Detección de turno",
+				"silenceMs": "Silencio antes de cerrar el turno (ms)",
+				"threshold": "Umbral de voz (0–1)",
+				"prefixPaddingMs": "Audio conservado antes de hablar (ms)",
+				"noiseReduction": "Supresión de ruido",
+				"transcription": "Transcriptor",
+				"reasoningEffort": "Esfuerzo de razonamiento",
+				"interimResponses": "Muletillas mientras trabaja una herramienta"
+			}
+		}
+	},
+	"language": {
+		"label": "Idioma"
+	},
+	"privacy": {
+		"title": "Qué sabe de ti esta app",
+		"updated": "En palabras sencillas, al día con lo que hace el software.",
+		"lede": "Esta página dice qué se guarda cuando usas el asistente, por qué, durante cuánto tiempo y qué puedes hacer al respecto.",
+		"controller": {
+			"heading": "Quién es responsable",
+			"body": "La organización que gestiona esta instalación es responsable de tus datos. Sus datos de contacto están en el aviso que publica junto a esta app."
+		},
+		"kept": {
+			"heading": "Qué se guarda",
+			"account": "Tu cuenta: el identificador que da tu proveedor de inicio de sesión, tu dirección de correo y tu nombre, los roles y grupos que tu organización te asigna allí, cuándo se creó la cuenta y cuándo iniciaste sesión por última vez, y si sigue activa. Si puedes ajustar la voz para tus propias sesiones, los ajustes que guardas se conservan con ella.",
+			"you": "Lo que le cuentas de ti en los ajustes: el nombre con el que te llama, “sobre ti” y “cómo hablarte”.",
+			"conversations": "Tus conversaciones con el asistente, por escrito y de viva voz. Su lista, con sus títulos y el momento en que se dijo o se respondió cada mensaje, se guarda en una base de datos propia de esta app, en la cuenta de Azure Cosmos DB de la organización. Sus palabras se guardan donde la organización había configurado esta app para guardarlas cuando empezó cada conversación: o en la misma base de datos, y entonces al servicio de IA que responde se le da cada vez la conversación hasta ese punto y no conserva nada de ella; o en el propio servicio de IA de Microsoft, en el proyecto de Microsoft Foundry de la organización, que conserva una copia de lo que se elimina allí durante un máximo de 60 días y cierra una conversación 60 días después de empezar, tras lo cual el asistente sigue sin los mensajes anteriores.",
+			"memory": "Frases breves que el asistente recuerda de ti, que un modelo de IA saca de tus conversaciones alrededor de un minuto después de que hables. Según cómo haya configurado la organización esta app, se guardan o bien en el servicio de memoria de Microsoft en el proyecto de Microsoft Foundry de la organización — un servicio todavía en versión preliminar, cuyo modelo es el que las saca — o bien en la misma base de datos propia de esta app que tus conversaciones, en la cuenta de Azure Cosmos DB de la organización. En ambos casos puedes verlas, corregirlas o quitarlas una a una, u olvidarlas todas, en los ajustes, y eliminar la cuenta las elimina.",
+			"pictures": "Las imágenes que envías se le muestran al asistente para esta sola respuesta, y esta app no guarda ninguna: la conversación conserva solo una nota de que ahí había una imagen. Donde es el servicio de IA de Microsoft el que guarda la conversación, la imagen entra en ella con tu mensaje y esta app la elimina de allí en cuanto se escribe la respuesta, pero el servicio conserva una copia de lo eliminado durante un máximo de 60 días. Una copia se queda únicamente en el navegador desde el que las enviaste, para que la conversación pueda volver a mostrarla ahí, hasta que elimines la conversación, cierres sesión o borres los datos de este sitio en ese navegador. Si tu sesión allí simplemente caduca, o eliminas tu cuenta desde otro dispositivo, ese navegador conserva sus copias hasta que ocurra una de esas cosas.",
+			"web": "La búsqueda web está activada salvo que tu organización la haya desactivado. Cuando el asistente busca en la web, las palabras de búsqueda que elige, que pueden llevar aquello por lo que preguntaste, van a Microsoft Bing, fuera del entorno de Azure de la organización y bajo los términos de Bing. Van sin tu nombre ni tu cuenta, pero pueden decir todo lo que decía tu pregunta. Las páginas que cita pasan a formar parte de la respuesta y se guardan con la conversación.",
+			"voice": "Voz: cuando hablas con el asistente, tu voz va desde tu navegador, a través de los servidores de esta app, al servicio de voz de Microsoft en la cuenta de Microsoft Foundry de la organización, que transcribe lo que dices y pronuncia las respuestas, y las respuestas vuelven por el mismo camino. Esta app nunca almacena el audio: lo pasa según llega, y cada sesión de voz se abre pidiendo al servicio de voz que tampoco almacene nada de ella. Lo que dijiste y lo que respondió el asistente se escriben en la conversación como texto cuando termina la sesión, y se guardan como el resto. Según Microsoft, su servicio de voz puede transcribir y hablar fuera de la región que la organización eligió para él. El modelo de IA que te escucha es uno que la organización implementó en esa cuenta y, tal como esta app está configurada de forma predeterminada, Microsoft puede procesar con él lo que dices en cualquiera de sus regiones. Tu organización, o un tester para sus propias sesiones, puede elegir en su lugar uno de los modelos del propio servicio de voz, que Microsoft ejecuta y también puede ejecutar en cualquiera de sus regiones. Mientras el asistente busca algo, la frase breve que dice entretanto la escribe un modelo que ejecuta el propio servicio de voz, que lee la conversación hasta ese momento y también puede procesarla en cualquiera de las regiones de Microsoft.",
+			"logs": "Registros operativos del servicio — cuánto tardó una página, que ocurrió un error —, conservados durante 30 días para hacerlo funcionar. La app deja fuera de ellos quién eres en la medida en que puede, pero algunas cosas entran: cada medición de la velocidad de una página lleva la descripción que tu navegador da de sí mismo, un error puede registrarse con sus propias palabras, que pueden citar de qué trataba, y los registros propios de Azure sobre la base de datos pueden llevar el identificador de tu cuenta. Tu organización puede activar el seguimiento de Microsoft sobre el asistente, que entonces pone en estos registros lo que preguntas y lo que responde, adonde no llega eliminar una conversación ni tu cuenta. Donde Azure Front Door está delante del servicio, Front Door y su cortafuegos registran además cada petición — tu dirección IP, la dirección de la página y la descripción que tu navegador da de sí mismo — y conservan esos registros durante 30 días, para proteger el servicio. Tu organización también puede enviarlos a un proveedor de monitorización que nombre en su propio aviso."
+		},
+		"model": {
+			"heading": "Qué se le dice al asistente",
+			"body": "Antes de responder, al asistente se le dicen la fecha, tu nombre, lo que escribiste sobre ti, lo que recuerda de ti y la conversación hasta ese punto. Eso va al modelo de IA que genera sus respuestas, que la organización implementó en su propia cuenta de nube; tal como esta app está configurada de forma predeterminada, Microsoft puede procesar lo que recibe en cualquiera de sus regiones."
+		},
+		"why": {
+			"heading": "Por qué",
+			"body": "Para que el asistente pueda responderte, recordar lo que le contaste entre una conversación y otra, y para que la organización pueda mantener el servicio en marcha. Nada de esto se usa para publicidad. Lo que el asistente recuerda de ti solo se usa para adaptar sus respuestas a ti, y puedes verlo, corregirlo u olvidarlo en los ajustes."
+		},
+		"howLong": {
+			"heading": "Durante cuánto tiempo",
+			"body": "Hasta que lo elimines. Quitar algo que el asistente recuerda lo quita; olvidarlo todo lo quita todo; eliminar una conversación la elimina, pero no lo que el asistente recuerda de ella; eliminar la cuenta lo elimina todo, incluida la propia cuenta, salvo un simple registro de que se eliminó, sin nombre y sin nada de lo que dijiste, que durante unas horas deja fuera las sesiones iniciadas antes y luego desaparece; si tu organización había desactivado la cuenta, ese registro se queda para siempre, para que eliminarla no devuelva el acceso. Donde es el servicio de IA de Microsoft el que guarda una conversación, eliminarla la elimina también del servicio, que aun así conserva una copia durante un máximo de 60 días. Las copias de seguridad de la base de datos de esta app conservan lo que eliminas hasta 7 días más, y los registros conservan lo que contienen durante sus 30 días.",
+			"local": "Esta instalación usa un inicio de sesión de demo, y cada inicio de sesión es una cuenta nueva. Cuando termina — cierras sesión, caduca o cambias de navegador — nadie puede volver a entrar en ella, así que ya no puedes eliminar lo que se guardó bajo ella: elimina las conversaciones, o la cuenta entera, en los ajustes antes de irte. Lo que quede sigue guardado mientras esta instalación esté en funcionamiento."
+		},
+		"rights": {
+			"heading": "Qué puedes hacer",
+			"body": "Desde la página de ajustes puedes:",
+			"export": "descargar una copia de todo lo que se guarda sobre tu cuenta, en un solo archivo;",
+			"correct": "ver y corregir lo que el asistente recuerda de ti, una frase cada vez, o quitarla — tu derecho a que se rectifique lo que se tiene sobre ti;",
+			"delete": "eliminar la cuenta entera, de una vez y para siempre. Si una eliminación se detiene a medias, la cuenta ya no puede usarse, y volver a eliminarla en la configuración la termina."
+		},
+		"cookies": {
+			"heading": "Cookies y almacenamiento",
+			"body": "Esta app solo guarda lo que necesita para funcionar: una cookie de sesión que te mantiene conectado, cookies de corta duración que protegen el propio inicio de sesión, y una cookie con el idioma y el tamaño del texto que elegiste. El almacenamiento propio de este navegador conserva las imágenes que envías, hasta que elimines su conversación o cierres sesión, y una sola nota — workspace.guideSeen — de que ya has visto la visita guiada, para que no vuelva a empezar sola. No hay almacenamiento de publicidad ni de analítica, y por eso no hay un aviso de cookies."
+		},
+		"ai": {
+			"heading": "Estás hablando con una máquina",
+			"body": "El asistente es un software que genera sus respuestas y su voz con un modelo de IA. Tiene instrucciones de decirlo cuando se le pregunta, y puede equivocarse. Nada en esta app marca su voz hablada como hecha por una máquina: los avisos del panel de voz y de aquí son lo que te lo dice."
+		}
+	},
+	"errors": {
+		"unauthenticated": "Has cerrado sesión. Inicia sesión de nuevo.",
+		"forbidden": "Eso no es tuyo para abrirlo.",
+		"not_found": "No se ha encontrado.",
+		"bad_request": "Esta petición no tenía sentido. Inténtalo de nuevo.",
+		"rate_limited": "Has agotado tu cupo por ahora. Inténtalo de nuevo en breve.",
+		"pool_exhausted": "Todo el mundo está hablando a la vez y el cupo compartido se ha agotado. Inténtalo de nuevo en breve.",
+		"refused_capacity": "Todo el mundo quiere hablar a la vez. Espera un momento e inténtalo de nuevo.",
+		"refused_busy": "Tu última sesión de voz todavía se está cerrando — espera un momento e inténtalo de nuevo.",
+		"refused_unavailable": "La voz no está disponible ahora mismo. Inténtalo de nuevo en breve.",
+		"refused_unconfigured": "El canal de voz no está configurado aquí — escribir sigue funcionando.",
+		"unconfigured": "Eso no está configurado aquí.",
+		"invalid_body": "Esta petición no tenía sentido. Inténtalo de nuevo.",
+		"body_too_large": "Era demasiado grande para enviarlo.",
+		"upstream_failed": "El servicio que hay detrás no ha respondido. Inténtalo de nuevo en breve.",
+		"handshake_failed": "No se ha podido abrir el canal de voz.",
+		"settings_refused": "El servicio de voz ha rechazado los ajustes de audio de esta sesión — vuelve a abrir el canal y, si cambiaste el ajuste de voz, prueba otra supresión de ruido.",
+		"account_deactivated": "Esta cuenta ha sido desactivada.",
+		"erase_incomplete": "No se ha podido eliminar todo. Inténtalo de nuevo y se eliminará el resto.",
+		"unsupported_type": "Ese tipo de archivo no se puede mostrar aquí.",
+		"unavailable": "El servicio no está disponible ahora mismo. Inténtalo de nuevo en breve.",
+		"backend_unreachable": "No se puede llegar al servicio ahora mismo. Inténtalo de nuevo en breve.",
+		"generic": "Algo ha salido mal. Inténtalo de nuevo."
+	},
+	"error": {
+		"heading": "Algo ha salido mal",
+		"body": "Esta página ha tenido un error del que no ha podido recuperarse.",
+		"retry": "Inténtalo de nuevo",
+		"reference": "Referencia: {digest}"
+	}
+}

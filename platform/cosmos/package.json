@@ -1,0 +1,22 @@
+{
+	"name": "@platform/cosmos",
+	"version": "0.0.0",
+	"type": "module",
+	"private": true,
+	"description": "The process's one Cosmos DB database: keyless on the managed identity, the narrow container surface every store is written against, the containers each package declares, and an in-memory stand-in held to the emulator by one shared suite.",
+	"exports": {
+		".": "./src/index.ts",
+		"./testing": "./src/testing/index.ts"
+	},
+	"scripts": {
+		"typecheck": "tsc --noEmit"
+	},
+	"dependencies": {
+		"@azure/cosmos": "4.10.2",
+		"@platform/config": "workspace:*"
+	},
+	"devDependencies": {
+		"@types/bun": "^1.3.14",
+		"typescript": "^5"
+	}
+}

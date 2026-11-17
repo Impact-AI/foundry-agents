@@ -1,0 +1,22 @@
+{
+	"name": "@platform/redis",
+	"version": "0.0.0",
+	"type": "module",
+	"private": true,
+	"description": "One Redis connection for the process, never required: a deadline on every command, one key scheme under an app-supplied prefix, a fleet-shared memo, a claim and a lock.",
+	"exports": {
+		".": "./src/index.ts",
+		"./testing": "./src/testing/index.ts"
+	},
+	"scripts": {
+		"typecheck": "tsc --noEmit"
+	},
+	"dependencies": {
+		"@platform/config": "workspace:*"
+	},
+	"devDependencies": {
+		"@platform/test-support": "workspace:*",
+		"@types/bun": "^1.3.14",
+		"typescript": "^5"
+	}
+}

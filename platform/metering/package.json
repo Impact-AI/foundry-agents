@@ -1,0 +1,25 @@
+{
+	"name": "@platform/metering",
+	"version": "0.0.0",
+	"type": "module",
+	"private": true,
+	"description": "The cost bounds: the limits document, one credit bucket, per-account allowances and per-minute bursts on the metered surfaces, and the live-seconds ledger for realtime sessions.",
+	"exports": {
+		".": "./src/index.ts",
+		"./testing": "./src/testing/index.ts"
+	},
+	"scripts": {
+		"typecheck": "tsc --noEmit"
+	},
+	"dependencies": {
+		"@platform/config": "workspace:*",
+		"@platform/identity": "workspace:*",
+		"@platform/observability": "workspace:*",
+		"@platform/redis": "workspace:*"
+	},
+	"devDependencies": {
+		"@platform/test-support": "workspace:*",
+		"@types/bun": "^1.3.14",
+		"typescript": "^5"
+	}
+}

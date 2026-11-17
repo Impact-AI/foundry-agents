@@ -1,0 +1,100 @@
+/*
+ * The phone's strip of pages: pinned above the composer, under the pager,
+ * only on the stacked layout in portrait. Stands down under the keyboard.
+ */
+.stage-pages {
+	display: none;
+}
+
+@media (max-width: 1080px) and (min-height: 481px) {
+	.stage-pages {
+		position: fixed;
+		z-index: 30;
+		right: 0;
+		bottom: var(--composer-fixed-h, 0px);
+		left: 0;
+		display: flex;
+		align-items: center;
+		height: 58px;
+		padding: 0 var(--space-2);
+		border-top: 1px solid var(--line);
+		background: var(--band);
+		-webkit-backdrop-filter: blur(16px);
+		backdrop-filter: blur(16px);
+	}
+
+	html[data-vv-keyboard] .stage-pages {
+		display: none;
+	}
+
+	.stage-pages-row {
+		display: flex;
+		flex: 1;
+		gap: var(--space-2);
+		min-width: 0;
+		overflow-x: auto;
+		scrollbar-width: none;
+	}
+
+	.stage-pages-row::-webkit-scrollbar {
+		display: none;
+	}
+
+	.stage-page {
+		flex: none;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 2px;
+		min-width: 64px;
+		min-height: var(--thumb);
+		padding: 5px var(--space-3);
+		border: 1px solid var(--line-strong);
+		border-radius: var(--radius-sm);
+		background: var(--glass-2);
+		color: var(--muted);
+		font: inherit;
+		font-size: var(--text-xs);
+		cursor: pointer;
+		touch-action: manipulation;
+		-webkit-tap-highlight-color: transparent;
+		transition: transform var(--dur-fast) var(--ease);
+	}
+
+	.stage-page:active {
+		transform: scale(0.95);
+	}
+
+	.stage-page svg {
+		width: 18px;
+		height: 18px;
+	}
+
+	.stage-page-word {
+		max-width: 88px;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.stage-page.is-active {
+		border-color: var(--accent);
+		background: var(--accent-soft);
+		color: var(--text);
+	}
+
+	.stage-page.is-active svg {
+		color: var(--accent);
+	}
+
+	.stage-page:focus-visible {
+		outline: 2px solid var(--focus);
+		outline-offset: 2px;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.stage-page {
+		transition: none;
+	}
+}

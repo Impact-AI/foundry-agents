@@ -1,0 +1,31 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "impact-sdk-setup",
+  "version": "0.1.0-rc.7",
+  "description": "Connect your app to Impact AI with Codex. Set up supported model and tool tracing, preserve existing telemetry, and verify your first Trace.",
+  "author": {
+    "name": "Impact AI",
+    "url": "https://impact.ai"
+  },
+  "license": "Apache-2.0",
+  "homepage": "https://docs.impact.ai/quickstart",
+  "keywords": ["telemetry", "opentelemetry", "sdk", "instrumentation"],
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "Impact SDK Setup",
+        "shortDescription": "Connect your app to Impact AI",
+        "longDescription": "Understand your AI. Improve with evidence. Let Codex check your stack, connect supported model calls and tools to Impact, and help you verify a real request. Keep your existing clients, telemetry and content controls.",
+        "developerName": "Impact AI",
+        "category": "Developer Tools",
+        "websiteURL": "https://docs.impact.ai/quickstart",
+        "brandColor": "#6E35C4",
+        "composerIcon": "./assets/icon.png",
+        "logo": "./assets/icon.png",
+        "defaultPrompt": [
+          "Set up Impact tracing in this app. Check compatibility, preserve existing telemetry and privacy, and verify my first Trace."
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,23 @@
+{
+	"name": "@platform/storage",
+	"version": "0.0.0",
+	"type": "module",
+	"private": true,
+	"description": "The process's one Azure Blob container: keyless on the managed identity, blobs listed with their metadata, streamed out and written whole.",
+	"exports": {
+		".": "./src/index.ts",
+		"./testing": "./src/testing/index.ts"
+	},
+	"scripts": {
+		"typecheck": "tsc --noEmit"
+	},
+	"dependencies": {
+		"@azure/storage-blob": "^12.33.0",
+		"@platform/config": "workspace:*"
+	},
+	"devDependencies": {
+		"@platform/test-support": "workspace:*",
+		"@types/bun": "^1.3.14",
+		"typescript": "^5"
+	}
+}

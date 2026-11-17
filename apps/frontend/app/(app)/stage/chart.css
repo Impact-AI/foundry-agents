@@ -1,0 +1,157 @@
+/*
+ * The chart and the sparkline. The fan of hues is decorative — a series'
+ * colour tells it from its neighbours and nothing more — and cool, so no
+ * trace reads as a warning.
+ */
+.chart-tile {
+	flex: 1;
+	min-height: 0;
+	display: flex;
+	flex-direction: column;
+}
+
+.chart {
+	flex: 1;
+	min-height: 0;
+	margin: 0;
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-2);
+}
+
+.chart-head {
+	display: flex;
+	align-items: baseline;
+	gap: var(--space-2);
+	min-width: 0;
+}
+
+.chart-title {
+	font-weight: var(--weight-semibold);
+	overflow-wrap: anywhere;
+}
+
+.chart-unit {
+	color: var(--muted);
+	font-size: var(--text-sm);
+}
+
+.chart-plot {
+	position: relative;
+	flex: 1;
+	min-height: 140px;
+	width: 100%;
+	touch-action: none;
+}
+
+.chart-plot svg {
+	position: absolute;
+	inset: 0;
+	display: block;
+	width: 100%;
+	height: 100%;
+}
+
+.chart-rule line {
+	stroke: var(--line);
+	stroke-width: 1;
+}
+
+.chart-rule text,
+.chart-x {
+	fill: var(--muted);
+	font-size: var(--text-xs);
+}
+
+.chart-cursor {
+	stroke: var(--line-strong);
+	stroke-width: 1;
+	stroke-dasharray: 3 4;
+	opacity: 0.6;
+}
+
+.chart-cursor[data-on] {
+	opacity: 1;
+}
+
+.chart-series polyline {
+	fill: none;
+	stroke: var(--hue);
+	stroke-width: 2.25;
+	stroke-linejoin: round;
+	stroke-linecap: round;
+}
+
+.chart-series circle {
+	fill: var(--hue);
+}
+
+.chart-legend {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--space-1) var(--space-4);
+	align-items: center;
+	font-size: var(--text-sm);
+}
+
+.chart-key {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--space-2);
+}
+
+.chart-swatch {
+	width: 10px;
+	height: 10px;
+	border-radius: 50%;
+	background: var(--hue);
+}
+
+.chart-key-name {
+	color: var(--muted);
+}
+
+.chart-key-value {
+	font-variant-numeric: tabular-nums;
+	font-weight: var(--weight-semibold);
+}
+
+.chart-at {
+	margin-left: auto;
+	color: var(--muted);
+}
+
+.sparkline {
+	display: block;
+	width: 100%;
+	height: 40px;
+}
+
+.sparkline polyline {
+	fill: none;
+	stroke: var(--hue);
+	stroke-width: 2;
+	stroke-linejoin: round;
+	/* A lone value between gaps is a line of no length: the cap draws it as a dot. */
+	stroke-linecap: round;
+	vector-effect: non-scaling-stroke;
+}
+
+[data-hue="0"] {
+	--hue: var(--chan-0);
+}
+[data-hue="1"] {
+	--hue: var(--chan-1);
+}
+[data-hue="2"] {
+	--hue: var(--chan-2);
+}
+[data-hue="3"] {
+	--hue: var(--chan-3);
+}
+[data-hue="4"] {
+	--hue: var(--chan-4);
+}
+[data-hue="5"] {
+	--hue: var(--chan-5);
+}

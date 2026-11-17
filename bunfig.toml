@@ -1,0 +1,12 @@
+# The hoisted (npm-style) node_modules layout: the frontend's tsconfig names
+# `@types/bun` out of the hoisted tree on purpose, and the test preload reaches
+# `eventsource` from the root.
+[install]
+linker = "hoisted"
+
+# `bun test` runs every file in one process without Next's server bootstrap, so
+# nothing installs `globalThis.AsyncLocalStorage` and Next's console patch turns
+# every `console.error` into a thrown invariant. The preload does what the
+# bootstrap would.
+[test]
+preload = ["./scripts/test-preload.ts"]

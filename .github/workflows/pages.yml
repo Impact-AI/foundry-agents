@@ -1,0 +1,87 @@
+# The documentation site (site/), built from docs/ and published to GitHub
+# Pages. Pages must be on for the repository, with GitHub Actions as its
+# source (Settings → Pages). A pull request that touches the pages builds the
+# site, which fails on a dead link, and publishes nothing.
+name: Pages
+
+on:
+  pull_request:
+    paths:
+      - "docs/**"
+      - "site/**"
+      - ".github/workflows/pages.yml"
+  push:
+    branches: [main]
+    paths:
+      - "docs/**"
+      - "site/**"
+      - ".github/workflows/pages.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# One publication at a time; a newer push waits rather than cancelling one
+# that is already deploying.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build the site
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      pages: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      # Where Pages serves this repository's site: `/foundry-agents` on a public
+      # repository, the root of a private one's own address.
+      - id: pages
+        uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
+
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version-file: .bun-version
+
+      # The site is its own package, outside the root's workspaces, with its
+      # own lockfile.
+      - run: bun install --frozen-lockfile
+        working-directory: site
+
+      - run: bun run build
+        working-directory: site
+        env:
+          SITE_BASE: ${{ steps.pages.outputs.base_path }}/
+          # A pull request's build links its source to its own branch.
+          SITE_BRANCH: ${{ github.head_ref || 'main' }}
+
+      # The build fails on a link to no page, but never reads a fragment:
+      # every internal link's `#anchor` must name an id on its page.
+      - run: bun run check-anchors
+        working-directory: site
+        env:
+          SITE_BASE: ${{ steps.pages.outputs.base_path }}/
+
+      - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: site/dist
+
+  deploy:
+    name: Publish
+    needs: build
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1

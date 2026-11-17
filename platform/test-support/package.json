@@ -1,0 +1,17 @@
+{
+	"name": "@platform/test-support",
+	"version": "0.0.0",
+	"type": "module",
+	"private": true,
+	"description": "What a test in any package needs and no package should write for itself: environment variables scoped to a test and a stand-in that hands the real export back.",
+	"exports": {
+		".": "./src/index.ts"
+	},
+	"scripts": {
+		"typecheck": "tsc --noEmit"
+	},
+	"devDependencies": {
+		"@types/bun": "^1.3.14",
+		"typescript": "^5"
+	}
+}

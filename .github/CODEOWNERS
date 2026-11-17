@@ -1,0 +1,29 @@
+# Owner review for the sensitive areas: sign-in, roles and session handling,
+# the infrastructure and its hooks, the images, and the workflows. Everything
+# else needs one independent approval from anyone with write access, so a
+# documentation fix never waits on an owner. A later line wins over an
+# earlier one for the same path.
+
+# Sign-in, sessions, roles and service-to-service assertions
+/platform/identity/                     @Impact-AI/impact-leads
+/apps/backend/src/auth/                 @Impact-AI/impact-leads
+/apps/frontend/auth.ts                  @Impact-AI/impact-leads
+/apps/frontend/auth.config.ts           @Impact-AI/impact-leads
+/apps/frontend/proxy.ts                 @Impact-AI/impact-leads
+/apps/frontend/src/auth-providers.ts    @Impact-AI/impact-leads
+/apps/frontend/src/session.ts           @Impact-AI/impact-leads
+/apps/frontend/app/api/auth/            @Impact-AI/impact-leads
+
+# Deployment: the template, its hooks and the images
+/azure.yaml                             @Impact-AI/impact-leads
+/infra/                                 @Impact-AI/impact-leads
+/hooks/                                 @Impact-AI/impact-leads
+/apps/backend/Dockerfile                @Impact-AI/impact-leads
+/apps/frontend/Dockerfile               @Impact-AI/impact-leads
+
+# The Impact SDK setup plugin, generated from Impact AI's maintained sources
+/plugins/                               @Impact-AI/impact-leads
+/.agents/                               @Impact-AI/impact-leads
+
+# Workflows, dependency updates and this file
+/.github/                               @Impact-AI/impact-core

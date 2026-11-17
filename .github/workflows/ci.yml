@@ -1,0 +1,274 @@
+# The checks a contributor runs, from the repository root.
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: Lint, typecheck, test
+    runs-on: ubuntu-latest
+    # A bound on every job: a step that hangs fails the run rather than
+    # holding a runner for the six hours GitHub allows.
+    timeout-minutes: 30
+    # The suites whose subject is Redis skip without a server; the Cosmos DB
+    # suites run in memory without the emulator.
+    services:
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+      # The Cosmos DB emulator (Linux, vNext, preview), pinned by tag and
+      # digest: what this job keeps accounts and the persona on, where every
+      # other run keeps them in the in-memory stand-in held to it.
+      cosmos:
+        image: mcr.microsoft.com/cosmosdb/linux/azure-cosmos-emulator:vnext-EN20261008@sha256:0bd6dbab98295718c85399ad27c38d45733060086528711594a7d52bafcb3447
+        env:
+          ENABLE_EXPLORER: "false"
+          ENABLE_TELEMETRY: "false"
+        ports:
+          - 8081:8081
+          - 8080:8080
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version-file: .bun-version
+
+      - run: bun install --frozen-lockfile
+
+      # Ready when its health port says so, asked from the runner rather
+      # than by a probe inside an image this workflow does not build.
+      - name: Wait for the Cosmos DB emulator
+        run: |
+          for _ in $(seq 1 90); do
+            curl -fsS http://localhost:8080/ready > /dev/null && exit 0
+            sleep 2
+          done
+          echo "the Cosmos DB emulator never became ready" >&2
+          exit 1
+
+      - run: bunx biome ci .
+
+      - run: bun run typecheck
+
+      # The tests run every hook and script through both twins, and the
+      # PowerShell half of each skips where `pwsh` is not on PATH. A step in
+      # `pwsh` is what makes its absence a failure here rather than a skip,
+      # and a twin that does not parse is named by its line before any test
+      # meets it.
+      - name: Parse the PowerShell twins
+        shell: pwsh
+        run: |
+          $failed = $false
+          foreach ($file in Get-ChildItem hooks, scripts -Filter *.ps1) {
+            $errors = $null
+            [void][System.Management.Automation.Language.Parser]::ParseFile($file.FullName, [ref]$null, [ref]$errors)
+            foreach ($problem in $errors) {
+              Write-Host "$($file.Name):$($problem.Extent.StartLineNumber): $($problem.Message)"
+              $failed = $true
+            }
+          }
+          if ($failed) { exit 1 }
+
+      # shellcheck over every bash script, at warnings and above. A pinned
+      # release, checked against its digest before anything in it runs.
+      - name: Lint the shell scripts
+        shell: bash
+        run: |
+          curl -fsSL -o "$RUNNER_TEMP/shellcheck.tar.xz" https://github.com/koalaman/shellcheck/releases/download/v0.11.0/shellcheck-v0.11.0.linux.x86_64.tar.xz
+          echo "8c3be12b05d5c177a04c29e3c78ce89ac86f1595681cab149b65b97c4e227198  $RUNNER_TEMP/shellcheck.tar.xz" | sha256sum --check
+          tar -xJf "$RUNNER_TEMP/shellcheck.tar.xz" -C "$RUNNER_TEMP"
+          "$RUNNER_TEMP/shellcheck-v0.11.0/shellcheck" --severity=warning hooks/*.sh scripts/*.sh .githooks/*
+
+      # The template's tests compile infra/main.bicep and read the result. A
+      # pinned CLI, because `az bicep` would fetch whatever is newest.
+      - name: Install the Bicep CLI
+        run: |
+          curl -fsSL -o "$RUNNER_TEMP/bicep" https://github.com/Azure/bicep/releases/download/v0.48.1/bicep-linux-x64
+          chmod +x "$RUNNER_TEMP/bicep"
+          echo "BICEP_CLI=$RUNNER_TEMP/bicep" >> "$GITHUB_ENV"
+
+      - run: '"$BICEP_CLI" lint infra/main.bicep'
+
+      # Coverage is reported, never gated. Bun counts only the files some test
+      # imports: a module no test reaches is absent from the total rather
+      # than counted at zero, so the figure is the coverage of the code the
+      # tests reach, not of the tree, and a new module nobody tests leaves it
+      # where it was. A threshold on it would measure the wrong thing.
+      # `shell: bash` is what makes a failing test fail the step: GitHub runs
+      # an explicit bash with pipefail, the default shell without it, and the
+      # pipe into tee would otherwise answer tee's exit status.
+      - run: bun test --coverage --coverage-reporter=text --coverage-reporter=lcov 2>&1 | tee "$RUNNER_TEMP/coverage.txt"
+        shell: bash
+        env:
+          REDIS_URL: redis://localhost:6379
+          COSMOS_TESTS: "1"
+          # The emulator's published, well-known key: it opens nothing but an emulator.
+          COSMOS_ENDPOINT: http://localhost:8081
+          COSMOS_KEY: C2y6yDjf5/R+ob0N8A7Cgv30VRDJIWEHLM+4QDU5DE2nQ9nDuVTqobD4b8mGGyPMbIZnqyMsEcaGQy67XIw/Jw==
+
+      - name: Coverage summary
+        if: always()
+        run: |
+          {
+            echo '```'
+            grep -E '^(File|All files) ' "$RUNNER_TEMP/coverage.txt" || echo 'no coverage report'
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload coverage
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: coverage-lcov
+          path: coverage/lcov.info
+          if-no-files-found: ignore
+
+  e2e:
+    name: End to end
+    # Playwright installs its browser's system packages for the Ubuntu releases
+    # its version knows; the image is named so a new `latest` cannot be one it
+    # does not.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    # The frontend's production build, served as its image serves it, against
+    # the real backend on Redis and the Cosmos DB emulator with only the
+    # models and Foundry stood in for, at the provider's fetch
+    # (apps/backend/src/testing/dev-fake.ts), driven
+    # by a browser through what a person sees (apps/frontend/e2e).
+    services:
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+      # The Cosmos DB emulator (Linux, vNext, preview), pinned by tag and
+      # digest: what this job keeps accounts and the persona on, where every
+      # other run keeps them in the in-memory stand-in held to it.
+      cosmos:
+        image: mcr.microsoft.com/cosmosdb/linux/azure-cosmos-emulator:vnext-EN20261008@sha256:0bd6dbab98295718c85399ad27c38d45733060086528711594a7d52bafcb3447
+        env:
+          ENABLE_EXPLORER: "false"
+          ENABLE_TELEMETRY: "false"
+        ports:
+          - 8081:8081
+          - 8080:8080
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version-file: .bun-version
+
+      - run: bun install --frozen-lockfile
+
+      # Ready when its health port says so, asked from the runner rather
+      # than by a probe inside an image this workflow does not build.
+      - name: Wait for the Cosmos DB emulator
+        run: |
+          for _ in $(seq 1 90); do
+            curl -fsS http://localhost:8080/ready > /dev/null && exit 0
+            sleep 2
+          done
+          echo "the Cosmos DB emulator never became ready" >&2
+          exit 1
+
+      # The browser the lockfile's Playwright was released with, and the
+      # system libraries it needs.
+      - run: bunx playwright install --with-deps chromium
+        working-directory: apps/frontend
+
+      - run: bun run e2e:build
+        working-directory: apps/frontend
+
+      - run: bun run e2e
+        working-directory: apps/frontend
+        env:
+          REDIS_URL: redis://localhost:6379
+          # The emulator's published, well-known key: it opens nothing but an emulator.
+          COSMOS_ENDPOINT: http://localhost:8081
+          COSMOS_KEY: C2y6yDjf5/R+ob0N8A7Cgv30VRDJIWEHLM+4QDU5DE2nQ9nDuVTqobD4b8mGGyPMbIZnqyMsEcaGQy67XIw/Jw==
+
+      - name: Upload the Playwright report
+        if: failure()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: playwright-report
+          path: |
+            apps/frontend/e2e/playwright-report
+            apps/frontend/e2e/test-results
+          retention-days: 14
+
+  image:
+    name: Image (${{ matrix.service }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        service: [backend, frontend]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      # The build context is the repository root. The frontend image's build
+      # stage is its `next build`, so this job is the bundler's check too.
+      - run: docker build --file apps/${{ matrix.service }}/Dockerfile --tag ${{ matrix.service }}:scan .
+
+      # What is known against the image's operating-system packages: the part
+      # of it no lockfile of this repository pins. The packages it installs
+      # from the lockfile are the Audit workflow's, read once and accepted in
+      # one place. Only an advisory with a fixed release fails the job: one
+      # with none is nothing a change here can answer. The scanner's own
+      # version is pinned beside the action's commit.
+      - uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          image-ref: ${{ matrix.service }}:scan
+          version: v0.76.1
+          scanners: vuln
+          vuln-type: os
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          exit-code: "1"
+
+  # fallow, pinned, reading .fallowrc.jsonc: exports, files and dependencies
+  # nothing uses, copy-pasted blocks, import cycles. Each check fails on any
+  # finding; there is no baseline to grow into.
+  quality:
+    name: Dead code, duplication, cycles
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version-file: .bun-version
+
+      # The installed packages are what an import resolves to.
+      - run: bun install --frozen-lockfile
+
+      - run: bunx fallow@3.35.0 dead-code --fail-on-issues
+
+      - run: bunx fallow@3.35.0 dupes --fail-on-issues
+
+      - run: bunx fallow@3.35.0 architecture --cycles --fail-on-issues

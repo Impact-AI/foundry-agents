@@ -1,0 +1,22 @@
+{
+	"name": "@platform/prompt",
+	"version": "0.0.0",
+	"type": "module",
+	"private": true,
+	"description": "How a system prompt is assembled: three parts in one order, guardrails from operator-tunable slots that can be retuned but not emptied, personalization blocks that quote a person without obeying them, and the persona lint; and, under ./store, the operator's versioned persona row and guardrail overrides.",
+	"exports": {
+		".": "./src/index.ts",
+		"./store": "./src/store/index.ts"
+	},
+	"scripts": {
+		"typecheck": "tsc --noEmit"
+	},
+	"dependencies": {
+		"@platform/config": "workspace:*",
+		"@platform/cosmos": "workspace:*"
+	},
+	"devDependencies": {
+		"@types/bun": "^1.3.14",
+		"typescript": "^5"
+	}
+}

@@ -1,0 +1,551 @@
+{
+	"metadata": {
+		"title": "Assistent",
+		"description": "Sprich mit dem Assistenten, schriftlich oder per Stimme."
+	},
+	"ai": {
+		"door": "Der Assistent ist eine KI, kein Mensch. Alles, was er sagt, und die Stimme, mit der er es sagt, wird von einem Computer erzeugt.",
+		"first": "Hallo — ich bin ein KI-Assistent. Worüber möchtest du sprechen?",
+		"disclosure": "Der Assistent ist eine KI. Er kann sich irren.",
+		"voice": "Diese Stimme wird von einem Computer erzeugt. Der Assistent ist eine KI."
+	},
+	"common": {
+		"appName": "Assistent",
+		"signOut": "Abmelden",
+		"cancel": "Abbrechen",
+		"save": "Speichern",
+		"close": "Schließen",
+		"loading": "Wird geladen…",
+		"back": "Zurück",
+		"delete": "Löschen",
+		"keep": "Behalten",
+		"retry": "Noch einmal versuchen",
+		"dismiss": "Ausblenden",
+		"menu": "Menü",
+		"backToChat": "Zurück zum Chat"
+	},
+	"login": {
+		"heading": "Anmelden",
+		"lede": "Melde dich mit deinem Arbeits- oder Schulkonto an, um loszulegen.",
+		"signIn": "Mit Microsoft anmelden",
+		"redirecting": "Weiterleitung…",
+		"localLede": "Melde dich mit einem Namen an, um loszulegen. Das ist eine Demo: kein Passwort, kein Identitätsanbieter.",
+		"localName": "Dein Name",
+		"localSignIn": "Weiter",
+		"localHint": "Das ist nur der Name, mit dem der Assistent dich anspricht. Jede Anmeldung hier ist eine neue Person: sobald sie endet — du meldest dich ab, sie läuft ab oder du wechselst den Browser — gibt es keinen Weg zurück.",
+		"privacy": "Was diese App über dich weiß",
+		"errors": {
+			"not_allowed": "Dieses Konto ist hier nicht zugelassen. Wenn das nicht stimmen kann, versuch es mit einem anderen Konto.",
+			"no_account": "Die Anmeldung enthielt kein Konto, das wir verwenden konnten. Versuch es noch einmal.",
+			"deactivated": "Dieses Konto wurde deaktiviert.",
+			"unavailable": "Die Anmeldung funktioniert im Moment nicht. Das liegt an uns, nicht an dir — bitte versuch es später noch einmal.",
+			"AccessDenied": "Wir konnten dieses Konto nicht hereinlassen. Versuch es noch einmal, oder komm mit einem anderen Konto zurück.",
+			"Configuration": "Die Anmeldung funktioniert im Moment nicht. Das liegt an uns, nicht an dir — bitte versuch es später noch einmal.",
+			"OAuthCallbackError": "Der Identitätsanbieter hat die Anmeldung nicht abgeschlossen. Versuch es noch einmal.",
+			"OAuthAccountNotLinked": "Mit dieser E-Mail-Adresse gibt es hier schon ein Konto. Melde dich so an wie beim ersten Mal.",
+			"CredentialsSignin": "Diese Anmeldedaten wurden nicht akzeptiert.",
+			"generic": "Die Anmeldung hat nicht geklappt. Versuch es noch einmal."
+		},
+		"leftOut": "Du bist abgemeldet. Alles auf diesem Konto bleibt, wo du es gelassen hast.",
+		"localLeftOut": "Du bist abgemeldet. Eine Demo-Anmeldung lässt sich nicht fortsetzen: die nächste ist eine neue Person, und was unter dieser gesagt wurde, bleibt auf dieser Installation gespeichert.",
+		"leftErased": "Dieses Konto ist gelöscht, mit jeder Unterhaltung und allem, was der Assistent sich dazu gemerkt hatte. Es gibt nichts mehr, bei dem du dich wieder anmelden könntest."
+	},
+	"menu": {
+		"account": "Konto",
+		"accountOf": "Konto von {name}",
+		"settings": "Einstellungen"
+	},
+	"workspace": {
+		"label": "Arbeitsbereich",
+		"home": "Bühne leeren",
+		"library": "Bibliothek",
+		"records": "Einträge"
+	},
+	"stage": {
+		"close": "Schließen",
+		"pages": "Was auf der Bühne ist",
+		"pageChat": "Unterhaltung",
+		"placed": "Auf der Bühne: {section}.",
+		"removed": "Nicht mehr auf der Bühne: {section}.",
+		"cleared": "Die Bühne ist leer.",
+		"sections": {
+			"library": "Bibliothek",
+			"reader": "Lesegerät",
+			"media": "Medien",
+			"chart": "Diagramm",
+			"record": "Datensatz",
+			"records": "Einträge"
+		}
+	},
+	"library": {
+		"found": "{count, plural, one {# Dokument} other {# Dokumente}} für „{query}“",
+		"foundAll": "{count, plural, one {# Dokument} other {# Dokumente}}",
+		"empty": "Nichts gefunden. Frag nach etwas anderem, oder fass die Suche weiter.",
+		"carousel": "Dokumente",
+		"previous": "Vorheriges Dokument",
+		"next": "Nächstes Dokument",
+		"position": "{n} von {total}",
+		"range": "{first}–{last} von {total}",
+		"open": "„{title}“ öffnen"
+	},
+	"reader": {
+		"noPages": "Dieses Dokument hat keine Seiten, die sich zeigen ließen.",
+		"media": "Bilder in diesem Dokument",
+		"enlarge": "{title} vergrößern",
+		"enlargePicture": "Bild vergrößern",
+		"previous": "Vorherige Seite",
+		"next": "Nächste Seite",
+		"position": "Seite {n} von {total}"
+	},
+	"media": {
+		"label": "Medien",
+		"close": "Schließen",
+		"enlarge": "{title} vergrößern"
+	},
+	"chart": {
+		"alt": "Ein Diagramm: {title}",
+		"onStage": "Das vollständige Diagramm ist auf der Bühne."
+	},
+	"record": {
+		"links": "Verknüpft",
+		"kinds": {
+			"person": "Person",
+			"project": "Projekt",
+			"customer": "Kunde",
+			"asset": "Anlage"
+		},
+		"measures": "Zahlen",
+		"measureNames": {
+			"billableHours": "Abrechenbare Stunden",
+			"utilisation": "Auslastung",
+			"spend": "Ausgaben",
+			"openIssues": "Offene Vorgänge",
+			"revenue": "Umsatz",
+			"supportTickets": "Support-Tickets",
+			"uptime": "Verfügbarkeit",
+			"runningCost": "Betriebskosten"
+		},
+		"units": {
+			"hours": "Stunden",
+			"issues": "Vorgänge",
+			"tickets": "Tickets"
+		}
+	},
+	"records": {
+		"found": "{count, plural, one {# Eintrag} other {# Einträge}} für „{query}“",
+		"foundAll": "{count, plural, one {# Eintrag} other {# Einträge}}",
+		"empty": "Nichts passt. Fragen Sie nach etwas anderem, oder weiten Sie die Suche aus."
+	},
+	"suggest": {
+		"library": "Zeig mir die Dokumentbibliothek",
+		"record": "Wer arbeitet an unseren Projekten?",
+		"chart": "Stell die Ausgaben eines Projekts nach Quartal dar",
+		"openFirst": "Öffne das erste Dokument",
+		"narrowLibrary": "Grenz das ein",
+		"summarise": "Fass dieses Dokument zusammen",
+		"relatedRecords": "Wer ist daran beteiligt?",
+		"describeMedia": "Was sehe ich hier?",
+		"moreLike": "Zeig mir mehr davon",
+		"explainChart": "Erklär mir dieses Diagramm",
+		"compareYear": "Vergleich es mit dem letzten Jahr",
+		"recordLinks": "Zeig mir, womit das verknüpft ist",
+		"recordChart": "Stell die Zahlen dieses Datensatzes dar"
+	},
+	"thinking": {
+		"lines": [
+			"Ich sehe die Bibliothek durch…",
+			"Ich prüfe die Datensätze…",
+			"Ich ordne die Zahlen…",
+			"Ich lese, bevor ich antworte…",
+			"Ich suche die richtige Seite…",
+			"Ich bringe es auf die Bühne…",
+			"Ich denke es durch…",
+			"Ich wäge die Quellen ab…"
+		],
+		"rare": [
+			"Ich messe zweimal…",
+			"Ich spitze den Bleistift…",
+			"Ich staube einen Ordner ab…"
+		]
+	},
+	"reasoning": {
+		"thinking": "Ich denke nach…",
+		"briefly": "Ein paar Sekunden nachgedacht",
+		"seconds": "{count, plural, one {# Sekunde nachgedacht} other {# Sekunden nachgedacht}}",
+		"minutes": "{count, plural, one {Eine Minute nachgedacht} other {# Minuten nachgedacht}}",
+		"unmeasured": "Überlegung"
+	},
+	"guide": {
+		"advance": "Weiter",
+		"close": "Anleitung schließen",
+		"eyebrow": "Anleitung",
+		"step": "{n} von {total}",
+		"back": "Zurück",
+		"next": "Weiter",
+		"done": "Fertig",
+		"again": "Das ? neben dem Eingabefeld holt sie jederzeit wieder her.",
+		"stops": {
+			"intro": {
+				"title": "Willkommen im Arbeitsbereich",
+				"line": "Du sprichst; der Assistent antwortet in Worten und stellt das, wovon er spricht, auf die Bühne neben dir. Hier siehst du, was jeder Teil ist."
+			},
+			"chat": {
+				"title": "Die Unterhaltung",
+				"line": "Frag nach einem Dokument, einer Zahl, einer Person, einem Bild — in deinen eigenen Worten.",
+				"press": "Enter sendet; Umschalt+Enter beginnt eine neue Zeile. Die nächsten Schritte über dem Feld sind einen Klick entfernt.",
+				"pressTouch": "Der Pfeil sendet; die Eingabetaste beginnt eine neue Zeile. Die nächsten Schritte über dem Feld sind ein Tippen entfernt."
+			},
+			"voice": {
+				"title": "Sprich stattdessen",
+				"line": "Der Sprachkanal, anstelle des Tippens.",
+				"press": "Drück, um ihn zu öffnen: sprich, und der Assistent antwortet laut — und steuert die Bühne genau so, wie wenn du tippst."
+			},
+			"openers": {
+				"title": "Drei Wege hinein",
+				"line": "Jeder ist eine Frage, bereit zum Stellen.",
+				"press": "Drück einen und sieh zu, wie sich die Bühne füllt."
+			},
+			"stage": {
+				"title": "Die Bühne",
+				"line": "Was der Assistent dir vorlegt, landet hier: die Karten der Bibliothek, die Seiten eines Dokuments, ein Bild, ein Diagramm, ein Datensatz. Bis zu vier auf einmal; jedes hat sein eigenes Schließen."
+			},
+			"account": {
+				"title": "Dein Konto",
+				"line": "Einstellungen — wer du für den Assistenten bist und was er sich über dich merkt — und der Ausgang.",
+				"press": "Drück auf die Scheibe, um sie zu öffnen."
+			}
+		}
+	},
+	"landing": {
+		"eyebrow": "Arbeitsbereich",
+		"heading": "Frag, und es erscheint auf der Bühne.",
+		"lede": "Der Assistent antwortet in Worten und legt dir Dinge vor: Dokumente aus der Bibliothek, eine Seite daraus, ein Bild, ein Diagramm, einen Datensatz. Tipp, oder sprich.",
+		"openers": {
+			"library": {
+				"title": "Die Bibliothek",
+				"ask": "Zeig mir die Dokumentbibliothek"
+			},
+			"record": {
+				"title": "Die Datensätze",
+				"ask": "Wer arbeitet an unseren Projekten?"
+			},
+			"chart": {
+				"title": "Ein Diagramm",
+				"ask": "Stell die Ausgaben eines Projekts nach Quartal dar"
+			}
+		},
+		"note": "Alles hier sind Beispielinhalte: erfundene Personen, Projekte, Kunden und Anlagen."
+	},
+	"chat": {
+		"heading": "Chat",
+		"threadLabel": "Nachrichten",
+		"placeholder": "Schreib eine Nachricht…",
+		"placeholderVoice": "An den Sprachkanal schreiben…",
+		"newConversation": "Neu",
+		"newConversationLabel": "Eine neue Unterhaltung beginnen",
+		"imageSent": "Ein Bild, das du gesendet hast",
+		"imageKeptHere": "Bilder bleiben nur auf dem Gerät, von dem sie gesendet wurden.",
+		"imageAbsent": "Ein Bild, das von einem anderen Gerät gesendet wurde — es wurde nie auf einem Server gespeichert.",
+		"attach": "Ein Bild anhängen",
+		"attachTooLarge": "Dieses Bild ist zu groß — wähl eins unter {limit}.",
+		"attachNotImage": "Es lassen sich nur Bilder anhängen.",
+		"attachFailed": "Dieses Bild ließ sich nicht vorbereiten. Versuch ein anderes.",
+		"camera": "Ein Foto aufnehmen",
+		"send": "Senden",
+		"stop": "Stopp",
+		"queue": "Senden, wenn die Antwort fertig ist",
+		"queued": "Wartet auf Versand: „{text}“",
+		"queuedEdit": "Bearbeiten",
+		"queuedVoice": "Wird gesendet, wenn der Sprachkanal schließt: „{text}“",
+		"runLost": "Die Antwort wurde abgeschnitten. Sende deine Nachricht noch einmal.",
+		"blocked": "Bei dieser Anfrage kann ich nicht helfen.",
+		"refused": "Dein Kontingent ist für den Moment aufgebraucht. Versuch es in {wait} noch einmal.",
+		"refusedPool": "Alle reden auf einmal, und das gemeinsame Kontingent ist aufgebraucht. Versuch es in {wait} noch einmal.",
+		"wait": {
+			"moment": "einem Moment",
+			"minutes": "{count, plural, one {einer Minute} other {# Minuten}}",
+			"hours": "{count, plural, one {einer Stunde} other {# Stunden}}"
+		},
+		"pictureSent": "Hier ist ein Foto, das ich gerade aufgenommen habe.",
+		"conversationLabel": "Unterhaltung",
+		"guide": "So funktioniert das",
+		"addMenu": "Zu deiner Nachricht hinzufügen",
+		"dropHere": "Zieh ein Bild hierher",
+		"attachments": "Bilder zum Senden",
+		"attachmentRemove": "Dieses Bild entfernen",
+		"answering": "Der Assistent antwortet",
+		"answered": "Der Assistent hat geantwortet.",
+		"speakerYou": "Du hast gesagt:",
+		"speakerAssistant": "Der Assistent hat gesagt:",
+		"sources": "Quellen"
+	},
+	"camera": {
+		"label": "Kamera",
+		"opening": "Kamera wird geöffnet…",
+		"take": "Foto aufnehmen",
+		"retake": "Noch eins aufnehmen",
+		"use": "Dieses senden",
+		"close": "Kamera schließen",
+		"denied": "Die Kamera ist für diese Seite blockiert — erlaub sie in den Website-Einstellungen deines Browsers und versuch es noch einmal.",
+		"unavailable": "Auf diesem Gerät ließ sich keine Kamera öffnen.",
+		"insecure": "Die Kamera braucht eine sichere Verbindung — öffne diese Seite über https:// oder auf localhost.",
+		"alt": "Das Foto, das du gerade aufgenommen hast",
+		"preview": "Live-Vorschau der Kamera"
+	},
+	"conversations": {
+		"heading": "Unterhaltungen",
+		"empty": "Noch keine Unterhaltungen.",
+		"untitled": "Ohne Titel",
+		"renameField": "Ein neuer Name für diese Unterhaltung",
+		"delete": "Löschen",
+		"confirmDelete": "„{title}“ löschen? Sie ist dann endgültig weg — auch der Assistent erinnert sich nicht mehr daran.",
+		"updated": "Letzte Nachricht {when}",
+		"renameOne": "„{title}“ umbenennen",
+		"deleteOne": "„{title}“ löschen"
+	},
+	"voice": {
+		"heading": "Stimme",
+		"engineLive": "Live-Stimme",
+		"unavailable": "Die Sprachfunktion ist hier nicht eingerichtet — Tippen funktioniert trotzdem.",
+		"start": "Kanal öffnen",
+		"stop": "Kanal schließen",
+		"mute": "Mikrofon stummschalten",
+		"unmute": "Mikrofon wieder einschalten",
+		"muteWord": "Stumm",
+		"unmuteWord": "Laut",
+		"status": {
+			"idle": "Kanal geschlossen",
+			"connecting": "Kanal wird geöffnet…",
+			"listening": "Ich höre zu",
+			"thinking": "Ich denke nach…",
+			"speaking": "Ich spreche",
+			"muted": "Stummgeschaltet"
+		},
+		"errors": {
+			"insecure": "Die Sprachfunktion braucht eine sichere Verbindung — öffne diese Seite über https:// oder auf localhost.",
+			"micDenied": "Das Mikrofon ist für diese Seite blockiert — erlaub es in den Website-Einstellungen deines Browsers und versuch es noch einmal. Tippen funktioniert trotzdem.",
+			"micNone": "Auf diesem Gerät wurde kein Mikrofon gefunden — Tippen funktioniert trotzdem.",
+			"capture": "Das Mikrofon ist an, aber kein Ton hat den Kanal erreicht — prüf, welches Mikrofon dein Browser verwendet, und öffne ihn dann noch einmal. Tippen funktioniert trotzdem.",
+			"micLost": "Das Mikrofon wurde unterbrochen — es wurde vielleicht ausgesteckt oder von einer anderen App übernommen. Öffne den Kanal erneut, sobald es wieder da ist. Tippen geht weiterhin.",
+			"mic": "Das Mikrofon ließ sich nicht öffnen — vielleicht benutzt es gerade eine andere App.",
+			"setup": "Der Sprachkanal ließ sich nicht öffnen.",
+			"session": "Im Sprachkanal ist ein Fehler aufgetreten.",
+			"sessionIdle": "Der Kanal hat sich nach einer Weile Stille geschlossen — öffne ihn wieder, wann immer du willst.",
+			"sessionLength": "Das war eine lange Sitzung, deshalb hat sich der Kanal geschlossen — öffne ihn wieder, wann immer du willst.",
+			"sessionExpired": "Der Sprachdienst hat die Sitzung an seinem Zeitlimit beendet — öffne sie wieder, wann immer du willst.",
+			"sessionLost": "Der Kanal ist auf unserer Seite abgerissen. Was gesagt wurde, steht in der Unterhaltung — öffne ihn wieder, um weiterzumachen.",
+			"sessionRestart": "Der Dienst startet neu, deshalb hat sich der Kanal geschlossen. Öffne ihn wieder, um dort weiterzumachen, wo du warst."
+		},
+		"open": "Der Sprachkanal ist offen",
+		"closed": "Der Sprachkanal ist geschlossen",
+		"working": "Ich bin dran…",
+		"micOff": "Kein Mikrofon auf diesem Kanal",
+		"reopen": "Wieder öffnen",
+		"blocked": "Diese Antwort wurde gestoppt — der Assistent kann dabei nicht helfen.",
+		"unanswered": "Der Assistent konnte diese Antwort gerade nicht bekommen — frag noch einmal.",
+		"typedTooFast": "Diese Nachricht wurde nicht angenommen — sie kommen schneller, als der Kanal sie liest. Warte einen Moment und sende sie noch einmal.",
+		"typedFull": "Dieser Kanal hat so viel Getipptes angenommen, wie er kann — sag es, oder schließe den Kanal und schreib es im Chat.",
+		"transcriptLabel": "Was gesagt wurde",
+		"unheard": "Dein Mikrofon nimmt Ton auf, aber die Stimme hört keine Sprache — geh näher heran oder dreh den Eingangspegel deines Mikrofons höher."
+	},
+	"settings": {
+		"heading": "Einstellungen",
+		"lede": "Du, die Sprache und Textgröße der App, und dein Konto.",
+		"you": {
+			"heading": "Du",
+			"lede": "Was der Assistent über dich weiß, weil du es ihm gesagt hast. Er liest es in jeder Unterhaltung.",
+			"name": "Name",
+			"namePlaceholder": "Wie soll der Assistent dich nennen?",
+			"nameRequired": "Gib dem Assistenten einen Namen, mit dem er dich ansprechen kann.",
+			"nameHint": "Deine Microsoft-Anmeldung füllt das aus. Ändere es hier, wenn du magst; eine spätere Anmeldung behält deine Version.",
+			"about": "Über dich",
+			"aboutPlaceholder": "Alles, was der Assistent über dich wissen sollte.",
+			"aboutHint": "Wird in jede Unterhaltung eingelesen. Beschränk dich auf das, was er wissen soll.",
+			"preferences": "Wie er mit dir reden soll",
+			"preferencesPlaceholder": "Kurze Antworten, einfache Worte, keine Witze…",
+			"preferencesHint": "Wird ebenfalls in jede Unterhaltung eingelesen.",
+			"save": "Speichern",
+			"saving": "Wird gespeichert…",
+			"cancel": "Abbrechen"
+		},
+		"memory": {
+			"heading": "Was der Assistent sich über dich merkt",
+			"how": "Der Assistent behält kurze Aussagen über dich, die er aus deinen Unterhaltungen heraussucht. Korrigierst du eine, geht er von deinen Worten aus; entfernst du eine, ist sie weg.",
+			"label": "Was der Assistent sich merkt",
+			"empty": "Der Assistent merkt sich noch nichts über dich. Was er behält, erscheint hier, nachdem ihr eine Weile gesprochen habt.",
+			"updated": "Aktualisiert am {date}",
+			"edit": "Bearbeiten",
+			"editOne": "Bearbeiten: {statement}",
+			"remove": "Entfernen",
+			"removeOne": "Entfernen: {statement}",
+			"save": "Speichern",
+			"saving": "Wird gespeichert…",
+			"cancel": "Abbrechen",
+			"forget": "Alles vergessen",
+			"forgetHeading": "Alles vergessen, was der Assistent sich merkt?",
+			"forgetBody": "Alles, was er sich über dich merkt, wird gelöscht. Deine Unterhaltungen bleiben, und ab der nächsten fängt er wieder an, sich Dinge zu merken.",
+			"forgetConfirm": "Alles vergessen",
+			"forgetCancel": "Behalten",
+			"forgetting": "Wird vergessen…"
+		},
+		"languageHeading": "Sprache",
+		"languageHint": "Die Sprache dieser App, des Chats und des Sprachkanals. Es ist die einzige Spracheinstellung, die es gibt: sie gehört zu diesem Browser, nicht zu dir.",
+		"textHeading": "Textgröße",
+		"textHint": "Legt fest, wie groß die Wörter sind. Der Browser-Zoom macht stattdessen das Layout schmaler — das hier nicht.",
+		"textSizes": {
+			"standard": "Standard",
+			"large": "Groß",
+			"larger": "Größer",
+			"largest": "Am größten"
+		},
+		"accountHeading": "Konto",
+		"emailLabel": "E-Mail",
+		"tierLabel": "Stufe",
+		"tiers": {
+			"base": "Base",
+			"premium": "Premium"
+		},
+		"dataHeading": "Deine Daten",
+		"dataHint": "Was über dieses Konto gespeichert ist, und was du damit tun kannst.",
+		"privacyLink": "Was diese App über dich weiß",
+		"exportData": "Eine Kopie herunterladen",
+		"exportHint": "Dein Konto und was du über dich geschrieben hast, jede Unterhaltung und alles, was der Assistent sich über dich merkt — als eine Datei.",
+		"exportWorking": "Wird zusammengestellt…",
+		"exportFailed": "Das hat nicht geklappt. Versuch es gleich noch einmal.",
+		"deleteAccount": "Dieses Konto löschen",
+		"deleteHint": "Jede Unterhaltung und alles, was der Assistent sich merkt. Das lässt sich nicht rückgängig machen.",
+		"deleteConfirmHeading": "Dieses Konto löschen?",
+		"deleteConfirmBody": "Alles, was dem Assistenten gesagt wurde, und alles, was er sich über dich merkt, wird gelöscht, zusammen mit dem Konto. Das lässt sich nicht rückgängig machen.",
+		"deleteConfirmAdvice": "Wenn du nur eine Kopie willst, lad sie vorher herunter — danach ist nichts mehr da, was sich kopieren ließe.",
+		"deleteConfirm": "Alles löschen",
+		"deleteCancel": "Mein Konto behalten",
+		"deleteWorking": "Wird gelöscht…",
+		"deleteFailed": "Das wurde nicht abgeschlossen, und ein Teil ist vielleicht schon gelöscht. Versuchen Sie es gleich noch einmal, um es abzuschließen.",
+		"eraseUnfinished": "Dieses Konto wird gerade gelöscht oder ist es schon, daher kann nichts daraus angezeigt werden. Löschen Sie es noch einmal, um es abzuschließen: Was übrig ist, wird entfernt, und Sie werden abgemeldet.",
+		"tierHint": "Premium hebt die Nutzungskontingente an und erlaubt längere Sprachsitzungen, gesprochen mit einer Stimme in hoher Qualität.",
+		"voiceTuning": {
+			"heading": "Sprachabstimmung",
+			"hint": "Für Sprachtests: Das ändert nur deine eigenen Sprachsitzungen, nicht die anderer. Ein Wechsel der Engine setzt die Regler zurück, die von ihr abhängen.",
+			"reset": "Zurück zu den Einstellungen dieser Installation",
+			"openaiVoice": "{voice} (OpenAI)",
+			"openaiVoiceNoFillers": "Eine OpenAI-Stimme spricht ohne Füllsätze, und nur bei Sprache zu Sprache.",
+			"semanticVadNoise": "Bei der eigenen Sprecherkennung des Echtzeitmodells (semantic_vad) läuft nur die allgemeine Rauschunterdrückung: die Headset- und die persönliche brauchen eine Sprachvorverarbeitung, die sie ersetzt.",
+			"managedModel": "{model} — {scope}",
+			"managedHint": "Ein verwaltetes Modell betreibt der Sprachdienst von Microsoft, nicht die eigenen Modellbereitstellungen dieser Installation. Was Sie sagen, kann daher außerhalb der Region dieser Installation verarbeitet werden, wie der angezeigte Bereich angibt.",
+			"nextSession": "Änderungen gelten ab deiner nächsten Sprachsitzung.",
+			"deploymentValue": "{value} (dieser Installation)",
+			"serviceValue": "Der des Dienstes",
+			"on": "An",
+			"off": "Aus",
+			"engines": {
+				"cascade": "Kaskade (transkribieren, antworten, sprechen)",
+				"speechToSpeech": "Sprache zu Sprache"
+			},
+			"sources": {
+				"deployment": "Ein hier bereitgestelltes Modell",
+				"managed": "Ein verwaltetes Modell"
+			},
+			"scopes": {
+				"global": "weltweit verarbeitet",
+				"dataZone": "in der Datenzone dieser Region verarbeitet",
+				"byRegion": "je nach Region weltweit oder in der Datenzone verarbeitet"
+			},
+			"controls": {
+				"engine": "Engine",
+				"modelSource": "Modellquelle",
+				"managedModel": "Verwaltetes Modell",
+				"realtimeModel": "Echtzeitmodell",
+				"voice": "Stimme",
+				"turnDetection": "Sprecherwechsel-Erkennung",
+				"silenceMs": "Stille bis zum Ende des Zugs (ms)",
+				"threshold": "Sprachschwelle (0–1)",
+				"prefixPaddingMs": "Audio vor dem Sprechen (ms)",
+				"noiseReduction": "Rauschunterdrückung",
+				"transcription": "Transkription",
+				"reasoningEffort": "Denkaufwand",
+				"interimResponses": "Füllsätze während ein Werkzeug läuft"
+			}
+		}
+	},
+	"language": {
+		"label": "Sprache"
+	},
+	"privacy": {
+		"title": "Was diese App über dich weiß",
+		"updated": "In einfachen Worten, immer auf dem Stand dessen, was die Software tut.",
+		"lede": "Diese Seite sagt, was gespeichert wird, wenn du den Assistenten benutzt, warum, wie lange, und was du damit tun kannst.",
+		"controller": {
+			"heading": "Wer verantwortlich ist",
+			"body": "Die Organisation, die diese Installation betreibt, ist für deine Daten verantwortlich. Ihre Kontaktdaten stehen in dem Hinweis, den sie zusammen mit dieser App veröffentlicht."
+		},
+		"kept": {
+			"heading": "Was gespeichert wird",
+			"account": "Dein Konto: die Kennung, die dein Anmeldeanbieter vergibt, deine E-Mail-Adresse und dein Name, die Rollen und Gruppen, die deine Organisation dir dort gibt, wann das Konto angelegt wurde und wann du dich zuletzt angemeldet hast, und ob es noch aktiv ist. Darfst du die Stimme für deine eigenen Sitzungen einstellen, werden die Einstellungen, die du speicherst, mit ihm gespeichert.",
+			"you": "Was du ihm in den Einstellungen über dich sagst: der Name, mit dem er dich nennt, „über dich“ und „wie er mit dir reden soll“.",
+			"conversations": "Deine Unterhaltungen mit dem Assistenten, schriftlich und per Stimme. Ihre Liste, mit den Titeln und dem Zeitpunkt jeder Nachricht und jeder Antwort, wird in einer eigenen Datenbank dieser App gespeichert, im Azure Cosmos DB-Konto der Organisation. Ihre Worte werden dort gespeichert, wo die Organisation diese App beim Beginn der jeweiligen Unterhaltung dafür eingerichtet hatte: entweder in derselben Datenbank, und dann bekommt der KI-Dienst, der antwortet, jedes Mal die bisherige Unterhaltung und behält nichts davon; oder vom KI-Dienst von Microsoft selbst, im Microsoft Foundry-Projekt der Organisation, der eine Kopie dessen, was dort gelöscht wird, bis zu 60 Tage behält und eine Unterhaltung 60 Tage nach ihrem Beginn beendet, wonach der Assistent ohne die früheren Nachrichten weitermacht.",
+			"memory": "Kurze Aussagen, die der Assistent sich über dich merkt und die ein KI-Modell etwa eine Minute nach dem Gespräch aus deinen Unterhaltungen heraussucht. Je nachdem, wie die Organisation diese App eingerichtet hat, werden sie entweder von Microsofts Gedächtnisdienst im eigenen Microsoft Foundry-Projekt der Organisation gespeichert — ein Dienst noch in der Vorschau, dessen Modell das Heraussuchen übernimmt — oder in derselben eigenen Datenbank dieser App wie deine Unterhaltungen, im Azure Cosmos DB-Konto der Organisation. So oder so kannst du jede einzelne in den Einstellungen sehen, korrigieren oder entfernen, oder alle vergessen lassen, und das Löschen des Kontos löscht sie.",
+			"pictures": "Bilder, die du sendest, werden dem Assistenten für diese eine Antwort gezeigt, und diese App speichert keines davon: die Unterhaltung behält nur einen Vermerk, dass dort ein Bild war. Wo der KI-Dienst von Microsoft die Unterhaltung speichert, gelangt das Bild mit deiner Nachricht hinein, und diese App löscht es dort, sobald die Antwort geschrieben ist; der Dienst behält aber eine Kopie des Gelöschten bis zu 60 Tage. Eine Kopie bleibt nur in dem Browser, von dem aus du sie gesendet hast, damit die Unterhaltung sie dort wieder zeigen kann, bis du die Unterhaltung löschst, dich abmeldest oder die Websitedaten dieser Seite in diesem Browser löschst. Läuft deine Sitzung dort einfach ab, oder löschst du dein Konto von einem anderen Gerät aus, behält dieser Browser seine Kopien, bis eines davon geschieht.",
+			"web": "Die Websuche ist an, sofern deine Organisation sie nicht abgeschaltet hat. Wenn der Assistent im Web sucht, gehen die Suchbegriffe, die er wählt und die das enthalten können, wonach du gefragt hast, an Microsoft Bing, außerhalb der Azure-Umgebung der Organisation und zu Bings eigenen Bedingungen. Sie gehen ohne deinen Namen oder dein Konto hinaus, können aber alles sagen, was deine Frage gesagt hat. Die Seiten, die er anführt, werden Teil der Antwort und mit der Unterhaltung gespeichert.",
+			"voice": "Stimme: wenn du mit dem Assistenten sprichst, geht deine Stimme von deinem Browser über die eigenen Server dieser App zu Microsofts Sprachdienst im Microsoft Foundry-Konto der Organisation, der transkribiert, was du sagst, und die Antworten spricht, und die Antworten kommen auf demselben Weg zurück. Diese App speichert das Audio nie: sie reicht es weiter, wie es ankommt, und jede Sprachsitzung wird mit der Bitte an den Sprachdienst eröffnet, ebenfalls nichts davon zu speichern. Was du gesagt und was der Assistent geantwortet hat, wird am Ende der Sitzung als Text in die Unterhaltung geschrieben und wie der Rest aufbewahrt. Laut Microsoft kann sein Sprachdienst außerhalb der Region transkribieren und sprechen, die die Organisation für ihn gewählt hat. Das KI-Modell, das dich hört, ist eines, das die Organisation in diesem Konto bereitgestellt hat, und so, wie diese App standardmäßig eingerichtet ist, kann Microsoft das, was du sagst, damit in jeder seiner Regionen verarbeiten. Deine Organisation, oder ein Tester für seine eigenen Sitzungen, kann stattdessen eines der eigenen Modelle des Sprachdienstes wählen, das Microsoft betreibt und ebenfalls in jeder seiner Regionen betreiben kann. Während der Assistent etwas nachschlägt, schreibt den kurzen Satz, den er in der Zwischenzeit sagt, ein Modell, das der Sprachdienst selbst betreibt; es liest das bisherige Gespräch und kann es ebenfalls in jeder Region von Microsoft verarbeiten.",
+			"logs": "Betriebsprotokolle über den Dienst — wie lange eine Seite gebraucht hat, dass ein Fehler aufgetreten ist —, 30 Tage lang aufbewahrt, um ihn zu betreiben. Die App hält heraus, wer du bist, so gut sie kann, aber manches gelangt hinein: jede Messung der Seitengeschwindigkeit trägt die Beschreibung, die dein Browser von sich selbst gibt, ein Fehler kann in seinen eigenen Worten protokolliert werden, die zitieren können, worum es ging, und Azures eigene Protokolle der Datenbank können die Kennung deines Kontos enthalten. Deine Organisation kann Microsofts Ablaufverfolgung des Assistenten einschalten, die dann, was du fragst und was er antwortet, in diese Protokolle schreibt, wohin das Löschen einer Unterhaltung oder deines Kontos nicht reicht. Wo Azure Front Door vor dem Dienst steht, protokollieren Front Door und seine Firewall außerdem jede Anfrage — deine IP-Adresse, die Adresse der Seite und die Beschreibung, die dein Browser von sich selbst gibt — und behalten diese Protokolle 30 Tage lang, um den Dienst zu schützen. Deine Organisation kann sie außerdem an einen Überwachungsdienst senden, den sie in ihrem eigenen Hinweis nennt."
+		},
+		"model": {
+			"heading": "Was dem Assistenten gesagt wird",
+			"body": "Bevor er antwortet, erfährt der Assistent das Datum, deinen Namen, was du über dich geschrieben hast, was er sich über dich merkt, und die bisherige Unterhaltung. Das geht an das KI-Modell, das seine Antworten erzeugt und das die Organisation in ihrem eigenen Cloud-Konto bereitgestellt hat; so, wie diese App standardmäßig eingerichtet ist, kann Microsoft das, was es bekommt, in jeder seiner Regionen verarbeiten."
+		},
+		"why": {
+			"heading": "Warum",
+			"body": "Damit der Assistent dir antworten kann, sich zwischen den Unterhaltungen merkt, was du ihm gesagt hast, und damit die Organisation den Dienst am Laufen halten kann. Nichts davon wird für Werbung verwendet. Was der Assistent sich über dich merkt, dient nur dazu, seine Antworten auf dich zuzuschneiden, und du kannst es in den Einstellungen sehen, korrigieren oder vergessen lassen."
+		},
+		"howLong": {
+			"heading": "Wie lange",
+			"body": "Bis du es löschst. Entfernst du etwas, was der Assistent sich merkt, ist es entfernt; alles vergessen entfernt alles; eine Unterhaltung löschen entfernt sie, aber nicht, was der Assistent sich daraus merkt; das Konto löschen entfernt alles, das Konto selbst eingeschlossen, bis auf einen bloßen Vermerk, dass es gelöscht wurde, ohne Namen und ohne etwas, was du gesagt hast, der Sitzungen von vor der Löschung einige Stunden lang aussperrt und dann verschwindet; hatte deine Organisation das Konto deaktiviert, bleibt dieser Vermerk für immer, damit das Löschen den Zugang nicht zurückgibt. Wo der KI-Dienst von Microsoft eine Unterhaltung speichert, entfernt das Löschen sie auch dort, doch der Dienst behält trotzdem bis zu 60 Tage eine Kopie davon. Sicherungen der Datenbank dieser App behalten, was du löschst, noch bis zu 7 Tage, und Protokolle behalten, was sie enthalten, für ihre 30 Tage.",
+			"local": "Diese Installation verwendet eine Demo-Anmeldung, und jede Anmeldung ist ein neues Konto. Sobald sie endet — du meldest dich ab, sie läuft ab oder du wechselst den Browser — kann sich niemand mehr dort anmelden, also kannst du nicht mehr löschen, was darunter gespeichert wurde: lösch die Unterhaltungen, oder das ganze Konto, in den Einstellungen, bevor du gehst. Was bleibt, bleibt gespeichert, solange diese Installation läuft."
+		},
+		"rights": {
+			"heading": "Was du tun kannst",
+			"body": "Auf der Einstellungsseite kannst du:",
+			"export": "eine Kopie von allem herunterladen, was über dein Konto gespeichert ist, als eine Datei;",
+			"correct": "sehen und korrigieren, was der Assistent sich über dich merkt, eine Aussage nach der anderen, oder sie entfernen — dein Recht darauf, dass das, was über dich gespeichert ist, berichtigt wird;",
+			"delete": "das ganze Konto löschen, auf einmal und endgültig. Bricht eine Löschung mittendrin ab, kann das Konto nicht mehr verwendet werden, und erneutes Löschen in den Einstellungen schließt sie ab."
+		},
+		"cookies": {
+			"heading": "Cookies und Speicherung",
+			"body": "Diese App setzt nur, was sie zum Funktionieren braucht: ein Sitzungscookie, das dich angemeldet hält, kurzlebige Cookies, die die Anmeldung selbst schützen, und ein Cookie für die Sprache und die Textgröße, die du gewählt hast. Der eigene Speicher dieses Browsers behält die Bilder, die du sendest, bis du ihre Unterhaltung löschst oder dich abmeldest, und einen Vermerk — workspace.guideSeen —, dass du die geführte Tour gesehen hast, damit sie nicht von selbst wieder startet. Es gibt keine Werbe- oder Analysespeicherung, und deshalb gibt es auch kein Cookie-Banner."
+		},
+		"ai": {
+			"heading": "Du sprichst mit einer Maschine",
+			"body": "Der Assistent ist Software, die ihre Antworten und ihre Stimme mit einem KI-Modell erzeugt. Sie ist angewiesen, das auf Nachfrage zu sagen, und sie kann sich irren. Nichts in dieser App kennzeichnet die gesprochene Stimme als maschinell erzeugt: die Hinweise im Sprachbereich und hier sind es, die es dir sagen."
+		}
+	},
+	"errors": {
+		"unauthenticated": "Du bist abgemeldet. Melde dich noch einmal an.",
+		"forbidden": "Das steht dir nicht zum Öffnen zu.",
+		"not_found": "Das wurde nicht gefunden.",
+		"bad_request": "Diese Anfrage ergab keinen Sinn. Versuch es noch einmal.",
+		"rate_limited": "Dein Kontingent ist für den Moment aufgebraucht. Versuch es in Kürze noch einmal.",
+		"pool_exhausted": "Alle reden auf einmal, und das gemeinsame Kontingent ist aufgebraucht. Versuch es in Kürze noch einmal.",
+		"refused_capacity": "Alle wollen auf einmal reden. Warte einen Moment und versuch es noch einmal.",
+		"refused_busy": "Deine letzte Sprachsitzung schließt sich noch — warte einen Moment und versuch es noch einmal.",
+		"refused_unavailable": "Die Sprachfunktion ist gerade nicht verfügbar. Versuch es in Kürze noch einmal.",
+		"refused_unconfigured": "Der Sprachkanal ist hier nicht eingerichtet — Tippen funktioniert trotzdem.",
+		"unconfigured": "Das ist hier nicht eingerichtet.",
+		"invalid_body": "Diese Anfrage ergab keinen Sinn. Versuch es noch einmal.",
+		"body_too_large": "Das war zu groß zum Senden.",
+		"upstream_failed": "Der Dienst dahinter hat nicht geantwortet. Versuch es in Kürze noch einmal.",
+		"handshake_failed": "Der Sprachkanal ließ sich nicht öffnen.",
+		"settings_refused": "Der Sprachdienst hat die Audioeinstellungen dieser Sitzung abgelehnt — öffne den Kanal wieder, und wenn du die Sprachabstimmung geändert hast, versuch eine andere Rauschunterdrückung.",
+		"account_deactivated": "Dieses Konto wurde deaktiviert.",
+		"erase_incomplete": "Es konnte nicht alles gelöscht werden. Versuche es erneut, dann wird auch der Rest gelöscht.",
+		"unsupported_type": "Diese Art von Datei kann hier nicht angezeigt werden.",
+		"unavailable": "Der Dienst ist gerade nicht verfügbar. Versuch es in Kürze noch einmal.",
+		"backend_unreachable": "Der Dienst ist gerade nicht erreichbar. Versuch es in Kürze noch einmal.",
+		"generic": "Etwas ist schiefgelaufen. Versuch es noch einmal."
+	},
+	"error": {
+		"heading": "Etwas ist schiefgelaufen",
+		"body": "Auf dieser Seite ist ein Fehler aufgetreten, von dem sie sich nicht erholen konnte.",
+		"retry": "Noch einmal versuchen",
+		"reference": "Referenz: {digest}"
+	}
+}

@@ -1,0 +1,104 @@
+# The shape `azd pipeline config` writes: federated sign-in, provision, deploy.
+# It reads azd's own five variables and the variables and secrets azure.yaml's
+# `pipeline` block names, all of which `azd pipeline config` sets on the
+# repository; pipeline.test.ts holds the lists equal.
+name: Azure Dev
+
+# By hand only, until `azd pipeline config` has been run for this repository:
+# a push would otherwise fail at the federated sign-in, since no identity
+# holds a credential for it yet. Once it has, `push: branches: [main]` under
+# `on` deploys every push (docs/deployment.md, CI/CD).
+on:
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+# Two provisions of one environment must never overlap, and one must never be
+# cancelled half way.
+concurrency:
+  group: azure-dev
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    # A first hardened provision takes about an hour; a run that has not
+    # ended in three is stuck.
+    timeout-minutes: 180
+    env:
+      AZURE_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
+      AZURE_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
+      AZURE_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+      AZURE_ENV_NAME: ${{ vars.AZURE_ENV_NAME }}
+      AZURE_LOCATION: ${{ vars.AZURE_LOCATION }}
+      HARDENED: ${{ vars.HARDENED }}
+      PRIVATE_NETWORKING: ${{ vars.PRIVATE_NETWORKING }}
+      USE_FRONT_DOOR: ${{ vars.USE_FRONT_DOOR }}
+      LOCK_DATA_RESOURCES: ${{ vars.LOCK_DATA_RESOURCES }}
+      KEY_VAULT_PURGE_PROTECTION: ${{ vars.KEY_VAULT_PURGE_PROTECTION }}
+      ZONE_REDUNDANT: ${{ vars.ZONE_REDUNDANT }}
+      PUBLIC_ORIGIN: ${{ vars.PUBLIC_ORIGIN }}
+      AZURE_SEARCH_LOCATION: ${{ vars.AZURE_SEARCH_LOCATION }}
+      SEARCH_REPLICAS: ${{ vars.SEARCH_REPLICAS }}
+      BACKEND_MIN_REPLICAS: ${{ vars.BACKEND_MIN_REPLICAS }}
+      FRONTEND_MIN_REPLICAS: ${{ vars.FRONTEND_MIN_REPLICAS }}
+      OPERATOR_PRINCIPAL_ID: ${{ vars.OPERATOR_PRINCIPAL_ID }}
+      OPERATOR_PRINCIPAL_TYPE: ${{ vars.OPERATOR_PRINCIPAL_TYPE }}
+      AUTH_MODE: ${{ vars.AUTH_MODE }}
+      AUTH_REQUIRE_ROLE: ${{ vars.AUTH_REQUIRE_ROLE }}
+      AUTH_MICROSOFT_ENTRA_ID_ID: ${{ vars.AUTH_MICROSOFT_ENTRA_ID_ID }}
+      SEED_SAMPLE_LIBRARY: ${{ vars.SEED_SAMPLE_LIBRARY }}
+      KNOWLEDGE_BASE: ${{ vars.KNOWLEDGE_BASE }}
+      MEMORY_STORE: ${{ vars.MEMORY_STORE }}
+      HISTORY_STORE: ${{ vars.HISTORY_STORE }}
+      RETRIEVAL_ENGINE: ${{ vars.RETRIEVAL_ENGINE }}
+      VOICE_ENGINE: ${{ vars.VOICE_ENGINE }}
+      RECORDS_API_URL: ${{ vars.RECORDS_API_URL }}
+      RECORDS_API_SCOPE: ${{ vars.RECORDS_API_SCOPE }}
+      DEVELOPER_ACCESS: ${{ vars.DEVELOPER_ACCESS }}
+      DEVELOPER_ACCESS_SSH_KEY: ${{ vars.DEVELOPER_ACCESS_SSH_KEY }}
+      DEVELOPER_VM_SIZE: ${{ vars.DEVELOPER_VM_SIZE }}
+      AGENT_EGRESS: ${{ vars.AGENT_EGRESS }}
+      PRIVATE_TELEMETRY: ${{ vars.PRIVATE_TELEMETRY }}
+      AGENT_TRACING: ${{ vars.AGENT_TRACING }}
+      POLICY_AUDIT: ${{ vars.POLICY_AUDIT }}
+      REALTIME_CAPACITY: ${{ vars.REALTIME_CAPACITY }}
+      REALTIME_ALTERNATE_CAPACITY: ${{ vars.REALTIME_ALTERNATE_CAPACITY }}
+      KNOWLEDGE_BASE_CAPACITY: ${{ vars.KNOWLEDGE_BASE_CAPACITY }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Install azd
+        uses: Azure/setup-azd@0b7e3a35ab00f2eee7080c845eb39c3f0ebfa553 # v2.4.0
+
+      # Nothing else to install: the hooks call az and azd, and every step
+      # that writes into a data service runs in the migrate job.
+      - name: Log in with Azure (Federated Credentials)
+        run: |
+          azd auth login \
+            --client-id "$AZURE_CLIENT_ID" \
+            --federated-credential-provider "github" \
+            --tenant-id "$AZURE_TENANT_ID"
+
+      # The hooks call the Azure CLI as the same principal.
+      - name: Log in the Azure CLI
+        uses: azure/login@a641126d1b8aa4d1fa005f4f92df94a3a4c4c906 # v3.1.0
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Provision Infrastructure
+        run: azd provision --no-prompt
+        env:
+          AUTH_SECRET: ${{ secrets.AUTH_SECRET }}
+          AUTH_MICROSOFT_ENTRA_ID_SECRET: ${{ secrets.AUTH_MICROSOFT_ENTRA_ID_SECRET }}
+
+      - name: Deploy Application
+        run: azd deploy --no-prompt
+        env:
+          AUTH_SECRET: ${{ secrets.AUTH_SECRET }}
+          AUTH_MICROSOFT_ENTRA_ID_SECRET: ${{ secrets.AUTH_MICROSOFT_ENTRA_ID_SECRET }}

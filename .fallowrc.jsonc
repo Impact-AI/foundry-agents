@@ -1,0 +1,70 @@
+// What fallow is told that it cannot see for itself. Every path is from the
+// repository root.
+{
+	"$schema": "https://raw.githubusercontent.com/fallow-rs/fallow/v3.35.0/schema.json",
+	// Started by hand to look at the interface without Azure (its README);
+	// the frontend's server, which its build bundles and its image runs
+	// rather than anything imports; the two voice worklets, which the page
+	// loads by URL (`audioWorklet.addModule` in live-link.ts) rather than
+	// imports; and three files suites run as processes rather than import: the
+	// broker's replica it can kill (owner-process.ts), the relay on Node
+	// (relay-harness.ts) and the Mermaid parser with its DOM (mermaid-parse.ts).
+	"entry": [
+		"apps/backend/src/testing/dev-fake.ts",
+		"apps/frontend/public/voice/capture-worklet.js",
+		"apps/frontend/public/voice/playback-worklet.js",
+		"apps/frontend/server/main.ts",
+		"apps/frontend/server/testing/relay-harness.ts",
+		"platform/voice/src/broker/testing/owner-process.ts",
+		"scripts/mermaid-parse.ts"
+	],
+	// The documentation site is a package of its own, outside the workspaces,
+	// with its own lockfile: its files are VitePress's entries and its imports
+	// are its own package's, none of which this analysis of the workspaces
+	// reads. Its build (`bun run --cwd site build`, and the Pages workflow)
+	// fails on what would break it.
+	"ignorePatterns": ["site/**"],
+	// The Mermaid parser is an entry, so fallow reads its `mermaid` as
+	// production code; it runs only under `bun test` (scripts/mermaid.test.ts),
+	// and the apps' own Mermaid arrives through streamdown.
+	"ignoreDependencies": ["mermaid"],
+	"ignoreExports": [
+		// next.config.ts aliases the bare `streamdown` to this file, so the
+		// import that reaches this export is CopilotKit's, in node_modules.
+		{
+			"file": "apps/frontend/app/components/markdown/streamdown-lazy.tsx",
+			"exports": ["Streamdown"]
+		},
+		// The browser's half of src/backend/conversations.ts: the same three
+		// calls, through this app's routes rather than to the backend.
+		{
+			"file": "apps/frontend/app/**/conversation-calls.ts",
+			"exports": [
+				"listConversations",
+				"renameConversation",
+				"deleteConversation"
+			]
+		}
+	],
+	// A clone is the same tokens, formatting aside, over 50 tokens and five
+	// lines: copy-paste that should be one function, and any one fails the
+	// build. `weak` and `semantic` also blind literals and names; what they
+	// add here is data of one shape (the sample records, the privacy page's
+	// sections, one field per element), which is that shape on purpose.
+	"duplicates": {
+		"mode": "mild",
+		"minTokens": 50,
+		"minLines": 5,
+		// Reviewed and kept, by fingerprint and instance count; a change to
+		// either side reports it again. The two memory stores answer
+		// `statements` and open `update` the same way through memory/shared.ts,
+		// and what is left is each one calling it: the shape of two
+		// implementations of one interface, not copy-paste.
+		// The token sheet's light scheme, and the light derivation of a
+		// deployment's own palette, each stand twice: under the device's
+		// preference and under a pinned `data-scheme="light"`, because a media
+		// query cannot be or-ed with an attribute. `app/appearance.test.ts`
+		// holds each pair equal.
+		"ignoredClones": ["dup:a2ea998f:2", "dup:f51543d9:2", "dup:59b13518:2"]
+	}
+}

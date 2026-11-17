@@ -1,0 +1,80 @@
+/* The desk: one panel holding a quiet head and three openers. */
+.landing {
+	flex: 1;
+	min-height: 0;
+	justify-content: center;
+	animation: panel-in 640ms var(--ease) both;
+}
+
+.landing-head {
+	max-width: 36rem;
+}
+
+.landing-heading {
+	font-size: var(--text-3xl);
+	line-height: var(--leading-tight);
+	letter-spacing: -0.015em;
+}
+
+.landing-lede {
+	color: var(--muted);
+	font-size: var(--text-lg);
+}
+
+.landing-openers {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+	gap: var(--space-3);
+}
+
+.landing-opener {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-2);
+	min-height: var(--thumb);
+	padding: var(--space-4) var(--space-5);
+	border: 1px solid var(--line);
+	border-radius: var(--radius-lg);
+	background: var(--glass-2);
+	color: var(--text);
+	font: inherit;
+	text-align: left;
+	cursor: pointer;
+	animation: panel-in 640ms var(--ease) backwards;
+	transition:
+		border-color var(--dur) var(--ease),
+		transform var(--dur) var(--ease);
+}
+
+.landing-opener:focus-visible {
+	border-color: var(--accent);
+}
+
+@media (hover: hover) {
+	.landing-opener:hover {
+		border-color: var(--accent);
+		transform: translateY(-2px);
+	}
+}
+
+.landing-opener-title {
+	font-weight: var(--weight-semibold);
+}
+
+.landing-opener-ask {
+	color: var(--muted);
+	font-size: var(--text-sm);
+}
+
+.landing-note {
+	color: var(--muted);
+	font-size: var(--text-sm);
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.landing,
+	.landing-opener {
+		animation: none;
+		transition: none;
+	}
+}
