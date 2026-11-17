@@ -60,7 +60,7 @@ The TTL is an hour for the record of who owns a thread, and up to seven days for
 - On the [speech-to-speech](patterns.md#terms) engine (`voice.engine`, the default), the realtime model deployed in that account also hears the audio itself. Where a managed model is chosen ([below](#what-reaches-the-model)), the voice service's own model hears it instead, at its processing scope.
 - Every session is opened with `store=false`, so the voice agent keeps neither the audio nor a conversation of its own.
 
-Library documents and their pictures are the organization's content rather than personal data the app collects, and are governed by `access.json` ([documents](documents.md)).
+Library documents may contain personal or confidential data; the deploying organization must assess their contents and permitted processing. Document and picture access is configured through `access.json` ([documents](documents.md)).
 
 **Who else can read it.** The operator holds data-plane roles on everything above. The operator is the principal `OPERATOR_PRINCIPAL_ID` names, or else the one that provisioned. It can read and write the `app` database, read the Agent Service's `enterprise_memory`, and read the library's blobs and the index ([architecture](architecture.md#identities-and-roles)). The template gives nobody a role on the logs: whoever holds a reading role on the resource group or the workspace through the subscription's own assignments reads them. The product's own access rules bind the people who use it, not the operator. Who holds these roles is the organization's to decide and to tell its people.
 
@@ -183,7 +183,7 @@ The interface says so in four places, because a first interaction can start at a
 
 The assistant's typed answers are text the model wrote, shown as the assistant's. Its spoken answers are audio Azure synthesizes.
 
-**Machine-readable marking of live voice (AI Act Art. 50(2)) is not built.** The assistant's voice is synthesized by Azure (a Foundry voice agent on Voice Live) and relayed to the browser by the backend, which passes it on unaltered and does not mark it. Agent on Azure assumes Voice Live and Azure neural voices add no watermark at source. So the interface tells every listener, wherever voice is offered, that they are talking to an AI (Art. 50(1)), and nothing is marked. A product that must mark (for example one used by children) can mark where the audio already passes through Agent on Azure's own code: in the backend's relay, or in the playback `AudioWorklet` before it plays, with a watermark such as AudioSeal. Neither is built.
+**Machine-readable marking of live voice is not implemented by this application.** The assistant's voice is synthesized by Azure and relayed to the browser by the backend, which passes it on unaltered and adds no machine-readable marking. Whether the selected Azure service provides marking at source has not been verified. The interface discloses that the assistant and its voice are AI-generated; that disclosure does not establish that machine-readable marking requirements are met. Assess the obligations applicable to the deployed product, including AI Act Art. 50, and verify the selected services and any additional implementation before making a compliance claim.
 
 ## Known gaps
 
