@@ -1,4 +1,5 @@
 import { setProviderFetch } from "@platform/llm";
+import { forgetSkills } from "../skills";
 import { projectRoutes } from "./fake-project";
 import { openaiRoutes } from "./fake-responses";
 import {
@@ -160,6 +161,8 @@ export function fakeFoundry(): FakeFoundry {
 		turns: () => state.turns,
 		extractions: () => state.extractions,
 		install(others = nobodyElse) {
+			// The skills a replica listed and read were another service's: this one starts with none.
+			forgetSkills();
 			setProviderFetch(async (input, init) => {
 				const request = new Request(String(input), init);
 				return request.url.startsWith(FAKE_FOUNDRY_ENDPOINT)
@@ -168,6 +171,7 @@ export function fakeFoundry(): FakeFoundry {
 			});
 			return () => {
 				for (const timer of state.timers) clearTimeout(timer);
+				forgetSkills();
 			};
 		},
 		fetch: handle,

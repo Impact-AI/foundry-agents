@@ -2,11 +2,10 @@ import { z } from "zod";
 import {
 	type ProductTools,
 	productTool,
-	type SkillSource,
 	WEB_SEARCH,
 } from "../contract/product";
 import { currentTurn } from "../turn/scope";
-import { readSkillVersion, type SkillPin } from "./skills";
+import { type OfferedSkill, readSkillVersion } from "./skills";
 import { searchTheWeb } from "./web-search";
 import { chargeWebSearches, webSearchAvailable } from "./web-search-meter";
 
@@ -38,11 +37,6 @@ import { chargeWebSearches, webSearchAvailable } from "./web-search-meter";
 
 const READ_SKILL = "readSkill";
 
-export interface VoiceSkill {
-	pin: SkillPin;
-	source: SkillSource;
-}
-
 const SEARCH_DESCRIPTION =
 	"Search the web, for what the knowledge base does not hold or what is current. Give a whole question. Returns an answer grounded in the pages it read, and the pages' titles and URLs: say the answer and where it comes from by the site's name, never a URL.";
 
@@ -70,10 +64,10 @@ function webSearchTool() {
 	});
 }
 
-function readSkillTool(skills: readonly VoiceSkill[]) {
-	const names = skills.map((skill) => skill.pin.name) as [string, ...string[]];
+function readSkillTool(skills: readonly OfferedSkill[]) {
+	const names = skills.map((skill) => skill.name) as [string, ...string[]];
 	const listed = skills
-		.map(({ source }) => `- ${source.name}: ${source.description.trim()}`)
+		.map(({ name, description }) => `- ${name}: ${description.trim()}`)
 		.join("\n");
 	return productTool({
 		description: `Read the method behind one kind of question before you answer it, then follow it. Don't announce it. The skills:\n${listed}`,
@@ -81,8 +75,8 @@ function readSkillTool(skills: readonly VoiceSkill[]) {
 			name: z.enum(names).describe("The skill to read."),
 		}),
 		async execute({ name }) {
-			const skill = skills.find((s) => s.pin.name === name);
-			const instructions = skill ? await readSkillVersion(skill.pin) : null;
+			const skill = skills.find((s) => s.name === name);
+			const instructions = skill ? await readSkillVersion(skill) : null;
 			return instructions === null
 				? { error: "not_available" }
 				: { name, instructions };
@@ -93,7 +87,7 @@ function readSkillTool(skills: readonly VoiceSkill[]) {
 /** The tools a voice session has in place of the service's: web search when the turn has it, a skill reader when any skill fits. */
 export function voiceServiceTools(input: {
 	webSearch: boolean;
-	skills: readonly VoiceSkill[];
+	skills: readonly OfferedSkill[];
 }): ProductTools {
 	return {
 		...(input.webSearch ? { [WEB_SEARCH]: webSearchTool() } : {}),

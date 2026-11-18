@@ -163,7 +163,13 @@ export const STEPS: Record<string, StepRunner> = {
 	skills: async () => {
 		const outcomes = Object.entries(await publishSkills(product.skills ?? []));
 		return outcomes.length
-			? outcomes.map(([name, outcome]) => `${name} ${outcome}`).join(", ")
+			? outcomes
+					.map(([name, outcome]) =>
+						outcome === "kept"
+							? `${name} kept: its default is the operator's`
+							: `${name} ${outcome}`,
+					)
+					.join(", ")
 			: "the product ships no skills";
 	},
 	agent: async () => {

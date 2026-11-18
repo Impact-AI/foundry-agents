@@ -95,7 +95,7 @@ export interface AgentProduct {
 	toolKeys: readonly string[];
 	/** The controls a client may register for a turn. None of them shares a name with a tool key. */
 	clientTools: readonly ClientTool[];
-	/** The procedures behind the questions that need one, published to the service as skills. */
+	/** Default skills: seeded into the Foundry project, where skills are managed, and offered from here only while it cannot be listed. */
 	skills?: readonly SkillSource[];
 	/** What the memory's extractor is told to keep about each person. Defaults to {@link DEFAULT_MEMORY_DETAILS}. */
 	memory?: { userProfileDetails: string };

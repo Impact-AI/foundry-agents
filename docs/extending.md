@@ -18,7 +18,7 @@ The backend's part of the assistant lives in [`apps/backend/src/product.ts`](../
 | `prompt` | The persona's default text: the first version the migrate job seeds, and the fallback when the `prompts` container has no active version for `assistant`. |
 | `guardrails` | The guardrail slots (`scope`, `declines`), their defaults and the frame around them. |
 | `TOOLS` | Every server-side tool, by the key the `tools` document switches it off by. `WEB_SEARCH` is beside them in `toolKeys`: the service's own web search tool. |
-| `skills` | Not set: Agent on Azure ships no skills. A product's catalog goes here; see [A skill](#a-skill). |
+| `skills` | Not set: Agent on Azure ships no skills. A product's default skills go here, to seed the Foundry project; see [A skill](#a-skill). |
 
 The rest of the folder:
 
@@ -62,9 +62,13 @@ A control the assistant drives in the browser: it puts something on screen and a
 
 A procedure behind one kind of question, which the agent loads only on the turns that ask it — not a fact true of every turn (that is the persona), nor how to make a call (that is a tool's description).
 
-1. **Write it** as a `SkillSource` in the product's `skills` list: a `name`, a `description` that says when to use it, the `instructions`, and optionally the `surfaces` it is for and `requiresTools` (any one of them must be on for a turn to carry it).
-2. **Deploy.** The job's `skills` step publishes it to the Foundry project as a skill version (preview), and each agent version whose surface and tools it fits pins that version. A changed skill is a new version on the next deploy; an unchanged one is left alone.
-3. **Voice.** A live session gets a skill through the backend rather than the service. The voice agent's definition has no `skills` field, and a skill reaches a Foundry agent only through a toolbox, which on a voice agent replaces every function tool it holds. So when any skill fits the live turn (its `surfaces` are empty or name `live`, and its `requiresTools` are met), the session carries a `readSkill` function whose description lists those skills. The model calls it before a question that needs one, and the backend reads the same skill version a typed turn's agent version would pin (`platform/agent/src/foundry/voice-tools.ts`). A skill the job has not published yet is answered `not_available`. Leave `live` out of a skill's `surfaces` only when the procedure should not run in voice; a skill written in the typed tool vocabulary needs no second copy for voice.
+Skills live in the Foundry project (preview), versioned there; the code holds only defaults that seed them. There are two ways to add one:
+
+1. **In the project**, with no deploy: publish a `SKILL.md` as a version with the [`skills` CLI](operations.md#managing-skills) or in the portal. Its front matter's `metadata` says where it fits: `surfaces` and `requires-tools` (comma-separated; any one of the tools must be on for a turn to carry it) and `enabled`. A version without them fits every surface and turn.
+2. **As a default in code,** for a skill every deployment should start with: a `SkillSource` in the product's `skills` list, with a `name`, a `description` that says when to use it, the `instructions`, and optionally `surfaces` and `requiresTools`. The job's `skills` step publishes it as a shipped version where the project lacks it, and publishes a changed default over a shipped version on the next deploy. Once an operator makes a version of their own the default, the deploy leaves that skill alone.
+
+Each agent version pins the default version of every enabled skill whose surface and tools fit it.
+3. **Voice.** A live session gets a skill through the backend rather than the service. The voice agent's definition has no `skills` field, and a skill reaches a Foundry agent only through a toolbox, which on a voice agent replaces every function tool it holds. So when any skill fits the live turn (its `surfaces` are empty or name `live`, and its `requiresTools` are met), the session carries a `readSkill` function whose description lists those skills. The model calls it before a question that needs one, and the backend reads the same skill version a typed turn's agent version would pin (`platform/agent/src/foundry/voice-tools.ts`). A skill version with no `SKILL.md` is answered `not_available`. Leave `live` out of a skill's `surfaces` only when the procedure should not run in voice; a skill written in the typed tool vocabulary needs no second copy for voice.
 
 `skills_enabled` in the `tools` document switches every skill off on both channels.
 

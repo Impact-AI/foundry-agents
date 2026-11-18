@@ -170,6 +170,21 @@ function scopeAction(
 }
 
 /** A skill version's folder, as the service serves it: `SKILL.md` with its front matter. */
+/** A skill as the service reads it back: its name, its default's description and two version numbers. */
+function skillObject(skill: SkillRecord): Record<string, unknown> {
+	const current = skill.versions.find(
+		(v) => v.version === skill.default_version,
+	);
+	return {
+		id: skill.name,
+		name: skill.name,
+		description: current?.description ?? "",
+		created_at: skill.created_at,
+		default_version: skill.default_version,
+		latest_version: skill.versions.at(-1)?.version,
+	};
+}
+
 function skillFolder(
 	skill: SkillRecord | undefined,
 	version: string | undefined,
@@ -493,24 +508,42 @@ export function projectRoutes(state: FakeState): Route[] {
 		}),
 		{
 			method: "GET",
+			pattern: /^\/skills$/,
+			project: true,
+			feature: SKILLS,
+			handle({ url }) {
+				return page(
+					[...state.skills.values()].map(skillObject),
+					(skill) => String(skill.id),
+					url,
+					"desc",
+				);
+			},
+		},
+		{
+			method: "GET",
 			pattern: /^\/skills\/([^/]+)$/,
 			project: true,
 			feature: SKILLS,
 			handle({ match }) {
 				const skill = state.skills.get(match[1] as string);
 				if (!skill) throw new HttpError(404, `no skill ${match[1]}`);
-				const latest = skill.versions.at(-1);
-				const current = skill.versions.find(
-					(v) => v.version === skill.default_version,
-				);
-				return ok({
-					id: skill.name,
-					name: skill.name,
-					description: current?.description ?? "",
-					created_at: skill.created_at,
-					default_version: skill.default_version,
-					latest_version: latest?.version,
-				});
+				return ok(skillObject(skill));
+			},
+		},
+		{
+			method: "POST",
+			pattern: /^\/skills\/([^/]+)$/,
+			project: true,
+			feature: SKILLS,
+			handle({ match, body }) {
+				const skill = state.skills.get(match[1] as string);
+				if (!skill) throw new HttpError(404, `no skill ${match[1]}`);
+				const version = text(body, "default_version");
+				if (!skill.versions.some((v) => v.version === version))
+					throw new HttpError(404, `no version ${version} of ${skill.name}`);
+				skill.default_version = version;
+				return ok(skillObject(skill));
 			},
 		},
 		{

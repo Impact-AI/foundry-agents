@@ -52,7 +52,7 @@ describes them.
   - `product` is what the host cannot know: the agent's id and service name;
     the persona and the guardrails (`@platform/prompt`'s `defineGuardrails`
     builds them); the channel instructions; the tools; the controls a client
-    runs itself (`clientTools`); the skills catalog (`SkillSource`); what the
+    runs itself (`clientTools`); the default skills that seed the Foundry project (`SkillSource`); what the
     memory's extractor is told to keep (`memory.userProfileDetails`); and the
     proper nouns. A tool (`productTool`) has a description, Zod parameters the
     host validates the model's arguments against, an `execute` the host runs
@@ -229,11 +229,16 @@ describes them.
     finished.
   - `purge`: a forget the memory store could not finish in the request,
     finished by a sweeper that works through a Redis set every minute.
-  - `skills` and `zip`: the catalog the job publishes (`publishSkills`). A new
-    default version is published only when the words changed, recognized by a
-    hash in the version's metadata and read back from the version's zipped
-    folder. Each skill's default version is pinned into the agent versions it
-    fits.
+  - `skills` and `zip`: the skills in the Foundry project, listed once a
+    minute per replica, each gated by its default version's metadata
+    (`surfaces`, `requires-tools`, `enabled`, `origin`), which is read from
+    the version's zipped folder, once per version, as its `SKILL.md` front
+    matter. Each fitting skill's default version is pinned into the agent
+    versions it fits. The catalog in code only seeds the project
+    (`publishSkills`): a default is published where the project lacks it or
+    its default is a shipped version made from other words, never over an
+    operator's; it is also what a turn carries when the project's skills
+    cannot be listed. The functions the backend's `skills` CLI runs are here.
   - `web-search-meter`: web search runs inside a response, so nothing of the
     backend's stands in front of one search. Each search a turn ran is charged
     to the account's `toolSearch` bucket after the turn, and a turn starts
@@ -449,7 +454,7 @@ The `tools` document (`tool-gating`) switches the product's tool keys off and sk
 
 A deploy runs three steps of this package before traffic arrives, in this order:
 
-1. `publishSkills`: the catalog, as skill versions.
+1. `publishSkills`: the catalog's defaults, seeded as skill versions where the project lacks them or holds an older shipped one.
 2. `ensureMemoryStore`: the memory store, made once with the small chat and embedding deployments, only while `memory.store` is `foundry`.
 3. `FoundryAgentHost.prime(surfaces)`:
    - the version each typed surface's turns will ask for;

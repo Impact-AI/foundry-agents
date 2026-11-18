@@ -8,6 +8,7 @@
 		"dev": "bun --hot src/index.ts",
 		"start": "bun run src/index.ts",
 		"persona": "bun run src/persona.ts",
+		"skills": "bun run src/skills.ts",
 		"emulator": "bun run src/emulator.ts",
 		"typecheck": "tsc --noEmit"
 	},

@@ -28,7 +28,10 @@ export interface SkillTurn {
  * non-empty scope naming no surface that exists matches nothing, so a skill
  * left behind by a retired surface fails closed rather than escaping.
  */
-export function skillFitsTurn(skill: SkillSource, turn: SkillTurn): boolean {
+export function skillFitsTurn(
+	skill: Pick<SkillSource, "surfaces" | "requiresTools">,
+	turn: SkillTurn,
+): boolean {
 	const surfaces = skill.surfaces ?? [];
 	const requires = skill.requiresTools ?? [];
 	if (surfaces.length > 0 && !surfaces.includes(turn.surface)) return false;

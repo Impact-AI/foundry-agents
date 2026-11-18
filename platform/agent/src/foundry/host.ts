@@ -106,7 +106,7 @@ import {
 import { eraseResource } from "./erase";
 import { boundHistory, HistoryItemTooLarge, removeHistoryOf } from "./history";
 import { openThread } from "./open-thread";
-import { fittingSkills, pinnedSkills } from "./skills";
+import { fittingSkills } from "./skills";
 import { spokenRecord } from "./spoken";
 import {
 	listThreadDocuments,
@@ -318,12 +318,10 @@ export class FoundryAgentHost implements AgentHost {
 			[
 				"skills",
 				async () =>
-					pinnedSkills(
-						fittingSkills(
-							product.skills ?? [],
-							{ surface: "", enabledTools: [] },
-							true,
-						),
+					fittingSkills(
+						product.skills ?? [],
+						{ surface: "", enabledTools: [] },
+						true,
 					),
 			],
 		]);
@@ -475,16 +473,14 @@ export class FoundryAgentHost implements AgentHost {
 	): Promise<PromptAgentDefinition> {
 		const [settings, skills] = await Promise.all([
 			agentSettings(),
-			pinnedSkills(
-				fittingSkills(this.product.skills ?? [], turn, skillsEnabled),
-			),
+			fittingSkills(this.product.skills ?? [], turn, skillsEnabled),
 		]);
 		return agentDefinition({
 			fixed,
 			clientTools: this.product.clientTools,
 			serverTools,
 			webSearch: turn.enabledTools.includes(WEB_SEARCH),
-			skills,
+			skills: skills.map(({ name, version }) => ({ name, version })),
 			settings,
 		});
 	}
@@ -1069,16 +1065,11 @@ export class FoundryAgentHost implements AgentHost {
 	 * would pin them, as functions of the backend's (`voice-tools.ts`).
 	 */
 	private async voiceTools(prompt: TurnPrompt): Promise<SessionTools> {
-		const fitting = fittingSkills(
+		const skills = await fittingSkills(
 			this.product.skills ?? [],
 			prompt.turn,
 			prompt.gating.skillsEnabled,
 		);
-		const pins = await pinnedSkills(fitting);
-		const skills = pins.flatMap((pin) => {
-			const source = fitting.find((skill) => skill.name === pin.name);
-			return source ? [{ pin, source }] : [];
-		});
 		return {
 			serverTools: {
 				...this.product.tools(prompt.turn),

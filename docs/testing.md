@@ -60,7 +60,7 @@ The fake Foundry stands in for agents and versions, conversations and their item
 - the requests sent and never sent;
 - the tool loop with the browser's controls and a mixed response, and the step limit;
 - web search and its charge;
-- pictures deleted and skills pinned;
+- pictures deleted and skills pinned: the project's skills gated by their metadata, the code's defaults seeded and never published over an operator's, and the `skills` CLI;
 - the job's steps, and everything an erase reaches.
 
 ### Template
