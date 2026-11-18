@@ -3,16 +3,15 @@ import { llmSettings, requireDeployment } from "@platform/llm";
 import { asSchema } from "ai";
 import type { ClientTool, ProductTools } from "../contract/product";
 import type { AgentSettings, SearchContextSize } from "../settings";
-import type { SkillPin } from "./skills";
 
 /**
  * The agent as one version of a prompt agent: everything that is the same
  * for every person on a surface — parts one and two of the prompt with the
- * placeholder part three is sent into, every tool, the pinned skills, the
+ * placeholder part three is sent into, every tool (the skill reader among them), the
  * reasoning settings and the guardrail — and nothing that is a person's.
  * Its hash is taken over the canonical JSON of all of it, so any change an
  * operator makes, to the persona, a guardrail, the tools document, a
- * skill's default version or the reasoning, is a new version; nothing a
+ * skill's name or description, or the reasoning, is a new version; nothing a
  * client registered can be, since the controls are all of the product's.
  */
 
@@ -42,8 +41,6 @@ export interface PromptAgentDefinition {
 		{ description: string; schema: { type: "string" }; required: true }
 	>;
 	tools: (FunctionToolDefinition | WebSearchToolDefinition)[];
-	/** Absent when none, so a product without skills needs no preview opt-in. */
-	skills?: SkillPin[];
 	reasoning: {
 		effort: AgentSettings["reasoningEffort"];
 		summary: AgentSettings["reasoningSummary"];
@@ -60,7 +57,6 @@ export interface DefinitionInput {
 	serverTools: ProductTools;
 	/** Whether the operator left web search on. */
 	webSearch: boolean;
-	skills: readonly SkillPin[];
 	settings: Pick<
 		AgentSettings,
 		"reasoningEffort" | "reasoningSummary" | "webSearch"
@@ -191,7 +187,6 @@ export async function agentDefinition(
 			...webSearchTool(input.webSearch, input.settings.webSearch.contextSize),
 			...server,
 		],
-		...(input.skills.length ? { skills: [...input.skills] } : {}),
 		reasoning: {
 			effort: input.settings.reasoningEffort,
 			summary: input.settings.reasoningSummary,

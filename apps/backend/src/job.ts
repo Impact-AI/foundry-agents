@@ -6,7 +6,6 @@ import {
 import {
 	createFoundryAgentHost,
 	ensureMemoryStore,
-	publishSkills,
 	reportVoiceEngines,
 } from "@platform/agent/foundry";
 import { seedConfigDocuments } from "@platform/config";
@@ -35,7 +34,7 @@ import {
 	differences,
 } from "./components";
 import { configDocuments } from "./config-documents";
-import { product, prompt } from "./product";
+import { product, prompt, skills } from "./product";
 
 /**
  * The migrate job's entry: `bun run src/job.ts <step>...`, every step in the
@@ -60,8 +59,8 @@ import { product, prompt } from "./product";
  *                   scanned in the same step; the knowledge source and
  *                   base over the index too, when the `knowledge`
  *                   document's `retrieval.engine` is `knowledgeBase`
- *   skills          the product's skills published to the project (preview),
- *                   a new default version where the words changed
+ *   skills          the product's default skills seeded into Cosmos DB, each
+ *                   only where no version of its name is stored
  *   agent           the memory store (preview), made where missing, when the
  *                   `agent` document's `memory.store` is `foundry`; the
  *                   agent version each surface's turns ask for, made before
@@ -161,16 +160,10 @@ export const STEPS: Record<string, StepRunner> = {
 		return `index "${names.index}", data source, skillset and indexer ensured${refill ? `; the index was rebuilt and refilled: the indexer read ${refill.indexed} file(s), ${refill.failures.length} failed, ${refill.shield.scanned} chunk(s) read by Prompt Shields, ${refill.shield.flagged.length} flagged, ${refill.shield.withheld} left unserved for a later scan` : ""}; ${base.made ? `knowledge base "${base.made}" and its source ensured` : "no knowledge base: the hybrid search answers"}${base.retired.length ? `; retired knowledge base(s) ${base.retired.map((name) => `"${name}"`).join(", ")} deleted` : ""}`;
 	},
 	skills: async () => {
-		const outcomes = Object.entries(await publishSkills(product.skills ?? []));
-		return outcomes.length
-			? outcomes
-					.map(([name, outcome]) =>
-						outcome === "kept"
-							? `${name} kept: its default is the operator's`
-							: `${name} ${outcome}`,
-					)
-					.join(", ")
-			: "the product ships no skills";
+		const seeded = await skills.seed();
+		return seeded.length
+			? `seeded ${seeded.join(", ")}`
+			: "nothing to seed: every skill the product ships is stored";
 	},
 	agent: async () => {
 		// The store the operator chose, read afresh: the setting holds per process, and this is a new one.

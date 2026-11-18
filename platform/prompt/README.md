@@ -17,6 +17,9 @@ The product supplies the words: the guardrail slot specs and defaults with the f
   - A version's id is its label, so a label is used once per key. `seed` writes the default as the first active version, `v1`, where the key has none.
   - `publish` makes a new version the active one, and `activate` makes an earlier one active again. Each runs in one transactional batch that switches the active version off only if it still carries the etag it was read with. So two writes at once cannot both win, and none leaves two versions active or none.
   - `promptContainers` declares the container.
+- `defineSkills` — the skills, versioned in the same container under the key `skills`, so every skill's active version is one query of one partition.
+  - A version holds a skill's description, instructions (under `prompt`, the field the index leaves out), `surfaces`, `requiresTools`, `enabled`, and its origin: `shipped` when the code wrote it, `custom` when an operator did. Each skill has exactly one active version, switched in one transactional batch as the persona's is; a version's id is `<name>@v<n>`.
+  - `read` serves the active, enabled versions through one cache, and the product's defaults while none is stored or the database cannot be read. `seed` writes a default only where no version of its name is stored, so a default changed in code never reaches a running deployment; `reset` publishes it there on purpose.
 - `defineGuardrailOverrides` — the `guardrails` document in App Configuration. Every failure resolves to no overrides, which renders the shipped guardrail byte for byte; each slot is validated by the renderer, not here.
 
 The container is the template's, which leaves the text itself out of the index. The tests run on `@platform/cosmos/testing`: in memory, or on the emulator under `COSMOS_TESTS=1`.

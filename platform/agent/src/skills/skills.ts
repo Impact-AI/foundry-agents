@@ -1,9 +1,15 @@
-import type { SkillSource } from "../contract/product";
+import { z } from "zod";
+import {
+	type ProductTools,
+	productTool,
+	type SkillSource,
+} from "../contract/product";
 
 /**
  * Skills as prose: the gate that decides which of a product's skills a turn
- * may carry, and the renderer that writes the fitting ones into a session's
- * instructions when the channel cannot load one on demand. A skill is the
+ * may carry, the one tool both channels read a fitting skill with, and the
+ * renderer that writes the fitting ones into a session's instructions for a
+ * channel that cannot call a tool. A skill is the
  * procedure behind one kind of question, loaded only on the turns that ask
  * it; what is true of every turn is prompt. Whether the mechanism runs at
  * all is the `tools` document's `skills_enabled`, read by the caller of
@@ -41,6 +47,51 @@ export function skillFitsTurn(
 	)
 		return false;
 	return true;
+}
+
+/** The skills a turn of this shape carries, by name; none while the operator switched skills off. */
+export function fittingSkills(
+	skills: readonly SkillSource[],
+	turn: SkillTurn,
+	skillsEnabled: boolean,
+): SkillSource[] {
+	if (!skillsEnabled) return [];
+	return skills
+		.filter((skill) => skillFitsTurn(skill, turn))
+		.sort((a, b) => a.name.localeCompare(b.name));
+}
+
+/** The reader's name, the same on a typed turn and in a live session. */
+export const READ_SKILL = "readSkill";
+
+/**
+ * The tool a turn reads a skill with, when any fits: its description lists
+ * each fitting skill by name and "use when" line, and a call answers the
+ * skill's instructions. The list is in the tool's description and its
+ * parameters, so it is part of the agent version a typed turn runs on: a
+ * skill added, removed or redescribed is one new version, and an edit to a
+ * skill's instructions alone is none, since they are read at the call.
+ */
+export function skillTools(skills: readonly SkillSource[]): ProductTools {
+	const [first, ...rest] = skills.map((skill) => skill.name);
+	if (first === undefined) return {};
+	const listed = skills
+		.map(({ name, description }) => `- ${name}: ${description.trim()}`)
+		.join("\n");
+	return {
+		[READ_SKILL]: productTool({
+			description: `Read the method behind one kind of question before you answer it, then follow it. Don't announce it. The skills:\n${listed}`,
+			parameters: z.object({
+				name: z.enum([first, ...rest]).describe("The skill to read."),
+			}),
+			async execute({ name }) {
+				const skill = skills.find((s) => s.name === name);
+				return skill
+					? { name, instructions: skill.instructions }
+					: { error: "not_available" };
+			},
+		}),
+	};
 }
 
 /**

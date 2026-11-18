@@ -69,6 +69,7 @@ import {
 	type VoiceEngine,
 	voiceEngineForTier,
 } from "../settings";
+import { fittingSkills, skillTools } from "../skills/skills";
 import { generateTitle } from "../title/generate-title";
 import { titleFrom } from "../title/title-from";
 import {
@@ -106,7 +107,6 @@ import {
 import { eraseResource } from "./erase";
 import { boundHistory, HistoryItemTooLarge, removeHistoryOf } from "./history";
 import { openThread } from "./open-thread";
-import { fittingSkills } from "./skills";
 import { spokenRecord } from "./spoken";
 import {
 	listThreadDocuments,
@@ -315,15 +315,7 @@ export class FoundryAgentHost implements AgentHost {
 			["cosmos", () => threadOwner("warm-probe")],
 			["persona", () => product.persona()],
 			["tool-gating", () => this.toolGating.read()],
-			[
-				"skills",
-				async () =>
-					fittingSkills(
-						product.skills ?? [],
-						{ surface: "", enabledTools: [] },
-						true,
-					),
-			],
+			["skills", async () => product.skills?.() ?? []],
 		]);
 	}
 
@@ -464,24 +456,34 @@ export class FoundryAgentHost implements AgentHost {
 		};
 	}
 
+	/**
+	 * The backend's tools for a turn of this shape: the product's, and the
+	 * skill reader when any skill fits (`skills/skills.ts`), the one a live
+	 * session has too.
+	 */
+	private async turnTools(
+		turn: { surface: string; enabledTools: readonly string[] },
+		skillsEnabled: boolean,
+	): Promise<ProductTools> {
+		const skills = (await this.product.skills?.()) ?? [];
+		return {
+			...this.product.tools(turn),
+			...skillTools(fittingSkills(skills, turn, skillsEnabled)),
+		};
+	}
+
 	/** The version's definition for a turn of this shape. */
 	private async definitionFor(
 		turn: { surface: string; enabledTools: readonly string[] },
 		fixed: string,
-		skillsEnabled: boolean,
-		serverTools = this.product.tools(turn),
+		serverTools: ProductTools,
 	): Promise<PromptAgentDefinition> {
-		const [settings, skills] = await Promise.all([
-			agentSettings(),
-			fittingSkills(this.product.skills ?? [], turn, skillsEnabled),
-		]);
 		return agentDefinition({
 			fixed,
 			clientTools: this.product.clientTools,
 			serverTools,
 			webSearch: turn.enabledTools.includes(WEB_SEARCH),
-			skills: skills.map(({ name, version }) => ({ name, version })),
-			settings,
+			settings: await agentSettings(),
 		});
 	}
 
@@ -550,11 +552,10 @@ export class FoundryAgentHost implements AgentHost {
 						: [WEB_SEARCH],
 				},
 			);
-			const serverTools = this.product.tools(turn);
+			const serverTools = await this.turnTools(turn, gating.skillsEnabled);
 			const definition = await this.definitionFor(
 				turn,
 				parts.fixed,
-				gating.skillsEnabled,
 				serverTools,
 			);
 			const version = await this.versions.ensure(definition);
@@ -1059,23 +1060,17 @@ export class FoundryAgentHost implements AgentHost {
 	}
 
 	/**
-	 * A live session's tools, all the backend's: the product's for the turn
-	 * and what a typed turn has from the service that a voice agent cannot
-	 * hold, web search and the skills that fit the turn as its agent version
-	 * would pin them, as functions of the backend's (`voice-tools.ts`).
+	 * A live session's tools, all the backend's: those a typed turn of its
+	 * shape has, the skill reader among them, and web search, which a typed
+	 * turn has from the service and a voice agent cannot hold, as a function
+	 * of the backend's (`voice-tools.ts`).
 	 */
 	private async voiceTools(prompt: TurnPrompt): Promise<SessionTools> {
-		const skills = await fittingSkills(
-			this.product.skills ?? [],
-			prompt.turn,
-			prompt.gating.skillsEnabled,
-		);
 		return {
 			serverTools: {
-				...this.product.tools(prompt.turn),
+				...(await this.turnTools(prompt.turn, prompt.gating.skillsEnabled)),
 				...voiceServiceTools({
 					webSearch: prompt.turn.enabledTools.includes(WEB_SEARCH),
-					skills,
 				}),
 			},
 		};
@@ -1542,7 +1537,11 @@ export class FoundryAgentHost implements AgentHost {
 			);
 			versions.push(
 				await this.versions.ensure(
-					await this.definitionFor(turn, parts.fixed, gating.skillsEnabled),
+					await this.definitionFor(
+						turn,
+						parts.fixed,
+						await this.turnTools(turn, gating.skillsEnabled),
+					),
 				),
 			);
 		}

@@ -17,7 +17,7 @@ The PowerShell versions of the scripts run on Linux locally and in CI, so a rule
 | Layer | What it proves | Files | Needs |
 | --- | --- | --- | --- |
 | Unit | Pure modules: parsers, the settings merge, prompt composition, the stage reducer, the voice state machine… | `*.test.ts`, `*.test.tsx` | nothing |
-| Cosmos DB | What the stores rely on the service to do, then the accounts and the persona's versions through their own functions ([details](#cosmos-db)). | `platform/cosmos`, `platform/identity`, `platform/prompt` | nothing: in memory. With `COSMOS_TESTS=1`, `COSMOS_ENDPOINT` and `COSMOS_KEY`, the same suites on the emulator, each in a database of its own |
+| Cosmos DB | What the stores rely on the service to do, then the accounts and the persona's and the skills' versions through their own functions ([details](#cosmos-db)). | `platform/cosmos`, `platform/identity`, `platform/prompt` | nothing: in memory. With `COSMOS_TESTS=1`, `COSMOS_ENDPOINT` and `COSMOS_KEY`, the same suites on the emulator, each in a database of its own |
 | Knowledge | A library loaded through the job's own steps, then searched through the real query code ([details](#knowledge)). | `platform/knowledge/src/**` | nothing |
 | Redis | Buckets, the live-voice seconds count, claims, the cache shared across replicas (`sharedMemo`), the fallbacks when Redis vanishes | `*.redis.test.ts` | `REDIS_URL` |
 | The agent on Foundry | The host against the fake Foundry, a strict stand-in for the service at its HTTP boundary, with both SDKs running above it ([details](#the-agent-on-foundry)). | `platform/agent/src/foundry/**` | `REDIS_URL` |
@@ -39,7 +39,7 @@ The shared suite asserts against the container surface alone (`platform/cosmos/s
 - a query runs in one partition, ordered and paged by a keyset;
 - a container that is missing or partitioned otherwise is refused at start.
 
-Then it tests the accounts and the persona's versions through their own functions.
+Then it tests the accounts and the persona's and the skills' versions through their own functions.
 
 ### Knowledge
 
@@ -54,13 +54,13 @@ A library is loaded through the job's own steps: described into blob metadata, i
 
 ### The agent on Foundry
 
-The fake Foundry stands in for agents and versions, conversations and their items, streamed responses, memory stores and their long-running update, and skills and their zipped content. It is strict, refusing what the service refuses. The suites cover:
+The fake Foundry stands in for agents and versions, conversations and their items, streamed responses, and memory stores and their long-running update. It is strict, refusing what the service refuses. The suites cover:
 
 - the version a turn runs on and what it holds;
 - the requests sent and never sent;
 - the tool loop with the browser's controls and a mixed response, and the step limit;
 - web search and its charge;
-- pictures deleted and skills pinned: the project's skills gated by their metadata, the code's defaults seeded and never published over an operator's, and the `skills` CLI;
+- pictures deleted, and the skill reader in the version a turn runs on;
 - the job's steps, and everything an erase reaches.
 
 ### Template

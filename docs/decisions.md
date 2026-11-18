@@ -78,9 +78,9 @@ This is observed behavior, not a published limit. The Agent Service [FAQ](https:
 
 ## 6. Voice tools: web search and skills as the backend's own functions
 
-**The voice agent's definition carries every function tool of the `live` channel, plus two of the backend's own. `webSearch` is a response on the `chat` deployment with the typed turns' `web_search` tool and `tool_choice: "required"`, capped by `webSearch.maxOutputTokens` and charged to the same bucket. `readSkill` returns the skill version a typed turn would pin.** See [Tools in a voice session](architecture.md#tools-in-a-voice-session).
+**The voice agent's definition carries every function tool of the `live` channel, plus two of the backend's own. `webSearch` is a response on the `chat` deployment with the typed turns' `web_search` tool and `tool_choice: "required"`, capped by `webSearch.maxOutputTokens` and charged to the same bucket. `readSkill` returns a skill's active instructions from Cosmos DB, and is the same function on a typed turn.** See [Tools in a voice session](architecture.md#tools-in-a-voice-session) and [skills](architecture.md#skills).
 
-**Why.** [Configure a voice agent](https://learn.microsoft.com/en-us/azure/foundry/agents/how-to/configure-voice-agent): server-side tools come through a toolbox, and "a voice-based agent can have individual tools or one toolbox, but not both". A toolbox would replace the [stage](patterns.md#terms) controls and the server tools. `VoiceAgentDefinition` in `@azure/ai-projects` 2.10.0 has no `skills` field.
+**Why.** [Configure a voice agent](https://learn.microsoft.com/en-us/azure/foundry/agents/how-to/configure-voice-agent): server-side tools come through a toolbox, and "a voice-based agent can have individual tools or one toolbox, but not both". A toolbox would replace the [stage](patterns.md#terms) controls and the server tools. `VoiceAgentDefinition` in `@azure/ai-projects` 2.10.0 has no `skills` field. The service's skills (preview) are not used on typed turns either: a prompt agent version that pinned one did not offer it to the model, while the function tool reaches both channels.
 
 **Rejected.** A toolbox (loses every function tool); no web search in voice.
 

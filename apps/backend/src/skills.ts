@@ -1,183 +1,136 @@
-import { readdir, stat } from "node:fs/promises";
-import { join } from "node:path";
 import { parseArgs } from "node:util";
-import type { SkillSource } from "@platform/agent";
-import {
-	defaultSkillVersion,
-	listSkills,
-	publishShipped,
-	publishSkillVersion,
-	readSkillFile,
-	type SkillMeta,
-	setDefaultSkillVersion,
-	skillMeta,
-	splitList,
-} from "@platform/agent/foundry";
-import { product } from "./product";
+import { closeCosmos } from "@platform/cosmos";
+import type { SkillStore, SkillVersion } from "@platform/prompt/store";
+import { skills as store } from "./product";
 
 /**
- * The operator's way to manage the skills in the Foundry project:
- * `bun run skills <command>`, as an identity holding Foundry User on the
- * project — the deploying principal does — with `FOUNDRY_PROJECT_ENDPOINT`
- * set.
+ * The operator's way to manage the skills: `bun run skills <command>`, as
+ * an identity holding Cosmos DB Built-in Data Contributor on the app's
+ * database — the deploying principal does — with `COSMOS_ENDPOINT` set, as
+ * for the persona.
  *
- *   list                        each skill's default version, origin, switch and fit
- *   publish <name> <path>       a new version from a SKILL.md, or a folder holding one
- *     [--default] [--surfaces a,b] [--requires-tools x,y] [--disabled]
- *   default <name> <version>    an existing version becomes the default
- *   enable <name> | disable <name>
- *                               a new default version with the switch flipped
- *   reset <name>                the code's default becomes the default again
+ *   list                              each skill's active version, origin, switch and fit
+ *   publish <name> <SKILL.md>         a new version from the file
+ *     [--surfaces a,b] [--requires-tools x,y] [--disabled] [--activate]
+ *   activate <name> <version>         an earlier version becomes the active one
+ *   enable <name> | disable <name>    the active version again, switched
+ *   reset <name>                      the product's default becomes the active version
  *
- * A version made here is the operator's (`origin: custom`), so the deploy's
- * `skills` step leaves the skill alone from then on; `reset` hands it back.
- * Versions are published with their words inline, so a folder with files
- * beside its SKILL.md is uploaded in the portal instead. Every replica
- * offers the change within the minute its listing is memoised.
+ * Every replica serves the change within the memo's 30 seconds.
  */
 
 const USAGE =
-	"usage: skills list | skills publish <name> <path> [--default] [--surfaces a,b] [--requires-tools x,y] [--disabled] | skills default <name> <version> | skills enable <name> | skills disable <name> | skills reset <name>";
+	"usage: skills list | skills publish <name> <SKILL.md> [--surfaces a,b] [--requires-tools x,y] [--disabled] [--activate] | skills activate <name> <version> | skills enable <name> | skills disable <name> | skills reset <name>";
 
-function describe(meta: SkillMeta): string {
-	return [
-		meta.origin ?? "unmarked",
-		meta.enabled ? "enabled" : "disabled",
-		`surfaces ${meta.surfaces.join(",") || "all"}`,
-		`tools ${meta.requiresTools.join(",") || "any"}`,
-	].join(", ");
+const listOf = (value: string | undefined) =>
+	(value ?? "")
+		.split(",")
+		.map((part) => part.trim())
+		.filter(Boolean);
+
+function line(skill: SkillVersion): string {
+	return `${skill.name} ${skill.label}: ${[
+		skill.origin,
+		skill.enabled ? "enabled" : "disabled",
+		`surfaces ${skill.surfaces.join(",") || "all"}`,
+		`tools ${skill.requiresTools.join(",") || "any"}`,
+	].join(", ")}`;
 }
 
-/** The SKILL.md at `path`, or in the folder `path` names, which may hold nothing else. */
-async function skillFileAt(path: string): Promise<string> {
-	if (!(await stat(path)).isDirectory()) return Bun.file(path).text();
-	const entries = await readdir(path, { recursive: true, withFileTypes: true });
-	const files = entries.filter((entry) => entry.isFile());
-	if (!files.some((entry) => entry.name === "SKILL.md"))
-		throw new Error(`${path} holds no SKILL.md`);
-	if (files.length > 1)
-		throw new Error(
-			`${path} holds files beside its SKILL.md: upload a bundled skill in the portal, with its metadata in the SKILL.md front matter`,
-		);
-	return Bun.file(join(path, "SKILL.md")).text();
+/**
+ * A `SKILL.md`: front matter with `name` and `description`, and the
+ * instructions after it. Flat `key: value` lines are all it reads; the
+ * gating comes from the flags, not the file.
+ */
+function readSkillFile(text: string): {
+	name?: string;
+	description?: string;
+	body: string;
+} {
+	const normalised = text.replace(/\r\n/g, "\n");
+	const front = /^---\n([\s\S]*?)\n---(\n|$)/.exec(normalised);
+	const fields: Record<string, string> = {};
+	for (const entry of (front?.[1] ?? "").split("\n")) {
+		const pair = /^([A-Za-z0-9_-]+):(.*)$/.exec(entry);
+		if (pair?.[1] && pair[2] !== undefined)
+			fields[pair[1]] = pair[2].trim().replace(/^(["'])(.*)\1$/, "$2");
+	}
+	return {
+		name: fields.name || undefined,
+		description: fields.description || undefined,
+		body: (front ? normalised.slice(front[0].length) : normalised).trim(),
+	};
 }
 
-async function publish(
-	name: string,
-	path: string,
-	flags: {
-		default?: boolean;
-		surfaces?: string;
-		"requires-tools"?: string;
-		disabled?: boolean;
-	},
-): Promise<string> {
-	const file = readSkillFile(await skillFileAt(path));
-	if (file.name && file.name !== name)
-		throw new Error(`${path} names the skill "${file.name}", not "${name}"`);
-	if (!file.description)
-		throw new Error(`${path} has no description in its front matter`);
-	if (!file.body) throw new Error(`${path} has no instructions`);
-	const meta = skillMeta(file.metadata);
-	const version = await publishSkillVersion(
-		name,
-		{
-			description: file.description,
-			instructions: file.body,
-			meta: {
-				surfaces:
-					flags.surfaces === undefined
-						? meta.surfaces
-						: splitList(flags.surfaces),
-				requiresTools:
-					flags["requires-tools"] === undefined
-						? meta.requiresTools
-						: splitList(flags["requires-tools"]),
-				enabled: flags.disabled ? false : meta.enabled,
-				origin: "custom",
-				hash: null,
-			},
-		},
-		flags.default === true,
-	);
-	return `"${name}" v${version} published${flags.default ? ", the default" : ""}`;
-}
-
-async function setEnabled(name: string, enabled: boolean): Promise<string> {
-	const current = await defaultSkillVersion(name);
-	if (!current) throw new Error(`the project has no skill "${name}"`);
-	const meta = skillMeta(current.metadata);
-	const state = enabled ? "enabled" : "disabled";
-	if (meta.enabled === enabled)
-		return `"${name}" v${current.version} is already ${state}`;
-	if (current.bundled)
-		throw new Error(
-			`"${name}" v${current.version} holds files beside its SKILL.md: set enabled in its front matter and upload it in the portal`,
-		);
-	const version = await publishSkillVersion(
-		name,
-		{
-			description: current.description ?? "",
-			instructions: current.body,
-			meta: { ...meta, enabled, origin: "custom", hash: null },
-		},
-		true,
-	);
-	return `"${name}" v${version}, ${state}, is the default`;
-}
-
-export async function skills(
+export async function skillsCli(
 	args: readonly string[],
-	catalogue: readonly SkillSource[] = product.skills ?? [],
+	skills: SkillStore = store,
 ): Promise<string> {
 	const { values, positionals } = parseArgs({
 		args: [...args],
 		allowPositionals: true,
 		options: {
-			default: { type: "boolean" },
 			surfaces: { type: "string" },
 			"requires-tools": { type: "string" },
 			disabled: { type: "boolean" },
+			activate: { type: "boolean" },
 		},
 	});
 	const [command, name, extra, ...rest] = positionals;
-	const flagged = Object.keys(values).length > 0;
-	if (rest.length || (flagged && command !== "publish")) throw new Error(USAGE);
+	if (rest.length || (Object.keys(values).length && command !== "publish"))
+		throw new Error(USAGE);
 	if (command === "list" && !name) {
-		const found = await listSkills();
+		const found = await skills.list();
 		return found.length
-			? found
-					.map(
-						(skill) =>
-							`${skill.name} v${skill.version}: ${describe(skill.meta)}`,
-					)
-					.join("\n")
-			: "the project has no skills";
+			? found.map(line).join("\n")
+			: "there are no skills stored: the product's defaults are served";
 	}
-	if (command === "publish" && name && extra)
-		return publish(name, extra, values);
-	if (command === "default" && name && extra) {
-		await setDefaultSkillVersion(name, extra);
-		return `"${name}" v${extra} is the default`;
+	if (command === "publish" && name && extra) {
+		const file = readSkillFile(await Bun.file(extra).text());
+		if (file.name && file.name !== name)
+			throw new Error(`${extra} names the skill "${file.name}", not "${name}"`);
+		if (!file.description)
+			throw new Error(`${extra} has no description in its front matter`);
+		const label = await skills.publish(
+			name,
+			{
+				description: file.description,
+				instructions: file.body,
+				surfaces: listOf(values.surfaces),
+				requiresTools: listOf(values["requires-tools"]),
+				enabled: values.disabled !== true,
+			},
+			{ activate: values.activate === true },
+		);
+		const active = (await skills.list()).find((skill) => skill.name === name);
+		return active?.label === label
+			? `"${name}" ${label} published, the active version`
+			: `"${name}" ${label} published; ${active?.label ?? "none"} is still active`;
 	}
-	if ((command === "enable" || command === "disable") && name && !extra)
-		return setEnabled(name, command === "enable");
-	if (command === "reset" && name && !extra) {
-		const shipped = catalogue.find((skill) => skill.name === name);
-		if (!shipped)
-			throw new Error(
-				`the code has no default for "${name}": only a shipped skill is reset`,
-			);
-		return `"${name}" v${await publishShipped(shipped)}, the code's default, is the default`;
+	if (command === "activate" && name && extra) {
+		if (!(await skills.activate(name, extra)))
+			throw new Error(`the skill "${name}" has no version "${extra}"`);
+		return `"${name}" ${extra} is the active version`;
 	}
+	if ((command === "enable" || command === "disable") && name && !extra) {
+		const state = command === "enable" ? "enabled" : "disabled";
+		const label = await skills.setEnabled(name, command === "enable");
+		return label
+			? `"${name}" ${label}, ${state}, is the active version`
+			: `"${name}" is already ${state}`;
+	}
+	if (command === "reset" && name && !extra)
+		return `"${name}" ${await skills.reset(name)}, the product's default, is the active version`;
 	throw new Error(USAGE);
 }
 
 if (import.meta.main) {
 	try {
-		console.log(await skills(process.argv.slice(2)));
+		console.log(await skillsCli(process.argv.slice(2)));
 	} catch (err) {
 		console.error((err as Error).message);
 		process.exitCode = 1;
+	} finally {
+		closeCosmos();
 	}
 }

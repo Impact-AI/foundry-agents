@@ -500,7 +500,7 @@ Which server-side tools the agent has, read once per turn. The stored keys are s
 | Field | Default | Rule | Effect |
 | --- | --- | --- | --- |
 | `enabled_tools` | `["knowledgeSearch","webSearch","lookupRecord","listRecords","metrics"]` | a list of tool keys | The tools exposed; a key the product does not ship is ignored. `webSearch` is the service's own web search tool, run inside the response. A tool added to the code later is **not** in a stored list: add its key here. |
-| `skills_enabled` | `true` | boolean | The kill switch for skills: off, no turn carries any skill in the Foundry project, whatever each skill's own `enabled`. |
+| `skills_enabled` | `true` | boolean | The kill switch for skills: off, no turn on either channel carries any skill or the `readSkill` tool, whatever each skill's own `enabled`. |
 
 ### `guardrails`
 
@@ -684,5 +684,5 @@ An OpenAI voice turns the fillers off whatever the tuning says, and the panel sh
 ### Not in App Configuration
 
 - **The persona**, the second part of the system prompt, is a versioned document of the `prompts` container in Cosmos DB (key `assistant`). The migrate job's `settings` step seeds it with the code's shipped text (`apps/backend/src/product.ts`), and every deploy keeps it up to that text until an operator publishes a version of their own. With no version, that text is served. See [operations](operations.md#changing-the-persona).
-- **Skills** are the Foundry project's, versioned there: every skill in the project whose default version is enabled and fits the turn's surface and tools is pinned into its agent version, and the live voice reads the same version. That metadata (`surfaces`, `requires-tools`, `enabled`, `origin`) rides in each version's `SKILL.md` front matter. The product's `skills` in code (Agent on Azure ships none) are only defaults: the job's `skills` step publishes one where the project lacks it or its default is still a shipped version made from other words, and never over an operator's. A turn falls back to the code's defaults only when the project's skills cannot be listed. See [operations](operations.md#managing-skills).
+- **Skills** are versioned documents of the `prompts` container in Cosmos DB (key `skills`), one active version per skill, each holding the description, the instructions, `surfaces`, `requiresTools` and `enabled`. The migrate job's `skills` step seeds the product's defaults (`defineSkills` in `apps/backend/src/product.ts`; Agent on Azure ships none), each only where no version of its name is stored, so a default changed in code reaches new deployments and never a running one. While no skill is stored or Cosmos DB cannot be read, the defaults are served. See [operations](operations.md#managing-skills).
 - **Who is premium, who may sign in and who tunes voice** are app roles on the Entra app registration ([deployment](deployment.md#sign-in-with-microsoft-entra-id)); **who may read a document** is `access.json` in its library ([documents](documents.md#who-may-read-a-document)).

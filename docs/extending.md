@@ -18,7 +18,7 @@ The backend's part of the assistant lives in [`apps/backend/src/product.ts`](../
 | `prompt` | The persona's default text: the first version the migrate job seeds, and the fallback when the `prompts` container has no active version for `assistant`. |
 | `guardrails` | The guardrail slots (`scope`, `declines`), their defaults and the frame around them. |
 | `TOOLS` | Every server-side tool, by the key the `tools` document switches it off by. `WEB_SEARCH` is beside them in `toolKeys`: the service's own web search tool. |
-| `skills` | Not set: Agent on Azure ships no skills. A product's default skills go here, to seed the Foundry project; see [A skill](#a-skill). |
+| `skills` | The active skills from the skills' store (`defineSkills`), which Agent on Azure seeds with none; see [A skill](#a-skill). |
 
 The rest of the folder:
 
@@ -62,13 +62,12 @@ A control the assistant drives in the browser: it puts something on screen and a
 
 A procedure behind one kind of question, which the agent loads only on the turns that ask it — not a fact true of every turn (that is the persona), nor how to make a call (that is a tool's description).
 
-Skills live in the Foundry project (preview), versioned there; the code holds only defaults that seed them. There are two ways to add one:
+Skills are versioned in Cosmos DB beside the persona; the code holds only defaults that seed them. There are two ways to add one:
 
-1. **In the project**, with no deploy: publish a `SKILL.md` as a version with the [`skills` CLI](operations.md#managing-skills) or in the portal. Its front matter's `metadata` says where it fits: `surfaces` and `requires-tools` (comma-separated; any one of the tools must be on for a turn to carry it) and `enabled`. A version without them fits every surface and turn.
-2. **As a default in code,** for a skill every deployment should start with: a `SkillSource` in the product's `skills` list, with a `name`, a `description` that says when to use it, the `instructions`, and optionally `surfaces` and `requiresTools`. The job's `skills` step publishes it as a shipped version where the project lacks it, and publishes a changed default over a shipped version on the next deploy. Once an operator makes a version of their own the default, the deploy leaves that skill alone.
+1. **On a running deployment,** with no deploy: write a `SKILL.md` (front matter with `name` and a `description` that says when to use it, then the instructions) and publish it with the [`skills` CLI](operations.md#managing-skills), naming the `--surfaces` it is for and the `--requires-tools` of which any one must be on for a turn to carry it.
+2. **As a default in code,** for a skill every new deployment should start with: an entry in `defineSkills([...])` in `apps/backend/src/product.ts`, with a `name`, a `description`, the `instructions`, and optionally `surfaces` and `requiresTools`. The job's `skills` step writes it where no version of that name is stored. A change to it later reaches new deployments only; on a running one, `skills reset <name>` publishes it.
 
-Each agent version pins the default version of every enabled skill whose surface and tools fit it.
-3. **Voice.** A live session gets a skill through the backend rather than the service. The voice agent's definition has no `skills` field, and a skill reaches a Foundry agent only through a toolbox, which on a voice agent replaces every function tool it holds. So when any skill fits the live turn (its `surfaces` are empty or name `live`, and its `requiresTools` are met), the session carries a `readSkill` function whose description lists those skills. The model calls it before a question that needs one, and the backend reads the same skill version a typed turn's agent version would pin (`platform/agent/src/foundry/voice-tools.ts`). A skill version with no `SKILL.md` is answered `not_available`. Leave `live` out of a skill's `surfaces` only when the procedure should not run in voice; a skill written in the typed tool vocabulary needs no second copy for voice.
+Both channels read a skill the same way: the backend's `readSkill` function tool, whose description lists the skills that fit the turn (enabled, on its surface, with a required tool on), and which answers a skill's instructions. A typed turn has it as a server tool and a live session as one of the voice agent's functions (`platform/agent/src/skills/skills.ts`). Leave `live` out of a skill's `surfaces` only when the procedure should not run in voice; a skill written in the typed tool vocabulary needs no second copy for voice.
 
 `skills_enabled` in the `tools` document switches every skill off on both channels.
 
@@ -112,7 +111,7 @@ The backend talks to the agent through one interface, `AgentHost` (`platform/age
 
    `platform/agent/src/foundry/testing/parity-factory.ts` is the Foundry one.
 3. **Prove what the interface cannot show** in the implementation's own suite, as `foundry/host.test.ts` does: what it sends and never sends, its caches, its fallbacks, and what an erase reaches.
-4. **Swap it in** where `apps/backend/src/index.ts` calls `createFoundryAgentHost`, and change the job's `skills` and `agent` steps to make what the new host needs before traffic. The typed channel's protocol does not change: the backend serves [AG-UI](patterns.md#terms) over `startTurn` (`@platform/agent/agui`), and the frontend's runtime reaches it with `HttpAgent` whichever host answers. What does change is outside the interface. One part is the infrastructure in `infra/` that makes the Foundry account and project. The other is live voice, whose binding speaks the Voice Live protocol in `platform/voice` and has no alternative shipped ([which choices are flexible](adapting.md#flexible-and-azure-specific-choices)).
+4. **Swap it in** where `apps/backend/src/index.ts` calls `createFoundryAgentHost`, and change the job's `agent` step to make what the new host needs before traffic. The typed channel's protocol does not change: the backend serves [AG-UI](patterns.md#terms) over `startTurn` (`@platform/agent/agui`), and the frontend's runtime reaches it with `HttpAgent` whichever host answers. What does change is outside the interface. One part is the infrastructure in `infra/` that makes the Foundry account and project. The other is live voice, whose binding speaks the Voice Live protocol in `platform/voice` and has no alternative shipped ([which choices are flexible](adapting.md#flexible-and-azure-specific-choices)).
 
 ## A new document type
 

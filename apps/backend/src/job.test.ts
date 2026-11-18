@@ -163,7 +163,7 @@ test("the settings step writes every document and the persona's first version on
 	}
 });
 
-test("the agent step makes the memory store, the version each surface asks for and the voice agent's, and a second deploy makes none of them; the skills step says the sample ships none", async () => {
+test("the agent step makes the memory store, the version each surface asks for and the voice agent's, and a second deploy makes none of them; the skills step has nothing to seed", async () => {
 	const cosmos = await openTestCosmos(promptContainers);
 	// A fresh fake numbers its versions from one: a memo another run left would name versions it never made.
 	const namespace = throwawayNamespace();
@@ -187,7 +187,9 @@ test("the agent step makes the memory store, the version each surface asks for a
 	const foundry = fakeFoundry();
 	restores.push(foundry.install());
 	try {
-		expect(await STEPS.skills?.()).toBe("the product ships no skills");
+		expect(await STEPS.skills?.()).toBe(
+			"nothing to seed: every skill the product ships is stored",
+		);
 		expect(await STEPS.agent?.()).toBe(
 			"the memory store made; version 1 for web; voice 1 (speechToSpeech); 0 old version(s) pruned",
 		);

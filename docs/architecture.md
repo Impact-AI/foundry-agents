@@ -5,7 +5,7 @@ Read this page to learn what Agent on Azure deploys and how a request moves thro
 
 The deployment is two container apps and one job on Azure Container Apps, in front of managed data and AI services. Every identity reaches those services with Microsoft Entra ID, and none reaches them with a key.
 
-The agent runs on Foundry Agent Service: a prompt agent whose versions hold the fixed parts of the prompt and every tool. Each moving part around it (memory of the person, retrieval, conversation history, web search, skills) is either the service's or the deployment's own, some by a setting. [Foundry's or the deployment's own](#foundrys-or-the-deployments-own) below gives each part's choices and its default.
+The agent runs on Foundry Agent Service: a prompt agent whose versions hold the fixed parts of the prompt and every tool. Each moving part around it (memory of the person, retrieval, conversation history, web search) is either the service's or the deployment's own, some by a setting. [Foundry's or the deployment's own](#foundrys-or-the-deployments-own) below gives each part's choices and its default.
 
 The backend is the agent's host. It decides who may start a turn and runs the tools the service cannot: the backend's own, and the browser's controls. It keeps each person's conversations in Cosmos DB beside the accounts and the persona: the index of conversations and, by default, every message, sending a turn its history every time. An operator can have new threads kept in the service's conversations instead (`history.store`). The documents are blobs that AI Search's own indexer ingests, each described in its metadata. There is no relational database.
 
@@ -27,7 +27,7 @@ flowchart LR
     migrate[migrate job<br/>the backend image, its own identity]
     frontend -->|caller assertion| backend
   end
-  backend --> project[Foundry project<br/>Agent Service: agent and voice agent versions,<br/>memory store, skills]
+  backend --> project[Foundry project<br/>Agent Service: agent and voice agent versions,<br/>memory store]
   backend --> cosmos[(Cosmos DB, serverless<br/>accounts, persona, conversations, memory)]
   backend --> redis[(Azure Managed Redis<br/>Balanced B0)]
   backend --> search[Azure AI Search]
@@ -96,7 +96,7 @@ The private DNS zones are linked to the network, so each service resolves to its
 
 - **frontend.** The workspace holds the chat, the voice pane (the voice controls and live transcript) and the stage, the visual workspace beside the conversation where documents, charts and records open. Every API route that serves the product forwards to the backend with a short-lived [caller assertion](patterns.md#terms) minted from the verified session. Two routes do not: Auth.js's own, and `/api/vitals`, which writes a page's web vitals to the replica's log.
 - **backend.** Every route requires a caller assertion except `/health`, `/ready`, `/appearance` and `/appearance/logo`: the deployment's look and its logo, which the sign-in page uses.
-- **migrate job.** It writes the settings documents and the persona's versions (the shipped text, until an operator publishes one); AI Search's index, data source, skillset and indexer; the agent's skills where the project lacks them or still holds an older shipped version (never over an operator's), its memory store (when `memory.store` is `foundry`) and first versions; and the document libraries (described, indexed, pruned, shielded). Every write a deploy makes into a data service happens here, inside the network. The one write from outside is a person's own upload of a library to Storage ([loading documents](#loading-documents)). The name dates from when the job ran migrations; renaming it would recreate the job and its identity in every existing deployment.
+- **migrate job.** It writes the settings documents and the persona's versions (the shipped text, until an operator publishes one); AI Search's index, data source, skillset and indexer; the product's default skills into Cosmos DB where none of a name is stored; the agent's memory store (when `memory.store` is `foundry`) and first versions; and the document libraries (described, indexed, pruned, shielded). Every write a deploy makes into a data service happens here, inside the network. The one write from outside is a person's own upload of a library to Storage ([loading documents](#loading-documents)). The name dates from when the job ran migrations; renaming it would recreate the job and its identity in every existing deployment.
 
 Both apps scale on HTTP concurrency (14 concurrent requests per replica). The frontend serves sign-in and the browser's API; the browser never reaches the backend.
 
@@ -250,7 +250,7 @@ The fillers spoken while a tool call runs come from the version, never from the 
 - A response that fails with nothing said is asked again after a backoff (`voice.live.responseRetry`), each ask a step. Once the asks are spent, the voice is told once, by a system item, to say it could not get the answer, and the voice pane says the same.
 - A call to a tool the session does not have is told not to call it again, as on a typed turn.
 - The documents a backend tool handed the model since the person last spoke reach the voice pane under the answer as a `sources` event. They are chosen as a typed turn's chips are (`namedSources`), and never shown under a filler or a response that itself retrieved. A response that only drove the stage counts as an answer, as on a typed turn.
-- A voice agent can hold web search and skills only through a toolbox that would replace every function tool, so they are two more of the backend's functions ([Tools in a voice session](#tools-in-a-voice-session)). `webSearch` runs a response on the chat's deployment with the typed turns' web search tool, required, with its answer capped and its reasoning set by the `agent` document's `webSearch` settings. It is charged to the same `toolSearch` bucket, checked at each call. `readSkill` reads the skill version a typed turn would pin (`platform/agent/src/foundry/voice-tools.ts`).
+- A voice agent can hold web search only through a toolbox that would replace every function tool, so it is one more of the backend's functions ([Tools in a voice session](#tools-in-a-voice-session)). `webSearch` runs a response on the chat's deployment with the typed turns' web search tool, required, with its answer capped and its reasoning set by the `agent` document's `webSearch` settings. It is charged to the same `toolSearch` bucket, checked at each call. The skill reader `readSkill` is the backend's function on both channels ([skills](#skills)).
 
 **Audio.** The browser asks for echo cancellation and noise suppression and runs the microphone through an `AudioWorklet`; the voice agent cancels echo and suppresses noise again. When the person speaks over the voice, the browser clears its playback at once, and the service cancels the answer and leaves its item whole: the version sets `auto_truncate` off. The microphone control at the center of the voice trace mutes the track: the frames still go out and carry silence, and the voice pane says *Muted*. The session and the socket stay open (the backend closes a socket silent for a minute), and the service, which "decides when to commit" in server VAD mode, hears nobody.
 
@@ -324,7 +324,7 @@ Three user-assigned managed identities, each with its own role list in `infra/ma
 | Storage | Storage Blob Data Reader | — | Storage Blob Data Contributor | Storage Blob Data Contributor |
 | AI Search | Search Index Data Reader | — | Search Service Contributor, Search Index Data Contributor | Search Service Contributor, Search Index Data Contributor |
 | Foundry account | Cognitive Services OpenAI User; Cognitive Services User (a live session on Voice Live itself) | — | Cognitive Services OpenAI User, Cognitive Services User (Prompt Shields) | Cognitive Services OpenAI User |
-| Foundry project | Foundry User: responses, conversations, the memory store, agent versions a turn needs | — | Foundry User: skills, the memory store, agent versions | Foundry User |
+| Foundry project | Foundry User: responses, conversations, the memory store, agent versions a turn needs | — | Foundry User: the memory store, agent versions | Foundry User |
 | Cosmos DB | Built-in Data Contributor on `app` | — | Built-in Data Contributor on `app` | Built-in Data Reader; Built-in Data Contributor on `app`, to publish the persona |
 
 The operator is whoever provisions, unless `OPERATOR_PRINCIPAL_ID` names a person or a group. Then every role in that column, and the jump VM's sign-in, is theirs, and the principal that provisions (a pipeline's identity, for example) is assigned none of them. A provision adds assignments and removes none, so a principal that provisioned as the operator before another was named keeps what it was given until it is removed by hand. Provisioning itself is the control plane's, which the deploying role covers.
@@ -342,7 +342,7 @@ People who sign in hold no Azure role at all: every Azure call is made by one of
 Why the split:
 
 - **The index is schema, and ingestion is the job's.** Creating or changing the index, data source, skillset and indexer needs Search Service Contributor, which also reaches the service's settings. So of the three app identities only the job holds it, and only the job writes blob metadata and chunks (the operator and the project's own identity hold their roles in the table above). The backend only reads the index and a picture's blob, so a compromised backend can neither widen a document's readers nor plant a chunk. It checks the index at start and refuses to start on a service it cannot read, waiting out a refusal of its identity as above.
-- **The agent is the backend's to run, and the deploy's to prepare.** Both hold Foundry User on the project, scoped to the project and never the account. The backend needs it because a turn makes the version it needs when no deploy made it first, and because it deletes what a person erases. The job needs it to publish the skills, make the memory store and prepare the versions before traffic arrives.
+- **The agent is the backend's to run, and the deploy's to prepare.** Both hold Foundry User on the project, scoped to the project and never the account. The backend needs it because a turn makes the version it needs when no deploy made it first, and because it deletes what a person erases. The job needs it to make the memory store and prepare the versions before traffic arrives.
 - **Redis** is reached as the backend's object id with an Entra token as the password (`rediss://<objectId>@<host>:10000`), redialed with a fresh token before it expires.
 - **Storage** is keyless, and never reached by a browser: the backend reads a picture with its identity and streams it.
 
@@ -352,7 +352,7 @@ Why the split:
 | --- | --- |
 | Cosmos DB `app` database | Six containers: `accounts`, `prompts`, `threads`, `messages`, `threadIds` and `memory`, listed after the table |
 | Cosmos DB `enterprise_memory` | The Agent Service's own, made by its capability host. On `history.store: own`, the default, the backend writes no conversation to it: every response runs with `store: false`. On `foundry`, a thread made after the change is a conversation there |
-| Foundry project | The agent and its versions; the memory store (preview) and, while `memory.store` is `foundry`, the statements it keeps per person; the skills (preview) and their versions. Where the service keeps each is the service's choice; erasure deletes a person's statements through its API |
+| Foundry project | The agent and its versions; the memory store (preview) and, while `memory.store` is `foundry`, the statements it keeps per person. Where the service keeps each is the service's choice; erasure deletes a person's statements through its API |
 | Azure AI Search, index `chunks` | One document per chunk the indexer cut: title, summary, text, tags, the vector, the readers (`oids`, `groups`) copied from the file's blob metadata, and Prompt Shields' verdict (`injection`, `shieldedHash`). Beside it, the data source, skillset and indexer that fill it (`chunks-library`, `chunks-skillset`, `chunks-indexer`) |
 | Blob Storage `library` | Every library under its name: yours mirrored from your directories by `scripts/ingest.sh`, the sample library as `@sample/`. Each file is described in its own metadata (path, kind, title, summary, tags, readers), and the pictures the media route serves are these blobs. Soft delete keeps a deleted blob 7 days, which is how the indexer sees the deletion |
 | Redis | Rate limits, live-voice state, turn claims, work queues and fleet-shared caches, listed after the table. Required for live voice |
@@ -366,7 +366,7 @@ The `app` database's containers:
   - An account being erased is emptied to its id and shut until what is held under it has been swept.
   - An erased account's document is its id and the time of the erase, and carries its own time to live, eight hours and eleven minutes. This is the one container whose documents may expire; the backend refuses to start on a container that keeps no lifetimes.
   - An erased, deactivated account's document is emptied to its id, the deactivation and the time, and stays.
-- `prompts` (`/key`): the persona's versions, one active.
+- `prompts` (`/key`): the persona's versions, one active; and, under the key `skills`, every skill's versions, one active per skill.
 - `threads` (`/resourceId`): the index of each person's conversations, with the title and when it was last said to.
 - `messages` (`/resourceId`): every conversation's history on `history.store: own`, one document per message, tool call or output, in order, a picture only as its marker. Only the thread id and the order are indexed.
 - `threadIds` (`/id`): the claim that makes a thread id one person's.
@@ -400,7 +400,7 @@ flowchart LR
   subgraph deployment [This deployment]
     own[(memory container<br/>own extraction)]
     msgs[(messages container)]
-    adapters[backend function adapters<br/>webSearch · readSkill]
+    adapters[backend function adapter<br/>webSearch]
     hybrid[hybrid search<br/>readers · shield · unmatched terms]
   end
   backend[backend] -->|memory.store = foundry, the default| mem
@@ -422,7 +422,6 @@ flowchart LR
 | Conversation history | `own`: the `messages` container; every response runs with `store: false` | `foundry`: the service's conversations, one per thread, each typed response stored in it; a live session's spoken lines are written into it by the backend, since the voice agent's own store would keep a separate conversation with the audio (decision 15, [limitations](limitations.md)) | `own` | The `agent` document's `history.store`, for new threads: each thread keeps the store it was made in |
 | Voice engine | — | The voice agent, either way: `speechToSpeech` names an Azure OpenAI realtime deployment, which the service runs natively speech-to-speech; `cascade` names the `chat` deployment, one model for typed and spoken turns | `speechToSpeech` | The `agent` document's `voice.engine`, and `voice.engineByTier` per tier; `speechToSpeech` runs only with `models.realtime` deployed, the cascade otherwise |
 | Web search | — | The service's `web_search` tool: run inside the response on a typed turn, through the backend's `webSearch` function in a voice session | Foundry's | `webSearch` in the `tools` document's `enabled_tools` switches it off |
-| Skills | — | The service's skills (preview): pinned on the typed agent's version, read through the backend's `readSkill` function in a voice session | Foundry's | `skills_enabled` in the `tools` document; each skill's default version: its words and its `surfaces`, `requires-tools` and `enabled` ([managing skills](operations.md#managing-skills)) |
 
 The documents under a reply (`sources`) are the same event on both retrieval engines and both channels; a knowledge base's citations are chunk documents on the index, which the backend resolves to library documents.
 
@@ -462,12 +461,17 @@ A picture enters the conversation with its turn. Its item and the response it we
 
 ### Tools in a voice session
 
-A typed turn's version carries the service's own `web_search` tool and its skills, run inside the response. A voice agent can hold either individual function tools or one toolbox, not both ([configure a voice agent](https://learn.microsoft.com/en-us/azure/foundry/agents/how-to/configure-voice-agent)). The stage controls are function tools that round-trip to one person's browser over the socket the backend holds, so the voice agent holds function tools. Web search and skills reach it as two more of the backend's functions:
+A typed turn's version carries the service's own `web_search` tool, run inside the response. A voice agent can hold either individual function tools or one toolbox, not both ([configure a voice agent](https://learn.microsoft.com/en-us/azure/foundry/agents/how-to/configure-voice-agent)). The stage controls are function tools that round-trip to one person's browser over the socket the backend holds, so the voice agent holds function tools. Web search reaches it as one more of the backend's functions: `webSearch` runs a response on the chat deployment with the typed turns' `web_search` tool (`platform/agent/src/foundry/voice-tools.ts`).
 
-- `webSearch` runs a response on the chat deployment with the typed turns' `web_search` tool;
-- `readSkill` reads the skill version a typed turn would pin (`platform/agent/src/foundry/voice-tools.ts`).
+The session's `interim_response` covers the search's wait with a fixed phrase in the person's language. Packing every voice tool into one toolbox instead would need a route from the service back to the right person's browser for the stage controls. That approach is untested on a hardened project, so the deployment uses the function adapter.
 
-The session's `interim_response` covers the search's wait with a fixed phrase in the person's language. Packing every voice tool into one toolbox instead would need a route from the service back to the right person's browser for the stage controls. That approach is untested on a hardened project, so the deployment uses the function adapters.
+### Skills
+
+A skill is the procedure behind one kind of question, read only on the turns that ask it. Skills are versioned documents in Cosmos DB beside the persona (the `prompts` container, key `skills`), one active version per skill, and each version holds the skill's description ("use when"), its instructions, the `surfaces` and `requiresTools` that gate it, and whether it is enabled. The product's defaults in code only seed a deployment ([managing skills](operations.md#managing-skills)).
+
+Both channels read a skill through one function tool of the backend's, `readSkill` (`platform/agent/src/skills/skills.ts`). The skills that fit a turn (enabled, on its surface, with a required tool switched on, and `skills_enabled` on in the `tools` document) are listed in the tool's description by name and "use when" line, and the tool answers a skill's instructions from the active version. A typed turn has it as a server tool, a live session as one of the voice agent's function tools. The list is part of the agent version a typed turn runs on, so adding, removing or redescribing a skill is one new version, and an edit to a skill's instructions alone is none. The backend reads the active versions at most every 30 seconds, and serves the defaults while none is stored or Cosmos DB cannot be read.
+
+The service's own skills (preview) are not used: a prompt agent version that pinned one did not offer it to the model, and the voice agent can hold one only through a toolbox.
 
 ### Retrieval
 

@@ -31,7 +31,6 @@ test("web search is the service's tool, and every backend tool is a function too
 		clientTools: [],
 		serverTools: { search, lookup },
 		webSearch: true,
-		skills: [],
 		settings: DEFAULT_AGENT_SETTINGS,
 	});
 	expect(definition.tools.map((t) => ("name" in t ? t.name : t.type))).toEqual([

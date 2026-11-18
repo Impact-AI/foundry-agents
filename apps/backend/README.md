@@ -48,13 +48,13 @@ any product and composes the packages.
   Redis), and telemetry.
 - `src/containers.ts`: the Cosmos DB containers this process reads, as
   `@platform/identity`, `@platform/prompt/store` and `@platform/agent/foundry`
-  declare them: the accounts, the persona's versions, the thread index and the
+  declare them: the accounts, the persona's and the skills' versions, the thread index and the
   messages, and what the agent remembers.
 - `src/persona.ts`: `bun run persona publish <label> <file> | activate <label> | show`,
   the operator's way to change the persona
   ([operations](../../docs/operations.md#changing-the-persona)).
-- `src/skills.ts`: `bun run skills list | publish | default | enable | disable | reset`,
-  the operator's way to manage the skills in the Foundry project
+- `src/skills.ts`: `bun run skills list | publish | activate | enable | disable | reset`,
+  the operator's way to manage the skills' versions in Cosmos DB
   ([operations](../../docs/operations.md#managing-skills)).
 - `src/job.ts`: the migrate job's entry, `bun run src/job.ts <step>...` (steps
   below the list).
@@ -136,9 +136,8 @@ given, in one execution:
   absent or `{}`, and the persona's first version where it has none;
 - `index`: AI Search's index, data source, skillset and indexer
   (`ensurePipeline`);
-- `skills`: the product's default skills seeded into the Foundry project,
-  where it lacks them or holds an older shipped version, never over an
-  operator's;
+- `skills`: the product's default skills written to Cosmos DB, each only
+  where no version of its name is stored;
 - `agent`: the memory store made where missing when the `agent` document's
   `memory.store` is `foundry`, the agent version each surface's turns ask for,
   and the oldest versions pruned;

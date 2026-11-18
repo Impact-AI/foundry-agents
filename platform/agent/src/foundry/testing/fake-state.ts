@@ -73,19 +73,6 @@ export interface UpdateRecord {
 	timer?: ReturnType<typeof setTimeout>;
 }
 
-export interface SkillRecord {
-	name: string;
-	created_at: number;
-	default_version: string;
-	versions: {
-		version: string;
-		description: string;
-		instructions: string;
-		metadata: Record<string, string>;
-		created_at: number;
-	}[];
-}
-
 export interface FakeState {
 	agents: Map<string, VersionRecord[]>;
 	/** The last version number each agent was given: the service never reuses one. */
@@ -95,7 +82,6 @@ export interface FakeState {
 	stores: Map<string, Record<string, unknown>>;
 	memories: Map<string, MemoryRecord>;
 	updates: Map<string, UpdateRecord>;
-	skills: Map<string, SkillRecord>;
 	conversations: Map<
 		string,
 		{ id: string; created_at: number; metadata: Record<string, string> }
@@ -127,7 +113,6 @@ export function newState(): FakeState {
 		stores: new Map(),
 		memories: new Map(),
 		updates: new Map(),
-		skills: new Map(),
 		conversations: new Map(),
 		items: new Map(),
 		retained: [],

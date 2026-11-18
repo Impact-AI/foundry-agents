@@ -1,6 +1,10 @@
 import { type ProductTools, WEB_SEARCH } from "@platform/agent";
 import { bullets, defineGuardrails } from "@platform/prompt";
-import { defineGuardrailOverrides, definePrompt } from "@platform/prompt/store";
+import {
+	defineGuardrailOverrides,
+	definePrompt,
+	defineSkills,
+} from "@platform/prompt/store";
 import type { BackendProduct } from "./backend-product";
 import { libraryRoutes } from "./product/library-routes";
 import { locales } from "./product/locales";
@@ -25,10 +29,10 @@ import { liveBehaviour, productVoice } from "./product/voice";
  * row, the guardrail wording, the surface block, the tools, the languages —
  * and nothing else in the app names any of it: the app reads the product
  * through the object below, its routes and its library included, and takes
- * beside it only the persona's slot and the guardrail wording
- * (`backend-product.ts`'s `ProductModule`, held by `product-boundary.test.ts`). The sample ships no skills;
- * a product's catalogue goes in `skills`, and the job's `skills` step
- * publishes it.
+ * beside it only the persona's slot, the skills' store and the guardrail
+ * wording (`backend-product.ts`'s `ProductModule`, held by
+ * `product-boundary.test.ts`). The sample ships no skills: a product's
+ * defaults go in `defineSkills` below, and the job's `skills` step seeds them.
  */
 
 const SERVICE_NAME = "assistant-backend";
@@ -57,6 +61,9 @@ You are a helpful assistant. You answer plainly, in short paragraphs, and you sa
 - Search the web only when the knowledge base has nothing and the question is about the wider world.
 - Ask one question back when a request is ambiguous; otherwise answer.`,
 });
+
+/** The skills, versioned in Cosmos DB as the persona is. These defaults only seed a deployment that has none of their names. */
+export const skills = defineSkills([]);
 
 interface GuardrailWords {
 	scope: string;
@@ -135,6 +142,7 @@ export const product: BackendProduct = {
 	agentId: AGENT_ID,
 	serviceName: SERVICE_NAME,
 	persona: () => prompt.read(),
+	skills: () => skills.read(),
 	guardrails: async (channel) =>
 		guardrails.render(channel, await guardrailOverrides.read()),
 	behaviour: (turn) =>
