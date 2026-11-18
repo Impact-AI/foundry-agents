@@ -6,7 +6,7 @@ titleTemplate: A voice and chat assistant on Microsoft Foundry
 hero:
   name: Agent on Azure
   text: A ready-to-customize multimodal assistant for Microsoft Foundry
-  tagline: "People speak or type questions about documents and business data, then view results as documents, images and charts. Sign-in, voice, document search and Azure deployment are already assembled. Connect your business systems and tailor the app without building the foundation from scratch."
+  tagline: "People speak or type questions about documents and business data, then see the answers as documents, records and charts beside the conversation. Sign-in, voice, document search and Azure deployment are already assembled. Connect your business systems and tailor the app without building the foundation from scratch."
   actions:
     - theme: brand
       text: Is it a fit?
