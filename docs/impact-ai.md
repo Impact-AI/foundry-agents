@@ -1,42 +1,29 @@
 # Impact AI add-ons
 
-Agent on Azure runs on its own in your Azure environment, and nothing on this page is required to build, deploy or run it. Impact AI, which creates and maintains Agent on Azure, offers two separately licensed products on top: Impact AI Admin Center, to change supported behavior without editing code, and Impact AI Control Plane, to test, monitor and improve the application. This page covers both, where your data goes when you connect one, and the [license boundaries](#license-boundaries).
+Agent on Azure runs on its own in your Azure environment, and nothing on this page is required to build, deploy or run it. Impact AI, which creates and maintains Agent on Azure, offers two separately licensed products on top: Impact AI Admin Center, to manage and version the application's prompts, tools and settings from one place, and Impact AI Control Plane, to test, monitor and improve the application. This page covers both, where your data goes when you connect one, and the [license boundaries](#license-boundaries).
 
 ## Optional products and integrations
 
-The application does not need an Impact AI account, SDK or product. Each product is a separate choice:
-
 | Option | Purpose | Status |
 | --- | --- | --- |
-| [Impact AI Admin Center](#impact-ai-admin-center) | Make maintaining the application easier: prompts, guardrail wording, tool switches, documents and supported runtime settings through forms instead of code | A separate product; connection scope and supported controls must be agreed and verified for the customer deployment |
+| [Impact AI Admin Center](#impact-ai-admin-center) | Manage prompts, tools, skills, documents and settings from one place, versioned and live without a redeploy | Separately licensed; the controls it covers are agreed for each application |
 | [Impact AI Control Plane](#impact-ai-control-plane) | Test, monitor and improve the application: evaluations, traces and comparisons | Its SDK setup plugin for Codex (pre-release) ships in this repository; evaluations and comparisons are not yet available for Agent on Azure |
 
 For either, [contact Impact AI](https://www.impact.ai/).
 
 ## Impact AI Admin Center
 
-Impact AI Admin Center is a separate product, not included in this repository and not needed to use it. It gives application and business teams forms for changing supported prompts, guardrail wording, tool switches, documents and runtime settings without editing code. Developers still implement new capabilities and integrations.
+Everything Admin Center does can also be done by hand, with the Azure portal, the Azure CLI or this repository's scripts:
 
-### What teams can do from it
+- Prompts: publish and activate persona versions with the [persona CLI](operations.md#changing-the-persona).
+- Guardrail wording, tool switches and runtime settings: edit them in App Configuration ([tuning while it runs](operations.md#tuning-while-it-runs)).
+- Skills: publish and manage their versions in the Foundry project, through the portal or the `skills` CLI; the repository's defaults only seed them ([a skill](extending.md#a-skill)).
+- Documents: load them with the [ingest script](documents.md#load-a-library).
+- Branding: use the [appearance settings](configuration.md#appearance), uploading a logo before naming it.
 
-The controls offered for a customer application depend on the integration agreed with Impact AI. Confirm and demonstrate each supported control on that application before including it in the delivery scope. The existence of this repository's settings and extension points does not establish Admin Center compatibility.
+Admin Center is one place to do all of this, and Agent on Azure is already set up for it to connect easily: prompts are versioned persona records and settings are validated documents in App Configuration, so it works with what is already there ([extension points](#extension-points-an-integration-uses)). Teams update prompts, tools, skills, documents and settings through forms, every change is versioned, and changes reach the running application without a redeploy. How soon each kind of change takes effect is described in [adapting](adapting.md#what-can-change-easily). New capabilities and integrations are still developer work.
 
-Runtime configuration is distinct from changing the application: a supported setting can take effect after a refresh, a voice change may apply to the next session, and a new model deployment or capability may require a deployment. The application-specific timing and restart requirements are in [adapting](adapting.md#what-can-change-easily).
-
-### Without Admin Center
-
-The application runs fully without it:
-
-- Load documents and their reader mappings through the [ingest script](documents.md#load-a-library).
-- Publish and activate persona versions through the [persona CLI](operations.md#changing-the-persona).
-- Edit guardrail wording, tool switches and supported runtime settings in App Configuration ([tuning while it runs](operations.md#tuning-while-it-runs)).
-- Configure branding through the [appearance settings](configuration.md#appearance), uploading a logo before naming it in the settings.
-
-### Getting it
-
-[Contact Impact AI](https://www.impact.ai/) to agree the customer application's controls and integration scope. Before activation, agree the required access, data flows, retention, operator responsibilities and disconnection procedure. No particular connector topology or installation procedure is established by this repository.
-
-Admin Center has separate terms. Support for an adapted customer application, including integration work and maintenance, requires a separate paid contract. Repository maintenance remains best effort ([support](../SUPPORT.md)).
+[Contact Impact AI](https://www.impact.ai/) to agree which controls Admin Center covers for your application, and what access, data and retention it needs. Admin Center has its own terms, and support for an adapted application is a separate paid contract ([support](../SUPPORT.md)).
 
 ## Impact AI Control Plane
 
