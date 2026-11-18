@@ -3,7 +3,7 @@
 		"id": "GHSA-mrhx-c7xc-m3w5",
 		"package": "zod",
 		"lockfile": ".",
-		"reason": "The fix is in a major the libraries that own a run's schemas are not written for, so the validator stays and its cost is bounded where a body is read: a parsed body is held to a count of array elements and object keys before a schema reads it (overElementLimit in platform/http, at the frontend's chat route and the backend's run route), and every other schema reads a frame of a few kilobytes. It ends when those libraries move to the fixed major."
+		"reason": "The app's own packages are on the fixed Zod 4, and so is @ag-ui/core, whose schema the backend's run route reads a run with. CopilotKit (@copilotkit/runtime, core, shared and a2ui-renderer), @ag-ui/client, @ag-ui/proto and @a2ui/web_core declare Zod 3 as a dependency of their own, not a peer, so each keeps a nested Zod 3 copy. The copy on a request's path is the CopilotKit runtime's, which validates the frontend chat route's envelope; @ag-ui/client's reads the events of the app's own backend. Its cost is bounded where the body is read: a parsed body is held to a count of array elements and object keys before the runtime sees it (overElementLimit in platform/http), and the backend's run route keeps the same bound. It ends when those libraries depend on Zod 4.6.6 or later."
 	},
 	{
 		"id": "GHSA-fc5q-39xc-vjpf",

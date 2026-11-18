@@ -109,38 +109,30 @@ const MAX_SCREEN_LINE_CHARS = 300;
 
 const screenLines = z
 	.array(
-		z
-			.object({
-				label: z.string().min(1).max(MAX_SCREEN_LINE_CHARS),
-				value: z.string().max(MAX_SCREEN_LINE_CHARS),
-			})
-			.strict(),
+		z.strictObject({
+			label: z.string().min(1).max(MAX_SCREEN_LINE_CHARS),
+			value: z.string().max(MAX_SCREEN_LINE_CHARS),
+		}),
 	)
 	.max(MAX_SCREEN_LINES);
 
 const browserMessage = z.discriminatedUnion("type", [
-	z
-		.object({
-			type: z.literal("start"),
-			threadId: z.string().regex(THREAD_ID),
-			screen: screenLines.optional(),
-		})
-		.strict(),
-	z
-		.object({
-			type: z.literal("tool-output"),
-			callId: z.string().min(1).max(128),
-			output: z.string().max(MAX_TOOL_OUTPUT_CHARS),
-		})
-		.strict(),
-	z.object({ type: z.literal("screen"), lines: screenLines }).strict(),
-	z
-		.object({
-			type: z.literal("text"),
-			text: z.string().trim().min(1).max(MAX_TYPED_CHARS),
-		})
-		.strict(),
-	z.object({ type: z.literal("end") }).strict(),
+	z.strictObject({
+		type: z.literal("start"),
+		threadId: z.string().regex(THREAD_ID),
+		screen: screenLines.optional(),
+	}),
+	z.strictObject({
+		type: z.literal("tool-output"),
+		callId: z.string().min(1).max(128),
+		output: z.string().max(MAX_TOOL_OUTPUT_CHARS),
+	}),
+	z.strictObject({ type: z.literal("screen"), lines: screenLines }),
+	z.strictObject({
+		type: z.literal("text"),
+		text: z.string().trim().min(1).max(MAX_TYPED_CHARS),
+	}),
+	z.strictObject({ type: z.literal("end") }),
 ]);
 
 /** What the browser sends, as text. */
