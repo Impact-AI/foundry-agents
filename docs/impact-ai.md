@@ -17,7 +17,7 @@ Everything Admin Center does can also be done by hand, with the Azure portal, th
 
 - Prompts: publish and activate persona versions with the [persona CLI](operations.md#changing-the-persona).
 - Guardrail wording, tool switches and runtime settings: edit them in App Configuration ([tuning while it runs](operations.md#tuning-while-it-runs)).
-- Skills: add them in the product's code ([a skill](extending.md#a-skill)).
+- Skills: publish and manage their versions in the Foundry project, through the portal or the `skills` CLI; the repository's defaults only seed them ([a skill](extending.md#a-skill)).
 - Documents: load them with the [ingest script](documents.md#load-a-library).
 - Branding: use the [appearance settings](configuration.md#appearance), uploading a logo before naming it.
 
