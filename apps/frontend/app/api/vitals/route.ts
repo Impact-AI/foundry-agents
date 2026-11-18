@@ -21,20 +21,18 @@ const short = z
 	.transform((s) => s.slice(0, 120));
 const ms = z.number().finite().nonnegative().max(600_000);
 
-const Report = z
-	.object({
-		path: short,
-		ttfb: ms.optional(),
-		fcp: ms.optional(),
-		inp: ms.optional(),
-		inpTarget: short.optional(),
-		longFrames: z.number().int().nonnegative().max(100_000).optional(),
-		worstFrame: ms.optional(),
-		sampled: z.number().int().nonnegative().max(1_000_000).optional(),
-		viewport: z.number().int().nonnegative().max(20_000).optional(),
-		failures: z.array(short).max(5).optional(),
-	})
-	.strict();
+const Report = z.strictObject({
+	path: short,
+	ttfb: ms.optional(),
+	fcp: ms.optional(),
+	inp: ms.optional(),
+	inpTarget: short.optional(),
+	longFrames: z.number().int().nonnegative().max(100_000).optional(),
+	worstFrame: ms.optional(),
+	sampled: z.number().int().nonnegative().max(1_000_000).optional(),
+	viewport: z.number().int().nonnegative().max(20_000).optional(),
+	failures: z.array(short).max(5).optional(),
+});
 
 const answered = (status: number) =>
 	new Response(null, { status, headers: { "Cache-Control": "no-store" } });

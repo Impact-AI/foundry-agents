@@ -17,7 +17,7 @@ import {
  */
 export interface RecordMapping<T> {
 	/** One record as the system answers it, in its own names. */
-	schema: z.ZodType<T, z.ZodTypeDef, unknown>;
+	schema: z.ZodType<T, unknown>;
 	/**
 	 * That record as the app's. Its `summaryFields` names the fields a
 	 * listing's one line carries to the model, which answers "which…"

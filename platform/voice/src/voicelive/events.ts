@@ -28,41 +28,35 @@ const previous = z
 	.nullish()
 	.transform((value) => value || null);
 /** Each field absent or null: the voice agent sends `"event_id": null` on every error it raised itself. */
-const details = z
-	.object({
-		type: z.string().nullish(),
-		code: z.string().nullish(),
-		message: z.string().nullish(),
-		param: z.string().nullish(),
-		/** The client event this answers, when the service says. */
-		event_id: z.string().nullish(),
-	})
-	.passthrough();
+const details = z.looseObject({
+	type: z.string().nullish(),
+	code: z.string().nullish(),
+	message: z.string().nullish(),
+	param: z.string().nullish(),
+	/** The client event this answers, when the service says. */
+	event_id: z.string().nullish(),
+});
 
-const item = z
-	.object({
-		id,
-		type: z.string(),
-		role: z.string().optional(),
-		call_id: z.string().optional(),
-		name: z.string().optional(),
-		status: z.string().optional(),
-	})
-	.passthrough();
+const item = z.looseObject({
+	id,
+	type: z.string(),
+	role: z.string().optional(),
+	call_id: z.string().optional(),
+	name: z.string().optional(),
+	status: z.string().optional(),
+});
 
-const response = z
-	.object({
-		id,
-		status: z.string().optional(),
-		status_details: z.unknown().optional(),
-		// Null on `response.created`, as the voice agent sends it; an object on `response.done`.
-		usage: z.record(z.unknown()).nullish(),
-		metadata: z.record(z.unknown()).nullish(),
-	})
-	.passthrough();
+const response = z.looseObject({
+	id,
+	status: z.string().optional(),
+	status_details: z.unknown().optional(),
+	// Null on `response.created`, as the voice agent sends it; an object on `response.done`.
+	usage: z.record(z.string(), z.unknown()).nullish(),
+	metadata: z.record(z.string(), z.unknown()).nullish(),
+});
 
 const event = <T extends string, S extends z.ZodRawShape>(type: T, shape: S) =>
-	z.object({ type: z.literal(type), ...shape }).passthrough();
+	z.looseObject({ type: z.literal(type), ...shape });
 
 /** The person's final transcript, and its failure: input transcription runs beside the response. */
 export const USER_FINAL =
@@ -81,17 +75,15 @@ const ASSISTANT_FINALS = [
 
 const SERVER_EVENTS = [
 	event("session.created", {
-		session: z
-			.object({
-				id,
-				// Seconds since the epoch on the wire; the SDK reads it as a Date.
-				expires_at: z.union([z.number(), z.string()]).nullish(),
-				instructions: z.string().optional(),
-			})
-			.passthrough(),
+		session: z.looseObject({
+			id,
+			// Seconds since the epoch on the wire; the SDK reads it as a Date.
+			expires_at: z.union([z.number(), z.string()]).nullish(),
+			instructions: z.string().optional(),
+		}),
 		conversation_id: z.string().nullish(),
 	}),
-	event("session.updated", { session: z.record(z.unknown()) }),
+	event("session.updated", { session: z.record(z.string(), z.unknown()) }),
 	event("error", { error: details }),
 	event("warning", { warning: details }),
 	event("input_audio_buffer.speech_started", {

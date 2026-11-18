@@ -29,7 +29,7 @@ const event = z.discriminatedUnion("type", [
 		type: z.literal("stage-call"),
 		callId: z.string().min(1),
 		name: z.string().min(1),
-		args: z.record(z.unknown()),
+		args: z.record(z.string(), z.unknown()),
 	}),
 	z.object({ type: z.literal("stage-call-closed"), callId: z.string() }),
 	z.object({ type: z.literal("error"), code: z.string() }),

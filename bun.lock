@@ -34,7 +34,7 @@
         "@platform/storage": "workspace:*",
         "@platform/voice": "workspace:*",
         "hono": "^4.13.16",
-        "zod": "^3.25.0",
+        "zod": "^4.6.6",
       },
       "devDependencies": {
         "@platform/test-support": "workspace:*",
@@ -65,7 +65,7 @@
         "react-dom": "19.3.1",
         "rxjs": "7.8.1",
         "streamdown": "^1.6.11",
-        "zod": "^3.25.0",
+        "zod": "^4.6.6",
       },
       "devDependencies": {
         "@axe-core/playwright": "4.14.0",
@@ -97,7 +97,7 @@
         "ai": "^7.0.166",
         "gpt-tokenizer": "^4.1.0",
         "openai": "7.53.0",
-        "zod": "^3.25.0",
+        "zod": "^4.6.6",
       },
       "devDependencies": {
         "@platform/test-support": "workspace:*",
@@ -181,7 +181,7 @@
         "@platform/llm": "workspace:*",
         "@platform/storage": "workspace:*",
         "ai": "^7.0.166",
-        "zod": "^3.25.0",
+        "zod": "^4.6.6",
       },
       "devDependencies": {
         "@platform/test-support": "workspace:*",
@@ -295,7 +295,7 @@
         "@platform/observability": "workspace:*",
         "@platform/prompt": "workspace:*",
         "@platform/redis": "workspace:*",
-        "zod": "^3.25.0",
+        "zod": "^4.6.6",
       },
       "devDependencies": {
         "@platform/test-support": "workspace:*",
@@ -2239,11 +2239,17 @@
 
     "yauzl": ["yauzl@2.10.0", "", { "dependencies": { "buffer-crc32": "~0.2.3", "fd-slicer": "~1.1.0" } }, "sha512-p4a9I6X6nu6IhoGmBqAcbJy1mlC4j27vEPZX9F4L4/vZT3Lyq1VkFHw/V/PUcB9Buo+DG3iHkT0x3Qya58zc3g=="],
 
-    "zod": ["zod@3.25.76", "", {}, "sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ=="],
+    "zod": ["zod@4.6.7", "", {}, "sha512-g8W2D2kU6a8untc053fX1uVBKzM7yqAxW/3zwk83+6RyF2+SKOuV+c0wBDhUwzV1PaGapmZH+rmcUzPf+3CGwg=="],
 
     "zod-to-json-schema": ["zod-to-json-schema@3.25.2", "", { "peerDependencies": { "zod": "^3.25.28 || ^4" } }, "sha512-O/PgfnpT1xKSDeQYSCfRI5Gy3hPf91mKVDuYLUHZJMiDFptvP41MSnWofm8dnCm0256ZNfZIM7DSzuSMAFnjHA=="],
 
     "zwitch": ["zwitch@2.0.4", "", {}, "sha512-bXE4cR/kVZhKZX/RjPEflHaKVhUVl85noU3v6b8apfQEc1x4A+zBxjZ4lN8LqGd6WZ3dl98pY4o717VFmoPp+A=="],
+
+    "@a2ui/web_core/zod": ["zod@3.25.76", "", {}, "sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ=="],
+
+    "@ag-ui/client/zod": ["zod@3.25.76", "", {}, "sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ=="],
+
+    "@ag-ui/proto/zod": ["zod@3.25.76", "", {}, "sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ=="],
 
     "@ai-sdk/anthropic/@ai-sdk/provider": ["@ai-sdk/provider@3.0.19", "", { "dependencies": { "json-schema": "^0.4.0" } }, "sha512-5lWq7zSfRaU5ylDESn3sDQjgGl2AI1vjZKO/6JY3aFW70ct4zcP1kN+ZUYOuTXr28fVsYbyu2YFhddLdIgQFZQ=="],
 
@@ -2293,7 +2299,15 @@
 
     "@azure/storage-blob/@azure/core-lro": ["@azure/core-lro@2.7.2", "", { "dependencies": { "@azure/abort-controller": "^2.0.0", "@azure/core-util": "^1.2.0", "@azure/logger": "^1.0.0", "tslib": "^2.6.2" } }, "sha512-0YIpccoX8m/k00O7mDDMdJpbr6mf1yWo2dfmxt5A8XVZVVMz2SSKaEbMCeJRvgQ0IaSlqhjT47p4hVIRRy90xw=="],
 
+    "@copilotkit/a2ui-renderer/zod": ["zod@3.25.76", "", {}, "sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ=="],
+
+    "@copilotkit/core/zod": ["zod@3.25.76", "", {}, "sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ=="],
+
     "@copilotkit/runtime/ai": ["ai@6.0.319", "", { "dependencies": { "@ai-sdk/gateway": "3.0.225", "@ai-sdk/provider": "3.0.19", "@ai-sdk/provider-utils": "4.0.63", "@opentelemetry/api": "^1.9.0" }, "peerDependencies": { "zod": "^3.25.76 || ^4.1.8" } }, "sha512-1sMXGSM50gL5R7bJjQrYwqyhdS8YNZgW4LuPZeZ3G+sJ0vHyVyGIgzb59XA3dbgwKxLjvY1hjT+SFAAypfsDsg=="],
+
+    "@copilotkit/runtime/zod": ["zod@3.25.76", "", {}, "sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ=="],
+
+    "@copilotkit/shared/zod": ["zod@3.25.76", "", {}, "sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ=="],
 
     "@copilotkit/web-inspector/marked": ["marked@12.0.2", "", { "bin": { "marked": "bin/marked.js" } }, "sha512-qXUm7e/YKFoqFPYPa3Ukg9xlI5cyAtGmyEIzMfW//m6kXwCy2Ps9DYf5ioijFKQ8qyuscrHoY04iJGctu2Kg0Q=="],
 

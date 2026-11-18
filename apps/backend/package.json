@@ -28,7 +28,7 @@
 		"@platform/storage": "workspace:*",
 		"@platform/voice": "workspace:*",
 		"hono": "^4.13.16",
-		"zod": "^3.25.0"
+		"zod": "^4.6.6"
 	},
 	"devDependencies": {
 		"@platform/test-support": "workspace:*",
