@@ -6,12 +6,6 @@
 		"reason": "The app's own packages are on the fixed Zod 4, and so is @ag-ui/core, whose schema the backend's run route reads a run with. CopilotKit (@copilotkit/runtime, core, shared and a2ui-renderer), @ag-ui/client, @ag-ui/proto and @a2ui/web_core declare Zod 3 as a dependency of their own, not a peer, so each keeps a nested Zod 3 copy. The copy on a request's path is the CopilotKit runtime's, which validates the frontend chat route's envelope; @ag-ui/client's reads the events of the app's own backend. Its cost is bounded where the body is read: a parsed body is held to a count of array elements and object keys before the runtime sees it (overElementLimit in platform/http), and the backend's run route keeps the same bound. It ends when those libraries depend on Zod 4.6.6 or later."
 	},
 	{
-		"id": "GHSA-fc5q-39xc-vjpf",
-		"package": "picomatch",
-		"lockfile": ".",
-		"reason": "Reached only through next-intl's @parcel/watcher, which serves next-intl's message extractor. The frontend's next.config.ts does not switch the extractor on, so the watcher never starts, in development or in production, and no glob from a request ever reaches picomatch. Every release up to the latest, 4.0.7, is affected; it ends with a picomatch release past 4.0.7 that the lockfile takes up."
-	},
-	{
 		"id": "GHSA-587h-7wmj-h5pm",
 		"package": "vite",
 		"lockfile": "site",
