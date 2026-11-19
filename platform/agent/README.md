@@ -17,7 +17,7 @@ conversation on the service.
 
 Memory (`memory.store`: the service's memory store or a container of the
 deployment's own), retrieval (`retrieval.engine`: the backend's hybrid search
-or a Foundry IQ knowledge base), web search and skills each have their choices
+or a Foundry IQ knowledge base) and web search each have their choices
 and defaults, set out in one table:
 [Foundry's or the deployment's own](../../docs/architecture.md#foundrys-or-the-deployments-own).
 The thread index and its ownership claims are on Cosmos DB; metering, claims
@@ -52,7 +52,8 @@ describes them.
   - `product` is what the host cannot know: the agent's id and service name;
     the persona and the guardrails (`@platform/prompt`'s `defineGuardrails`
     builds them); the channel instructions; the tools; the controls a client
-    runs itself (`clientTools`); the skills catalog (`SkillSource`); what the
+    runs itself (`clientTools`); the skills a turn may carry, read per turn
+    (`skills()`, each a `SkillSource`); what the
     memory's extractor is told to keep (`memory.userProfileDetails`); and the
     proper nouns. A tool (`productTool`) has a description, Zod parameters the
     host validates the model's arguments against, an `execute` the host runs
@@ -82,11 +83,12 @@ describes them.
   field by field over the defaults; nothing stored can remove a bound.
 - `skills/`: the check that decides which of a product's skills a turn may
   carry, given its surface and tools (the surfaces a skill names, and any one
-  of the tools it requires). It also has a renderer that writes the fitting
-  skills into a session's instructions within a character budget, for a
-  channel that cannot load a skill on demand. The Foundry host does not use it
-  for a live voice session: that session reads a skill through the backend's
-  `readSkill` function (`foundry/voice-tools.ts`).
+  of the tools it requires), and `readSkill`, the one function tool both
+  channels read a fitting skill with: its description lists the skills by
+  name and "use when" line, and a call answers one's instructions. It also has
+  a renderer that writes the fitting skills into a session's instructions
+  within a character budget, for a channel that cannot call a tool; the
+  Foundry host does not use it.
 - `tool-gating`: the `tools` document, which says which of the product's tool
   keys are on, and `skills_enabled`, the kill switch for skills on both
   channels. A store that cannot be read serves every shipped tool on.
@@ -175,11 +177,12 @@ describes them.
     concurrency cap until it ends. The `openai` client is built here rather
     than through `getOpenAIClient()`, which in 2.10.0 drops a custom fetch.
   - `definition` and `versions`: the agent version a turn needs for its
-    surface, tools and skills. It holds parts one and two of the prompt with
+    surface and tools. It holds parts one and two of the prompt with
     `{{personalization}}` after them (the person's part is a structured input
-    of each response); every client control and server tool; the service's web
-    search when it is on (with the `agent` document's context size); the
-    fitting skills, pinned by version; the reasoning settings; and the
+    of each response); every client control and server tool, the skill reader with
+    the fitting skills listed among them; the service's web search when it is
+    on (with the `agent` document's context size); the reasoning settings; and
+    the
     guardrail. Versions are found by a hash of the definition in their
     metadata, made under a fleet lock, and cached for a day. A version pruned
     under a running replica is made again on the 404.
@@ -209,9 +212,8 @@ describes them.
     turns' `web_search` definition: the tool required, the answer capped, and
     the reasoning set by the `agent` document's `webSearch` settings. The typed
     turns' reader (`turn/events`) reads it, and it is charged to the
-    `toolSearch` bucket. `readSkill` is the pinned skill version read from the
-    service (`skills.readSkillVersion`). `@platform/voice`'s README has the
-    documentation behind each.
+    `toolSearch` bucket. `@platform/voice`'s README has the documentation
+    behind it.
   - `history`, `conversations` and `threads`: a thread's messages and its index
     entry (detail below the list).
   - `turn/`: the tool loop (detail below the list).
@@ -229,11 +231,6 @@ describes them.
     finished.
   - `purge`: a forget the memory store could not finish in the request,
     finished by a sweeper that works through a Redis set every minute.
-  - `skills` and `zip`: the catalog the job publishes (`publishSkills`). A new
-    default version is published only when the words changed, recognized by a
-    hash in the version's metadata and read back from the version's zipped
-    folder. Each skill's default version is pinned into the agent versions it
-    fits.
   - `web-search-meter`: web search runs inside a response, so nothing of the
     backend's stands in front of one search. Each search a turn ran is charged
     to the account's `toolSearch` bucket after the turn, and a turn starts
@@ -263,7 +260,7 @@ describes them.
     conversation (a request that mixes the two is refused); conversations with
     their items and deletes, with what a delete removes kept in
     `state.retained`, as the service's run state keeps it; memory stores with
-    their long-running update; and skills and their zipped content.
+    their long-running update.
   - It is strict, refusing what the service refuses, so both SDKs above it run
     for real.
   - `standInExtractor` stands in for the memory's model call at the same fetch.
@@ -378,7 +375,7 @@ since the store cannot tell which earlier words taught the fact.
 3. The claim: the first replica to see a turn key answers it; a duplicate is a 409. Unavailable without Redis, and the turn proceeds.
 4. The thread: its index entry, or a claim and a new one in the store `history.store` names; then its history, within the `history` bound. On a conversation thread only what is new is read, since the service holds the rest.
 5. The prompt, through `composeSystemPromptParts`. The product's guardrails, its persona and its channel instructions belong to the version. This turn's structured input holds the date, who the person is and what they wrote, what is remembered about them, when they last talked, what is on their screen, and the language directive last. Web search is left out of a turn whose account has no searches left.
-6. The version: found or made for the turn's surface, tools and skills.
+6. The version: found or made for the turn's surface and tools, the skills that fit it among them (`product.skills`).
 7. The responses, streamed and translated: reasoning, text, tool calls and results, the documents drawn on, then `finish`; or `error` with no cause, after which the claim is released.
 8. After the last response, what the turn said and wrote is kept in the thread's store, the index moves, the searches are charged, the thread is handed to memory to extract from after the delay, and a thread with no name is queued to be named. A call to a client's control ends the run. The client's answer is a turn of its own, accepted only for the calls left open, after the same guards.
 
@@ -389,14 +386,14 @@ since the store cannot tell which earlier words taught the fact.
    - the thread is held for the session (a Redis claim owned by the session's id, for its hard limit and a grace period), so a typed turn on it, or a second session, is `thread.busy`;
    - the thread is made when new, and the calls a typed turn left open are closed `not_answered`;
    - the thread's words a typed turn would be given are gathered (`history`, as `LiveHistoryLine`s);
-   - the voice version is found or made. It holds every function tool of the voice surface and, in place of what a voice agent cannot hold beside them, `webSearch` and `readSkill` as the backend's functions (`foundry/voice-tools.ts`);
+   - the voice version is found or made. It holds every function tool of the voice surface and, the skill reader a typed turn of its shape has, and, in place of what a voice agent cannot hold beside them, `webSearch` as the backend's function (`foundry/voice-tools.ts`);
    - the person's part is built, with the screen and the language directive last;
    - the session's `session.update` is built for their language and tier, with the engine's reasoning effort;
    - the engine, and so the version, is chosen from the tier.
 2. The session runs on the voice agent's socket (`@platform/voice`'s `voicelive/`), which reads its transcript.
 3. `settleLiveVoice` writes the session's record once (`spoken`), hands it to memory, queues the thread to be named if it has no name, and releases the hold however the write ends. A repeated call for the same session writes nothing.
 
-The backend's `webSearch` function is a response on the chat's deployment carrying the typed turns' `web_search` tool with the `agent` document's `search_context_size` and `tool_choice: required` (`web-search.ts`). It is charged to the `toolSearch` bucket and withheld while that bucket is empty, as a typed turn's search is. `readSkill` reads from the service the skill version a typed turn would pin.
+The backend's `webSearch` function is a response on the chat's deployment carrying the typed turns' `web_search` tool with the `agent` document's `search_context_size` and `tool_choice: required` (`web-search.ts`). It is charged to the `toolSearch` bucket and withheld while that bucket is empty, as a typed turn's search is.
 
 ## Settings
 
@@ -443,15 +440,14 @@ Everything an operator tunes is the `agent` document, read through `@platform/co
 | `voice.noiseReduction` | `azure_deep_noise_suppression_headset` | What the service takes out of the person's audio before it listens, in the voice version. |
 | `voice.realtimeReasoningEffort` | `low` | A reasoning realtime model's effort on speech-to-speech; the cascade carries `reasoningEffort`. |
 
-The `tools` document (`tool-gating`) switches the product's tool keys off and skills on or off. The host reads it once per turn and exposes the reader as `toolGating`, so a route that briefs another channel reads the same answer. The persona is the product's prompt document (`@platform/prompt/store`).
+The `tools` document (`tool-gating`) switches the product's tool keys off and skills on or off. The host reads it once per turn and exposes the reader as `toolGating`, so a route that briefs another channel reads the same answer. The persona is the product's prompt document and the skills the product's skill store (`@platform/prompt/store`), both read through the product (`persona()`, `skills()`).
 
 ## The job's part
 
-A deploy runs three steps of this package before traffic arrives, in this order:
+A deploy runs two steps of this package before traffic arrives, in this order:
 
-1. `publishSkills`: the catalog, as skill versions.
-2. `ensureMemoryStore`: the memory store, made once with the small chat and embedding deployments, only while `memory.store` is `foundry`.
-3. `FoundryAgentHost.prime(surfaces)`:
+1. `ensureMemoryStore`: the memory store, made once with the small chat and embedding deployments, only while `memory.store` is `foundry`.
+2. `FoundryAgentHost.prime(surfaces)`:
    - the version each typed surface's turns will ask for;
    - for a product with a live voice, the voice agent's version for its surface, for each engine some tier is answered by (`voice.engine`, `voice.engineByTier`; speech-to-speech only with a realtime deployment or a managed realtime model). The voice surface has no prompt-agent version of its own;
    - then all but the newest `keepVersions` of each agent are pruned. Each engine's current voice version is kept, and so is any voice version a live session is marked as running on, such as a voice tester's own (`foundry/voice-tuning.ts`).
@@ -473,7 +469,7 @@ The parity suite is the acceptance bar for any implementation: pass a factory to
 - the controls answered here, and the write a mixed response holds before `finish`;
 - the step limit, web search and its charge;
 - the pictures deleted (and swept after a failed delete);
-- the skills pinned, and the job's steps idempotent;
+- the skill reader in each version, and the job's steps idempotent;
 - everything an erase reaches where the service keeps it.
 
 `agui/agui.test.ts` holds the route without a host. What the fake cannot prove (the service's real event names, refusals and timings) needs a check on a deployment ([testing](../../docs/testing.md#what-only-a-deployment-proves)).

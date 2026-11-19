@@ -16,7 +16,6 @@ import type {
 } from "../contract/product";
 import { WEB_SEARCH } from "../contract/product";
 import { createFoundryAgentHost, type FoundryAgentHost } from "./host";
-import { publishSkills } from "./skills";
 import type { FakeFoundry } from "./testing/fake-foundry";
 import { foundryParityFactory } from "./testing/parity-factory";
 import type { ThreadDocument } from "./threads";
@@ -56,7 +55,7 @@ const product: AgentProduct = {
 			parameters: { type: "object", properties: { shelf: { type: "string" } } },
 		},
 	],
-	skills: [
+	skills: async () => [
 		{
 			name: "map-reading",
 			description: "Use when somebody asks how to read an old map.",
@@ -86,7 +85,6 @@ beforeAll(async () => {
 	if (!REDIS_AVAILABLE) return;
 	host = (await factory.create(product)) as FoundryAgentHost;
 	fake = factory.fake();
-	await publishSkills(product.skills ?? []);
 });
 
 afterAll(async () => {
@@ -128,11 +126,11 @@ t(
 		}[];
 		expect(tools.map((tool) => tool.name)).toEqual([
 			"showShelf",
-			WEB_SEARCH,
 			"readSkill",
+			WEB_SEARCH,
 		]);
 		const reader = tools.find((tool) => tool.name === "readSkill");
-		// The skills that fit, listed as the service lists them to a prompt agent; the words are read on demand.
+		// The skills that fit, listed as a typed turn's reader lists them; the words are read on demand.
 		expect(reader?.description).toContain(
 			"- map-reading: Use when somebody asks how to read an old map.",
 		);
@@ -191,7 +189,7 @@ t(
 );
 
 t(
-	"a session's web search runs a response on the chat's deployment with the typed turns' web search tool, required, short and lightly reasoned, answers with what the pages said and which, and is withheld from a session nobody verified; its skill reader reads the version a typed turn would pin",
+	"a session's web search runs a response on the chat's deployment with the typed turns' web search tool, required, short and lightly reasoned, answers with what the pages said and which, and is withheld from a session nobody verified; its skill reader is a typed turn's",
 	async () => {
 		const { resourceId } = await factory.person();
 		const caller = { oid: resourceId, groups: [], tier: "base" as const };

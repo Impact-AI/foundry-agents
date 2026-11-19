@@ -1,6 +1,6 @@
 # Operations
 
-This page is for the operator on duty: how to run a deployment of Agent on Azure day to day. It covers checking a deployment, reading its logs, tuning it live, the persona, the agent on Foundry, secrets, scale, backups and erasure.
+This page is for the operator on duty: how to run a deployment of Agent on Azure day to day. It covers checking a deployment, reading its logs, tuning it live, the persona, the skills, the agent on Foundry, secrets, scale, backups and erasure.
 
 ## Check a deployment
 
@@ -213,13 +213,33 @@ bun run --cwd apps/backend persona activate v1                   # back to an ea
 
 Every replica serves the new active version within about 30 seconds. A label is used once per key; publishing switches the previous version off and the new one on in one transactional batch, so two publishes at once cannot both win. Keep the `# CORE IDENTITY` heading: the guardrails name it. The guardrail wording is the `guardrails` settings document, not this. Hardened, Cosmos DB's public listener is off: run it from a machine inside the network that has Bun and a checkout. The jump host is given `az`, `azd` and `git` and no Bun, so install the version in `.bun-version` there first.
 
+## Managing skills
+
+A skill is the procedure behind one kind of question, which the agent reads on the turns that ask it. Skills are versioned documents of the Cosmos DB container `prompts` under the key `skills`, beside the persona: each version holds the skill's description (when to use it), its instructions, the `surfaces` it is offered on (none: all), the `requiresTools` of which any one must be on (none: always) and whether it is enabled, and each skill has exactly one active version. A turn's `readSkill` tool lists the active, enabled skills that fit it and answers their instructions, on typed turns and in live sessions alike ([architecture](architecture.md#skills)). `skills_enabled` in the `tools` document switches every skill off at once ([configuration](configuration.md#tools)).
+
+The product's defaults (`defineSkills` in `apps/backend/src/product.ts`; Agent on Azure ships none) only seed: the migrate job's `skills` step writes a default as the active `v1`, marked `shipped`, where no version of its name is stored, and leaves every skill that has one alone. A default changed in code therefore reaches new deployments and never a running one; `reset` publishes it there. While no skill is stored, or Cosmos DB cannot be read, the defaults are served.
+
+To manage them, as the operator (who holds Built-in Data Contributor on the `app` database), from the repository root:
+
+```sh
+export COSMOS_ENDPOINT="$(azd env get-value COSMOS_ENDPOINT)"
+bun run --cwd apps/backend skills list                                   # each skill's active version, origin, switch and fit
+bun run --cwd apps/backend skills publish house-rules ../../house-rules/SKILL.md --surfaces web,live --activate
+bun run --cwd apps/backend skills activate house-rules v1                # an earlier version becomes the active one
+bun run --cwd apps/backend skills disable house-rules                    # or enable
+bun run --cwd apps/backend skills reset shelf-finder                     # the product's default becomes the active version
+```
+
+`publish <name> <file>` reads a `SKILL.md`: its front matter's `name` (which must match) and `description`, and the instructions after it. `--surfaces` and `--requires-tools` take comma-separated lists, `--disabled` publishes it switched off, and `--activate` makes it the active version; a skill's first version is active either way. `enable` and `disable` publish the active version again with the switch flipped, so every change stays a version to go back to. A version the CLI publishes is marked `custom`; `list` shows each skill's origin.
+
+Every replica serves the change within about 30 seconds. Adding, removing, redescribing or switching a skill makes the next typed turn of each kind a new agent version; changing only its instructions does not, since they are read when the tool is called. Hardened, Cosmos DB's public listener is off: run it from a machine inside the network, as for the persona.
+
 ## The agent on Foundry
 
-The agent's versions, its memory store and its skills live in the Foundry project, and the deploy's job keeps them in step with the code:
+The agent's versions and its memory store live in the Foundry project, and the deploy's job keeps them in step with the code:
 
-- **Versions.** A version holds the guardrails, the persona, the channel instructions ([the per-channel instructions](architecture.md#a-typed-turn) in `apps/backend/src/product/surface.ts`, written for typed turns and spoken for voice), every tool and the reasoning settings. Editing any of them (the persona, or the `guardrails`, `tools` or `agent` document) makes a new version on the next turn of each kind. There is one kind per channel, one without web search for accounts that have spent their searches, and, for the voice agent, one per engine in use. A version is found again by the hash of its definition: first in the replica's memory, then in the cache all replicas share in Redis, then in the service's listing of the agent's versions. Since that listing can trail a version just made, the version numbers past the newest listed are then read one by one. The job runs without Redis, so the backend's start finds the job's versions this last way. Two versions of one definition, if two processes ever make them, run the same words and tools, and the job's pruning removes the older. The job's `agent` step keeps the newest `agent.foundry.keepVersions` (10), and each voice engine's current version however old, and deletes the rest; a replica still on a deleted one makes it again. Nothing about a person is in a version.
+- **Versions.** A version holds the guardrails, the persona, the channel instructions ([the per-channel instructions](architecture.md#a-typed-turn) in `apps/backend/src/product/surface.ts`, written for typed turns and spoken for voice), every tool (the skill reader and the skills it lists among them) and the reasoning settings. Editing any of them (the persona, a skill's listing, or the `guardrails`, `tools` or `agent` document) makes a new version on the next turn of each kind. There is one kind per channel, one without web search for accounts that have spent their searches, and, for the voice agent, one per engine in use. A version is found again by the hash of its definition: first in the replica's memory, then in the cache all replicas share in Redis, then in the service's listing of the agent's versions. Since that listing can trail a version just made, the version numbers past the newest listed are then read one by one. The job runs without Redis, so the backend's start finds the job's versions this last way. Two versions of one definition, if two processes ever make them, run the same words and tools, and the job's pruning removes the older. The job's `agent` step keeps the newest `agent.foundry.keepVersions` (10), and each voice engine's current version however old, and deletes the rest; a replica still on a deleted one makes it again. Nothing about a person is in a version.
 - **The memory store** (`person-memory`, preview) is made by the job once, while the `agent` document's `memory.store` is `foundry` (the default), with the `small` chat deployment for extraction and the `embedding` deployment. Its own options (`agent.memory.foundry.chatSummary`, `procedural`, `ttlSeconds`) are read only when it is made: to change them, delete the store in the portal — which forgets everything it remembers about everyone — and run the job. Switching `memory.store` is a portal edit and a backend restart; nothing moves between the stores ([configuration](configuration.md#agent)). What the store you leave behind remembered stays in it, unseen. An account's erase forgets it from both stores; for everyone else it is yours to remove, by deleting the `person-memory` store in the portal when leaving `foundry`, or the documents of the `memory` container when leaving `own`.
-- **Skills** (preview) are the product's catalog in code, published by the job's `skills` step as a new default version only when a skill's words changed. A version made in the portal becomes the default the next agent versions pin; the next deploy replaces it with the catalog's words.
 
 ## Rotating secrets
 
@@ -261,8 +281,8 @@ The replica floors are azd variables (`azd env set BACKEND_MIN_REPLICAS 2`, then
 
 | Data | Protection |
 | --- | --- |
-| Cosmos DB | Continuous backup with 7-day point-in-time restore (`az cosmosdb restore`): the accounts, the persona, and the conversations — their index and their history. Zone-redundant when hardened. |
-| Foundry project | No backup of the memory store's statements or the agent versions. The versions and the skills are derived: the job makes them again from the code. What the memory store remembers is not; on the own store it is in Cosmos DB's backup above. |
+| Cosmos DB | Continuous backup with 7-day point-in-time restore (`az cosmosdb restore`): the accounts, the persona and the skills, and the conversations — their index and their history. Zone-redundant when hardened. |
+| Foundry project | No backup of the memory store's statements or the agent versions. The versions are derived: the job makes them again from the code. What the memory store remembers is not; on the own store it is in Cosmos DB's backup above. |
 | Blob Storage | Soft delete for blobs and containers, 7 days. ZRS when hardened. |
 | AI Search | No backup. The index is derived: its content comes from your libraries (and the sample library in the image). To rebuild a library, `ingest.sh --remove <name>` then load it again. |
 | App Configuration | Revision history of every key; soft delete of the store, 1 day. |

@@ -2,9 +2,12 @@ import { expect, test } from "bun:test";
 import type { SkillSource } from "../contract/product";
 import {
 	DEFAULT_SKILLS_BUDGET,
+	fittingSkills,
+	READ_SKILL,
 	renderSkillsBlock,
 	skillFitsTurn,
 	skillTextForChannel,
+	skillTools,
 } from "./skills";
 
 /**
@@ -181,4 +184,29 @@ test("a tool id is renamed as the literal it is: a dot in it matches a dot, and 
 	expect(
 		skillTextForChannel("Use `notes(`.", "live", { "notes(": "notes" }),
 	).toBe("Use `notes`.");
+});
+
+test("a turn's reader lists the fitting skills by name and \"use when\" line, answers one's instructions, and is absent when none fits or skills are off", async () => {
+	const rows = [
+		skill({ name: "zeta", description: "Use when zeta." }),
+		skill({
+			name: "alpha",
+			description: "Use when alpha.",
+			instructions: "Do alpha.",
+		}),
+		skill({ name: "elsewhere", surfaces: ["retired"] }),
+	];
+	const fitting = fittingSkills(rows, TURN, true);
+	expect(fitting.map((s) => s.name)).toEqual(["alpha", "zeta"]);
+	expect(fittingSkills(rows, TURN, false)).toEqual([]);
+	expect(skillTools([])).toEqual({});
+	const reader = skillTools(fitting)[READ_SKILL];
+	expect(reader?.description).toContain(
+		"- alpha: Use when alpha.\n- zeta: Use when zeta.",
+	);
+	expect(reader?.description).not.toContain("Do alpha.");
+	expect(await reader?.execute?.({ name: "alpha" }, {} as never)).toEqual({
+		name: "alpha",
+		instructions: "Do alpha.",
+	});
 });

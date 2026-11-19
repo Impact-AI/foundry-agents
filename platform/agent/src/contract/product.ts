@@ -95,8 +95,12 @@ export interface AgentProduct {
 	toolKeys: readonly string[];
 	/** The controls a client may register for a turn. None of them shares a name with a tool key. */
 	clientTools: readonly ClientTool[];
-	/** The procedures behind the questions that need one, published to the service as skills. */
-	skills?: readonly SkillSource[];
+	/**
+	 * The skills a turn may carry, resolved per turn as the persona is: the
+	 * operator's stored versions that are switched on, or the product's
+	 * defaults while none is stored or the store cannot be read. None: no skills.
+	 */
+	skills?(): Promise<readonly SkillSource[]>;
 	/** What the memory's extractor is told to keep about each person. Defaults to {@link DEFAULT_MEMORY_DETAILS}. */
 	memory?: { userProfileDetails: string };
 	/** Names the language directive tells the model to keep spelled as they are. */
@@ -150,14 +154,14 @@ export interface ProductVoice {
 }
 
 /**
- * One skill as the product ships it: the procedure behind one kind of
- * question, loaded on the turns that ask it. What is true of every turn is
+ * One skill, as a turn carries it: the procedure behind one kind of
+ * question, read on the turns that ask it. What is true of every turn is
  * prompt, not a skill.
  */
 export interface SkillSource {
-	/** The identifier the model loads it by: slug-shaped, unique. */
+	/** The identifier the model reads it by: slug-shaped, unique. */
 	name: string;
-	/** "Use when…": the whole basis for loading it. */
+	/** "Use when…": the whole basis for reading it. */
 	description: string;
 	instructions: string;
 	/** Offered only on these surfaces; none means all of them. */

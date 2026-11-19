@@ -168,7 +168,7 @@ What a Foundry voice agent's tools, model and capacity allow.
 
 - *Whose:* The service, as Microsoft Learn describes it.
 - *Evidence:* [Configure a voice agent](https://learn.microsoft.com/en-us/azure/foundry/agents/how-to/configure-voice-agent): "Attach server-side tools such as web search, Azure AI Search, and OpenAPI tools through a toolbox rather than declaring them directly" and "a voice-based agent can have individual tools or one toolbox, but not both. Attaching a toolbox replaces the agent's individual tools list"; [Toolbox](https://learn.microsoft.com/en-us/azure/foundry/agents/how-to/tools/toolbox) (no line quoted); `VoiceAgentDefinition` has no `skills` field in `@azure/ai-projects` 2.10.0.
-- *What Agent on Azure does:* The [stage](patterns.md#terms) controls, web search and the skills stay the backend's own function tools on the voice agent — [decisions](decisions.md), decisions 6 and 22.
+- *What Agent on Azure does:* The [stage](patterns.md#terms) controls, web search and the skill reader stay the backend's own function tools on the voice agent — [decisions](decisions.md), decisions 6 and 22.
 
 **The voice agent's `mcp` tool fails on a private account.** A voice agent's own `mcp` tool reaches no MCP server on an account with public network access off; on one with it on, it does.
 

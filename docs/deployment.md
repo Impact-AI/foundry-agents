@@ -20,7 +20,7 @@ This page takes whoever runs `azd up`, an operator or a developer trying Agent o
 | `openssl` and `ssh-keygen`, for the bash hooks | `preprovision` makes the session secret with `openssl rand` and, with `DEVELOPER_ACCESS`, the jump VM's key with `ssh-keygen`; the PowerShell version makes the secret with .NET and the key with `ssh-keygen`. Most macOS and Linux installs have both; the dev container does. |
 | For Entra sign-in: the right to create an app registration and assign its roles | `preprovision` makes the registration as you ([sign-in with Microsoft Entra ID](#sign-in-with-microsoft-entra-id)): Application Developer (or the tenant's default user rights) to register; its owner, which you then are, assigns its roles. Without the right it says so and the deployment carries on. |
 
-You need no Docker and no network route to the data services, in either mode. Images are built in the registry, and every write into a data service runs in the migrate job inside the deployment. Bun is needed only for the [deployment checker](#deployment-checker) and the persona CLI ([changing the persona](operations.md#changing-the-persona)). The [dev container](../.devcontainer/devcontainer.json) has everything.
+You need no Docker and no network route to the data services, in either mode. Images are built in the registry, and every write into a data service runs in the migrate job inside the deployment. Bun is needed only for the [deployment checker](#deployment-checker) and the persona and skills CLIs ([changing the persona](operations.md#changing-the-persona), [managing skills](operations.md#managing-skills)). The [dev container](../.devcontainer/devcontainer.json) has everything.
 
 ## Deploy
 
@@ -112,7 +112,7 @@ What the first provision sets up for sign-in, and what follows `HARDENED`:
 5. **`postdeploy`** gives each app that holds no health probes the template's (the provision's outputs `BACKEND_PROBES` and `FRONTEND_PROBES`), as a new revision, since `azd deploy` changes only an app's image. Then it points the migrate job at the new backend image and runs these steps in one execution:
    - `settings`: the eleven settings documents, and the persona in Cosmos DB (its first version where absent, the next where the shipped text changed and no operator has published one);
    - `index`: AI Search's index, data source, skillset and indexer;
-   - `skills`: the product's skills, published to the Foundry project (Agent on Azure ships none);
+   - `skills`: the product's default skills, written to Cosmos DB where no version of a name is stored (Agent on Azure ships none);
    - `agent`: the memory store when `memory.store` is `foundry`, and the agent version each channel's turns ask for;
    - `library` (the nine sample documents) or `remove-library`.
 
@@ -124,14 +124,14 @@ Until its Cosmos DB role assignment has applied, the backend is live on `/health
 
 | Command | What it does |
 | --- | --- |
-| `azd deploy` | Builds and rolls both apps, then runs the migrate job's steps again. Every step is idempotent: settings documents already stored, an index already current, skills whose words have not changed, an agent version already made and documents already loaded are left alone. |
+| `azd deploy` | Builds and rolls both apps, then runs the migrate job's steps again. Every step is idempotent: settings documents already stored, an index already current, skills already stored, an agent version already made and documents already loaded are left alone. |
 | `azd provision` | Applies the template, keeping the deployed images and the vault's secrets (below). Needed after any `azd env set` of a parameter. |
 | `azd up` | Both. |
 | `az containerapp job start --subscription <AZURE_SUBSCRIPTION_ID> -g <rg> -n <MIGRATE_JOB_NAME>` | Repeats the deploy's job steps on their own; the job keeps the arguments the last deploy gave it. |
 
 Re-provisioning keeps the deployed images. azd holds their names in the environment on the machine that deployed (`SERVICE_*_IMAGE_NAME`). From a machine without them, a pipeline's fresh runner among them, each app keeps the image it runs (`SERVICE_*_RESOURCE_EXISTS`). A provision keeps the vault's secrets too: a secret it carries no value for is left as the vault holds it.
 
-Settings documents are written only where absent, so an operator's edits survive every deploy, and a new field added to a document's default in code is served at its default until somebody stores a value for it; the persona follows the code until an operator publishes a version, and theirs from then on ([operations](operations.md#changing-the-persona)).
+Settings documents are written only where absent, so an operator's edits survive every deploy, and a new field added to a document's default in code is served at its default until somebody stores a value for it; the persona follows the code until an operator publishes a version, and theirs from then on ([operations](operations.md#changing-the-persona)), and a skill is the code's only until one of its name is stored ([managing skills](operations.md#managing-skills)).
 
 An index this definition cannot update in place is made again by the `index` step of the next deploy, once. That is an index whose vector field is not stored, as an earlier version of the template made it, or one keyed on another field. The step:
 
@@ -451,7 +451,7 @@ azd down --purge
 | `azd provision --preview` asks for or panics on `authSecret` in a new environment | Preview runs no hooks, so the secrets do not exist yet. Run `azd hooks run preprovision` first. |
 | A new revision stays `Activating` after `azd provision`, then `Degraded` with "provisioning timed out after progression deadline", its replica scheduled and never started | Occasional, with the previous revision still serving. `az containerapp revision restart -g <group> -n <app> --revision <revision>` starts it. |
 | `postdeploy` fails with the job's log | One of the job's steps failed; the log names it (`[settings]`, `[index]`, `[skills]`, `[agent]`, `[library]`). Fix and run `azd deploy` again, or start the job by hand. |
-| The job's `[agent]` or `[skills]` step fails with `403` | The job's Foundry User assignment on the project has not applied yet, minutes after a first provision. Run `azd deploy` again. |
+| The job's `[agent]` step fails with `403` | The job's Foundry User assignment on the project has not applied yet, minutes after a first provision. Run `azd deploy` again. |
 | The backend logs "Cosmos DB does not admit this identity yet" and is not ready | Expected on a first deploy while the role assignment applies. If it persists, check the backend identity's Built-in Data Contributor assignment on the `app` database. |
 | The backend logs "the search index does not exist yet" | Expected until the job's `index` step has made it. |
 | A turn fails and the backend logs a `404` from the Foundry project | The project or its capability host is not ready, or `FOUNDRY_PROJECT_ENDPOINT` names another project. Check the project in the portal; the provision prints its endpoint as `FOUNDRY_PROJECT_ENDPOINT`. |

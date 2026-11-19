@@ -8,7 +8,6 @@ import {
 	ok,
 	page,
 	type Route,
-	type SkillRecord,
 	seconds,
 	text,
 	type UpdateRecord,
@@ -19,22 +18,20 @@ import {
 	isVoice,
 	requireVoiceOptIn,
 } from "./fake-voice";
-import { zipOf } from "./zip";
 
 /**
  * The project's own operations: prompt agents, voice agents (preview,
- * `fake-voice.ts`) and their versions, the memory store (preview) and
- * skills (preview), each behind the opt-in header the SDK sends for it.
+ * `fake-voice.ts`) and their versions and the memory store (preview),
+ * each behind the opt-in header the SDK sends for it.
  */
 
 const MEMORY = "MemoryStores=V1Preview";
-const SKILLS = "Skills=V1Preview";
 const KINDS = new Set(["user_profile", "chat_summary", "procedural"]);
 
 type Body = Record<string, unknown>;
 
 /** A prompt agent's definition, as strictly as the host's own needs it read. */
-function checkedDefinition(state: FakeState, value: unknown): Body {
+function checkedDefinition(value: unknown): Body {
 	const definition = (value ?? {}) as Body;
 	if (definition.kind !== "prompt")
 		throw new HttpError(400, "definition.kind is prompt");
@@ -68,14 +65,6 @@ function checkedDefinition(state: FakeState, value: unknown): Body {
 		!/^\/subscriptions\/.+\/raiPolicies\/[^/]+$/.test(String(policy))
 	)
 		throw new HttpError(400, `The RAI policy '${String(policy)}' is invalid`);
-	for (const skill of (definition.skills ?? []) as Body[]) {
-		const held = state.skills.get(String(skill.name));
-		if (!held?.versions.some((v) => v.version === skill.version))
-			throw new HttpError(
-				400,
-				`no version ${String(skill.version)} of skill ${String(skill.name)}`,
-			);
-	}
 	return definition;
 }
 
@@ -169,33 +158,6 @@ function scopeAction(
 	};
 }
 
-/** A skill version's folder, as the service serves it: `SKILL.md` with its front matter. */
-function skillFolder(
-	skill: SkillRecord | undefined,
-	version: string | undefined,
-	name: string,
-): Response {
-	const held = skill?.versions.find((v) => v.version === version);
-	if (!skill || !held) throw new HttpError(404, `no skill ${name}`);
-	const metadata = Object.entries(held.metadata).map(
-		([k, v]) => `  ${k}: ${v}`,
-	);
-	const folder = zipOf({
-		[`${skill.name}/SKILL.md`]: [
-			"---",
-			`name: ${skill.name}`,
-			`description: ${held.description}`,
-			...(metadata.length ? ["metadata:", ...metadata] : []),
-			"---",
-			"",
-			held.instructions,
-		].join("\n"),
-	});
-	return new Response(folder, {
-		headers: { "content-type": "application/zip" },
-	});
-}
-
 export function projectRoutes(state: FakeState): Route[] {
 	/** An agent's versions, the opt-in checked when it is a voice agent. */
 	const versionsOf = (name: string, headers?: Headers) => {
@@ -225,11 +187,6 @@ export function projectRoutes(state: FakeState): Route[] {
 			project: true,
 			handle({ match, headers, body }) {
 				const name = match[1] as string;
-				if (
-					"skills" in ((body.definition ?? {}) as Body) &&
-					headers.get("foundry-features") !== SKILLS
-				)
-					throw new HttpError(403, `skill references need ${SKILLS}`);
 				const versions = versionsOf(name, headers);
 				const given = (body.definition ?? {}) as Body;
 				const voice = given.kind === "voice";
@@ -238,7 +195,7 @@ export function projectRoutes(state: FakeState): Route[] {
 					throw new HttpError(400, `the agent ${name} cannot change its kind`);
 				const definition = voice
 					? checkedVoiceDefinition(given)
-					: checkedDefinition(state, given);
+					: checkedDefinition(given);
 				const number = (state.versionSeq.get(name) ?? 0) + 1;
 				state.versionSeq.set(name, number);
 				const version: VersionRecord = {
@@ -491,82 +448,5 @@ export function projectRoutes(state: FakeState): Route[] {
 				deleted: true,
 			});
 		}),
-		{
-			method: "GET",
-			pattern: /^\/skills\/([^/]+)$/,
-			project: true,
-			feature: SKILLS,
-			handle({ match }) {
-				const skill = state.skills.get(match[1] as string);
-				if (!skill) throw new HttpError(404, `no skill ${match[1]}`);
-				const latest = skill.versions.at(-1);
-				const current = skill.versions.find(
-					(v) => v.version === skill.default_version,
-				);
-				return ok({
-					id: skill.name,
-					name: skill.name,
-					description: current?.description ?? "",
-					created_at: skill.created_at,
-					default_version: skill.default_version,
-					latest_version: latest?.version,
-				});
-			},
-		},
-		{
-			method: "POST",
-			pattern: /^\/skills\/([^/]+)\/versions$/,
-			project: true,
-			feature: SKILLS,
-			handle({ match, body }) {
-				const name = match[1] as string;
-				const inline = (body.inline_content ?? {}) as Body;
-				const skill = state.skills.get(name) ?? {
-					name,
-					created_at: seconds(),
-					default_version: "",
-					versions: [],
-				};
-				const version = {
-					version: String(skill.versions.length + 1),
-					description: text(inline, "description"),
-					instructions: text(inline, "instructions"),
-					metadata: metadataOf(inline.metadata),
-					created_at: seconds(),
-				};
-				skill.versions.push(version);
-				if (body.default === true || !skill.default_version)
-					skill.default_version = version.version;
-				state.skills.set(name, skill);
-				return ok({
-					id: `${name}:${version.version}`,
-					skill_id: name,
-					name,
-					version: version.version,
-					description: version.description,
-					created_at: version.created_at,
-				});
-			},
-		},
-		{
-			method: "GET",
-			pattern: /^\/skills\/([^/]+)\/content$/,
-			project: true,
-			feature: SKILLS,
-			handle({ match }) {
-				const skill = state.skills.get(match[1] as string);
-				return skillFolder(skill, skill?.default_version, match[1] as string);
-			},
-		},
-		{
-			method: "GET",
-			pattern: /^\/skills\/([^/]+)\/versions\/([^/]+)\/content$/,
-			project: true,
-			feature: SKILLS,
-			handle({ match }) {
-				const skill = state.skills.get(match[1] as string);
-				return skillFolder(skill, match[2], match[1] as string);
-			},
-		},
 	];
 }

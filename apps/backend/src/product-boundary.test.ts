@@ -43,7 +43,7 @@ test("no file outside product.ts and product/ imports from product/", () => {
 });
 
 /** The names `backend-product.ts`'s `ProductModule` declares: all the app takes from `product.ts`. */
-const TAKEN = ["guardrails", "product", "prompt"];
+const TAKEN = ["guardrails", "product", "prompt", "skills"];
 
 const NAMED_IMPORT =
 	/import\s*(?:type\s*)?\{([^}]*)\}\s*from\s*["']([^"']+)["']/g;
@@ -52,7 +52,7 @@ const NAMED_IMPORT =
 const ofTheSample = (file: string) =>
 	/\.test\.tsx?$/.test(file) || file.startsWith(join(SRC, "testing"));
 
-test("the app's files take three names from product.ts and no other", () => {
+test("the app's files take four names from product.ts and no other", () => {
 	const taken = sources(SRC)
 		.filter((file) => !ofTheSample(file))
 		.flatMap((file) =>

@@ -1,7 +1,7 @@
 import type { AgentProduct } from "@platform/agent";
 import type { LocaleRegistry } from "@platform/i18n";
 import type { FileResult, LibraryLoad } from "@platform/knowledge";
-import type { PromptSlot } from "@platform/prompt/store";
+import type { PromptSlot, SkillStore } from "@platform/prompt/store";
 import type { Hono } from "hono";
 import type { AppEnv } from "./auth/context";
 
@@ -10,8 +10,8 @@ import type { AppEnv } from "./auth/context";
  * surfaces its turns come from, its languages, the routes of its own it
  * serves, and the library it ships. `product.ts` builds the one object, and
  * no route, job step or wiring names a file of the product's. What the app
- * takes from `product.ts` is the three names of `ProductModule` below and
- * nothing else, so a `product.ts` that exports those three, with a
+ * takes from `product.ts` is the four names of `ProductModule` below and
+ * nothing else, so a `product.ts` that exports those four, with a
  * `product/` behind it, replaces the product. The sample's tests and the
  * stand-ins under `testing/` read more of it — its tool names, its media
  * paths — and are replaced with it.
@@ -41,11 +41,13 @@ export interface BackendProduct extends AgentProduct {
 /**
  * What `product.ts` exports for the app to read: the object above, the
  * persona's slot — which the job publishes and the persona's step reads —
- * and the guardrail wording the settings documents are seeded with.
+ * the skills' store, which the job seeds and the skills CLI writes, and the
+ * guardrail wording the settings documents are seeded with.
  * `product-boundary.test.ts` holds the app's files to these names.
  */
 export interface ProductModule {
 	product: BackendProduct;
 	prompt: PromptSlot;
+	skills: SkillStore;
 	guardrails: { defaults: object };
 }

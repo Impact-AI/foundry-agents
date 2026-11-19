@@ -22,7 +22,6 @@ import {
 import { resetAgentSettings } from "../settings";
 import { createFoundryAgentHost, type FoundryAgentHost } from "./host";
 import { openThread } from "./open-thread";
-import { publishSkills } from "./skills";
 import { FAKE_RAI_POLICY, type FakeFoundry } from "./testing/fake-foundry";
 import { foundryParityFactory, REMEMBERED } from "./testing/parity-factory";
 
@@ -78,21 +77,25 @@ const product: AgentProduct = {
 			parameters: { type: "object", properties: {} },
 		},
 	],
-	skills: [
-		{
-			name: "shelf-finder",
-			description: "Use when a book is lost.",
-			instructions: "Call `shelf` first.",
-			requiresTools: [SHELF],
-		},
-		{
-			name: "voice-only",
-			description: "Use when speaking.",
-			instructions: "Speak briefly.",
-			surfaces: ["voice"],
-		},
-	],
+	skills: async () => skills,
 };
+
+/** What the operator's store answers this turn; a test edits it as an operator would. */
+const SKILLS: SkillSource[] = [
+	{
+		name: "shelf-finder",
+		description: "Use when a book is lost.",
+		instructions: "Call `shelf` first.",
+		requiresTools: [SHELF],
+	},
+	{
+		name: "voice-only",
+		description: "Use when speaking.",
+		instructions: "Speak briefly.",
+		surfaces: ["voice"],
+	},
+];
+let skills: SkillSource[] = SKILLS;
 
 // The own memory store: its race is this file's; the Foundry store's is `memory.test.ts`'s.
 const factory = foundryParityFactory({ memory: "own" });
@@ -158,7 +161,6 @@ beforeAll(async () => {
 	if (!RUN) return;
 	host = (await factory.create(product)) as FoundryAgentHost;
 	fake = factory.fake();
-	await publishSkills(product.skills ?? []);
 	await host.start();
 	({ resourceId: me } = await factory.person());
 	({ resourceId: other } = await factory.person());
@@ -200,8 +202,15 @@ t(
 			(definition.tools as { type: string; name?: string }[]).map(
 				(t) => t.name ?? t.type,
 			),
-		).toEqual([SHOW, HIDE, "web_search", SHELF, STEPS]);
-		expect(definition.skills).toEqual([{ name: "shelf-finder", version: "1" }]);
+		).toEqual([SHOW, HIDE, "web_search", SHELF, STEPS, "readSkill"]);
+		expect(definition).not.toHaveProperty("skills");
+		const reader = (
+			definition.tools as { name?: string; description?: string }[]
+		).find((t) => t.name === "readSkill");
+		expect(reader?.description).toContain(
+			"- shelf-finder: Use when a book is lost.",
+		);
+		expect(reader?.description).not.toContain("voice-only");
 		expect(definition.rai_config).toEqual({
 			rai_policy_name: FAKE_RAI_POLICY,
 		});
@@ -239,12 +248,11 @@ t(
 		);
 		expect(versions).toEqual(["1", "2"]);
 		const voice = fake.state.agents.get("sample")?.[1]?.definition as {
-			skills: unknown;
+			tools: { name?: string; parameters?: unknown }[];
 		};
-		expect(voice.skills).toEqual([
-			{ name: "shelf-finder", version: "1" },
-			{ name: "voice-only", version: "1" },
-		]);
+		expect(
+			JSON.stringify(voice.tools.find((t) => t.name === "readSkill")),
+		).toContain('"enum":["shelf-finder","voice-only"]');
 	},
 );
 
@@ -1049,20 +1057,31 @@ t(
 );
 
 t(
-	"the job's steps are idempotent: a skill whose words did not change is not published again",
+	"a skill's words are read at the call and make no new version; a new or redescribed skill makes one, and the switch takes them all away",
 	async () => {
-		const catalogue = product.skills ?? [];
-		expect(await publishSkills(catalogue)).toEqual({
-			"shelf-finder": "unchanged",
-			"voice-only": "unchanged",
-		});
-		const [first, ...rest] = catalogue;
-		expect(
-			await publishSkills([
-				{ ...(first as SkillSource), instructions: "Call `shelf`, then look." },
-				...rest,
-			]),
-		).toEqual({ "shelf-finder": "published", "voice-only": "unchanged" });
-		expect(fake.state.skills.get("shelf-finder")?.default_version).toBe("2");
+		const versions = () => (fake.state.agents.get("sample") ?? []).length;
+		await run(turn());
+		const before = versions();
+		try {
+			skills = SKILLS.map((skill) =>
+				skill.name === "shelf-finder"
+					? { ...skill, instructions: "Call `shelf`, then look." }
+					: skill,
+			);
+			await run(turn());
+			expect(versions()).toBe(before);
+			skills = [
+				...skills,
+				{
+					name: "house-rules",
+					description: "Use when asked about the rules.",
+					instructions: "Quote them.",
+				},
+			];
+			await run(turn());
+			expect(versions()).toBe(before + 1);
+		} finally {
+			skills = SKILLS;
+		}
 	},
 );

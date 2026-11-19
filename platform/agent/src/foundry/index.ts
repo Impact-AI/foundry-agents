@@ -8,7 +8,6 @@ export { threadContainers } from "./containers";
 export { realtimeDeployments } from "./definition";
 export { createFoundryAgentHost, FoundryAgentHost } from "./host";
 export { ensureMemoryStore } from "./memory";
-export { fittingSkills, publishSkills } from "./skills";
 export { reportVoiceEngines } from "./voice-engine";
 export {
 	checkVoiceTuning,

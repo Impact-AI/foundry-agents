@@ -26,7 +26,7 @@ import OpenAI from "openai";
 /**
  * The Agent Service, dialled one way, and the only file that imports its
  * SDKs: `@azure/ai-projects` for the project's own operations (agents and
- * their versions, skills) and the `openai` client for the
+ * their versions) and the `openai` client for the
  * OpenAI-compatible surface the project serves at `/openai/v1`
  * (conversations, their items, responses). Both present the backend's
  * managed identity, keyless, and both send every request through
@@ -307,12 +307,7 @@ export async function createAgentVersion(
 		definition as unknown as AgentDefinitionUnion,
 		{
 			metadata,
-			...(definition.kind === "voice"
-				? { foundryFeatures: VOICE_AGENTS }
-				: // The service refuses a definition naming skills, even none, without the opt-in.
-					"skills" in definition
-					? { foundryFeatures: "Skills=V1Preview" }
-					: {}),
+			...(definition.kind === "voice" ? { foundryFeatures: VOICE_AGENTS } : {}),
 		},
 	);
 	return created.version;
