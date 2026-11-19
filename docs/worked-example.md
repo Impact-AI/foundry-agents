@@ -65,13 +65,7 @@ All of it is in the backend's `product/` folder, the part of Agent on Azure a te
 
 ## What stayed reusable
 
-None of these changes when you connect a system, and none of them knows which source answers:
-
-- **The stage**, in the frontend: the record card, the records list, the chart and their controls (`showRecord`, `showRecords`, `showChart`), the Records mark on the bar, and a card's chips for its figures.
-- **Voice**: a live session calls the same three tools in the person's scope, so speaking to the system works as typing does.
-- **The agent host** (`@platform/agent`): admission, the turn's scope and caller, tool validation, and the Foundry Agent Service client.
-- **The checks in front of every route**: sign-in, the [caller assertion](patterns.md#terms), account standing, allowances and the guard that shuts an account being erased.
-- **The model's instructions**: the tools' descriptions name the `unavailable` case. The channel instructions (the per-channel instructions in `apps/backend/src/product/surface.ts`, written for typed turns and spoken for voice; see [architecture](architecture.md#a-typed-turn)) and the persona stay as they are.
+Only the adapter changes. The stage and its record controls, voice (a live session calls the same three tools in the person's scope), the agent host and the checks in front of every route stay as they are, and none of them knows which source answers. The tools' descriptions already name the `unavailable` case, so the channel instructions and the persona stay as well. The rest of what a team reuses is listed in [adapting](adapting.md#what-you-reuse-and-what-you-still-build).
 
 ## Mapping a real system
 
