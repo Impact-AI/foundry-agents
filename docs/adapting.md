@@ -4,17 +4,7 @@ This page shows the team planning a customer's assistant what it can change, wha
 
 ## What you reuse, and what you still build
 
-Reuse sign-in, conversations, voice, retrieval, the [stage](patterns.md#terms) and the deployment template, and keep the application in your Azure environment. Whether Agent on Azure fits a customer's project at all, and what it costs to run, is in [Is it a fit?](is-it-a-fit.md). The MIT license lets you adapt and redistribute the code under its terms; it does not remove the need to configure Azure access, choose compatible components or implement your customer's business integrations. [Patterns](patterns.md) maps the reusable designs to the Microsoft services and code that implement them.
-
-## What can change easily
-
-- **Without a build:** documents and who may read them, the persona, skills, refusal wording, enabled tools, limits, voices and branding, as data or settings on the running deployment.
-- **With code and a deploy:** business systems, panels and languages; components such as the memory store are chosen at deploy time and editable later with the constraints the table gives.
-- **Before the first deploy, or substantial engineering:** the mode, network, zones and sign-in; replacing Microsoft Foundry, AI Search or Cosmos DB.
-
-[What you change, and what it costs](#what-you-change-and-what-it-costs) has every change with its mechanism. The optional [Impact AI Admin Center](impact-ai.md#impact-ai-admin-center) and [Impact AI Control Plane](impact-ai.md#impact-ai-control-plane) are separate from adopting Agent on Azure.
-
-## Built in, and yours to build
+Whether Agent on Azure fits a customer's project at all, and what it costs to run, is in [Is it a fit?](is-it-a-fit.md). The MIT license lets you adapt and redistribute the code under its terms; it does not remove the need to configure Azure access, choose compatible components or implement your customer's business integrations. The application stays in your Azure environment, and [patterns](patterns.md) maps the reusable designs to the Microsoft services and code that implement them.
 
 **Already built and tested:**
 
@@ -22,7 +12,7 @@ Reuse sign-in, conversations, voice, retrieval, the [stage](patterns.md#terms) a
 - Per-person conversations, memory, export and erasure.
 - Typed chat streamed over [AG-UI](patterns.md#terms).
 - Live voice through a Foundry voice agent.
-- The stage and its controls.
+- The [stage](patterns.md#terms) and its controls.
 - Retrieval with document-level access control and Prompt Shields.
 - Metering and allowances.
 - Telemetry with scrubbing.
@@ -37,6 +27,8 @@ Reuse sign-in, conversations, voice, retrieval, the [stage](patterns.md#terms) a
 - The document library and who may read each file.
 - The languages beyond the five shipped.
 - Acceptance scenarios written for your customer's domain ([acceptance](acceptance.md)).
+
+What each change costs, from data on the running deployment to a choice fixed before the first deploy, is in [what you change, and what it costs](#what-you-change-and-what-it-costs). The optional [Impact AI Admin Center](impact-ai.md#impact-ai-admin-center) and [Impact AI Control Plane](impact-ai.md#impact-ai-control-plane) are separate from adopting Agent on Azure.
 
 ## What you change, and what it costs
 
@@ -53,13 +45,13 @@ Reuse sign-in, conversations, voice, retrieval, the [stage](patterns.md#terms) a
 | **Replace the documents** | Data | Your directory, plus `access.json` at its root | `./scripts/ingest.sh <dir>` ([load a library](documents.md#load-a-library)). Turn off the sample library with `azd env set SEED_SAMPLE_LIBRARY false` (applies on the next deploy, [the sample library](documents.md#the-sample-library)). |
 | **Restrict who reads which document** | Data + Settings | `access.json`; the `access` document's `enforceAccessControl` | [Who may read a document](documents.md#who-may-read-a-document). Enforcement is on by default for a fresh hardened deployment; on an existing one, check the [access setting](configuration.md#access); on a demo, turn enforcement on *before* loading anything restricted. Group-based access needs Entra sign-in. |
 | **Change the persona** (who the assistant is, how it works) | Data | Cosmos DB `prompts` container, versioned | `persona publish` ([changing the persona](operations.md#changing-the-persona)). The shipped default is `prompt` in `apps/backend/src/product.ts` (Code). |
-| **Add a procedure for one kind of question** | Data | Cosmos DB `prompts` container (key `skills`), versioned; defaults for new deployments in `defineSkills` in `apps/backend/src/product.ts` | `skills publish` ([managing skills](operations.md#managing-skills), [a skill](extending.md#a-skill)). Typed turns and live sessions read it through the backend's `readSkill` tool, unless its `surfaces` leave a channel out. |
 | **Change what it refuses** | Settings | The `guardrails` document (`scope`, `declines`) | [`guardrails`](configuration.md#guardrails). The frame around those lines is code. |
 | **Turn a tool off or on** | Settings | The `tools` document's `enabled_tools` | [`tools`](configuration.md#tools). A tool added in code later must be added to an existing deployment's stored list. |
 | **Tune limits, allowances, voices, efforts** | Settings | The settings documents | [Tuning while it runs](operations.md#tuning-while-it-runs), [settings documents](configuration.md#settings-documents). Voice changes apply to the next session, subject to the model deployments and the voices available. |
 | **Change the branding** | Settings | The [`appearance`](configuration.md#appearance) document, and the logo in storage | The palette, type, spacing, corners, the assistant's name and welcome line, and the logo, live within about a minute. The layout is fixed. |
 | **Connect a business system** | Code | A server tool in `apps/backend/src/product/tools/` | [A server-side tool](extending.md#a-server-side-tool). The [worked example](worked-example.md) replaces the sample's records with an HTTP system end to end. |
 | **Add a visual panel** | Code | Backend `product/stage-tools.ts`; frontend `src/stage/` and a tile under `app/(app)/stage/` | [A stage tool](extending.md#a-stage-tool). Needs strings in every message catalog and an end-to-end test. |
+| **Add a procedure for one kind of question** | Code | The product's `skills` | [A skill](extending.md#a-skill). Typed turns, and live sessions through the backend's `readSkill` function unless its `surfaces` leave out `live`. |
 | **Add a language** | Code | `product/locales.ts` and a message catalog in `apps/frontend/messages/` | [A language](extending.md#a-language). |
 | **Rename the product, its agent and its telemetry name** | Code | `AGENT_ID`, `SERVICE_NAME` in `product.ts` | [Make it yours](extending.md#make-it-yours). |
 | **Choose memory, history, retrieval and voice components** | Deploy-time defaults, then Settings | `MEMORY_STORE`, `HISTORY_STORE`, `RETRIEVAL_ENGINE`, `VOICE_ENGINE` | [Choose components at deploy time](deployment.md#choose-components-at-deploy-time). A memory-store change needs a backend restart, and existing memories do not move between stores; a history-store change applies to new conversations; under access enforcement both retrieval engines carry the caller's readers clause. |
