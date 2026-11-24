@@ -26,7 +26,7 @@
 		"@types/bun": "^1.3.14",
 		"eventsource": "^3.0.7",
 		"happy-dom": "21.0.4",
-		"mermaid": "11.17.2",
+		"mermaid": "12.3.0",
 		"typescript": "^5.9.3"
 	},
 	"overrides": {
