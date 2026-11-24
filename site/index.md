@@ -74,7 +74,7 @@ cards:
           link: /acceptance
   build:
     - title: Patterns
-      details: Conversation-driven UI, shared voice and text tools, permission-aware retrieval, product separated from platform.
+      details: Repeatable practices for agentic applications, each defined by its problem, its rule and its code. Conversation-driven UI, shared voice and text tools, permission-aware retrieval and more.
       link: /patterns
     - title: Adapting
       details: Where to change the documents, a business system, the assistant's behavior and a panel, and which changes need a deploy.

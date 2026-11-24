@@ -34,12 +34,14 @@ Agent on Azure, this open-source repository, is what you build and run your appl
 
 ## Patterns
 
-[Patterns](docs/patterns.md) lists everything that comes assembled. Four of them define how you adapt it:
+[Patterns](docs/patterns.md) defines the repeatable practices for an agentic application that Agent on Azure is built from: for each, the problem, the rule and the code that holds it. Four of them define how you adapt it:
 
 - **Conversation-driven UI**: the assistant puts documents, pictures, charts and records on screen, and people can open the library, a document, a record or a record's figures by hand.
 - **One set of tools for voice and text**: a tool is written once, and both channels call it as the same person.
 - **Permission-aware retrieval**: with document access enforcement on, by default for a fresh hardened deployment (check the [access setting](docs/configuration.md#access) on an existing one), search and document reads return only what the person may read, checked against their verified identity.
 - **Product separated from platform**: business tools and views are product code, the persona is published data, and the supporting packages are reused as they are.
+
+The rest of [the catalog](docs/patterns.md#the-catalog) covers trust (the caller comes from the session, never the model; a prompt in fixed layers; content screened before it is served), running it (bounded turns, definitions pinned by content hash, erasable by design) and structure (the agent runtime behind a contract).
 
 [Adapting](docs/adapting.md) says whether each change is data, settings, code or a deploy-time decision. The [worked example](docs/worked-example.md) connects a business system end to end, and [acceptance](docs/acceptance.md) describes how to accept the adapted application.
 
@@ -77,7 +79,7 @@ The same pages, grouped as on the [documentation site](https://impact-ai.github.
 | [Is it a fit?](docs/is-it-a-fit.md) | Five questions before quoting a project: what your team would build, whether the use case fits, whether your team can deliver it, whether the customer can run it in production, and what it costs to run |
 | [Cost](docs/cost.md) | The fixed monthly price of each service in demo and hardened mode, the optional extras, a usage formula and a worked example |
 | **Build** | |
-| [Patterns](docs/patterns.md) | The assembled patterns, what you adapt and where the code is, and four of them in depth |
+| [Patterns](docs/patterns.md) | The repeatable practices for an agentic application, each with its problem, its rule and its code, and what comes assembled |
 | [Adapting](docs/adapting.md) | What a team changes and what each change costs; flexible and Azure-specific choices; fallbacks |
 | [Worked example](docs/worked-example.md) | A business system connected end to end, the files changed and its verification |
 | [Extending](docs/extending.md) | Your own product, tools, stage controls, skills, settings, languages, a second agent host, document types |

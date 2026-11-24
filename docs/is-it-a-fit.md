@@ -18,7 +18,7 @@ The sections below explain the reusable components, three customer use cases, de
 | --- | --- | --- |
 | Ready-made agent | A finished product for a defined job, maintained by its vendor | Configuration and integrations within the product's supported options; product changes are requested from the vendor |
 | Copilot Studio | Managed agent execution, visual authoring, channels and connectors | Instructions, knowledge, workflows and actions, plus custom connectors or code where needed; the application stays built around Copilot Studio |
-| Agent on Azure | Source for a working application: agent patterns, interface, identity, deployment and telemetry ([patterns](patterns.md#the-assembled-patterns)) | Business logic, domain tools, integrations and UX; adapting or replacing supplied components; deploying and maintaining it |
+| Agent on Azure | Source for a working application: agent patterns, interface, identity, deployment and telemetry ([patterns](patterns.md#what-comes-assembled)) | Business logic, domain tools, integrations and UX; adapting or replacing supplied components; deploying and maintaining it |
 | Build from scratch | The models, frameworks and cloud services you select | The application and its foundation (interface, agent integration, identity, deployment, telemetry, tests); maintaining the architecture |
 
 ## Does your use case fit?
