@@ -12,7 +12,7 @@
 		"typecheck": "tsc --noEmit"
 	},
 	"dependencies": {
-		"@azure/search-documents": "^13.0.0",
+		"@azure/search-documents": "^13.1.0",
 		"@platform/config": "workspace:*",
 		"@platform/llm": "workspace:*",
 		"@platform/storage": "workspace:*",

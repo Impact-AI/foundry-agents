@@ -17,7 +17,7 @@
 	"dependencies": {
 		"@ag-ui/core": "1.0.2",
 		"@ag-ui/encoder": "1.0.2",
-		"@azure/ai-projects": "2.10.0",
+		"@azure/ai-projects": "2.11.0",
 		"@azure/core-rest-pipeline": "^1.25.1",
 		"@platform/config": "workspace:*",
 		"@platform/cosmos": "workspace:*",
@@ -30,7 +30,7 @@
 		"@platform/redis": "workspace:*",
 		"ai": "^7.0.166",
 		"gpt-tokenizer": "^4.1.0",
-		"openai": "7.53.0",
+		"openai": "7.57.0",
 		"zod": "^4.6.6"
 	},
 	"devDependencies": {
