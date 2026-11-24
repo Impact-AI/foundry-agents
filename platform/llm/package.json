@@ -12,7 +12,7 @@
 		"typecheck": "tsc --noEmit"
 	},
 	"dependencies": {
-		"@ai-sdk/azure": "4.0.119",
+		"@ai-sdk/azure": "4.0.126",
 		"@platform/config": "workspace:*",
 		"@platform/observability": "workspace:*",
 		"ai": "^7.0.166"

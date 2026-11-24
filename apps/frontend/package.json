@@ -13,7 +13,7 @@
 		"e2e": "playwright test --config e2e/playwright.config.ts"
 	},
 	"dependencies": {
-		"@ag-ui/client": "1.0.2",
+		"@ag-ui/client": "1.0.4",
 		"@copilotkit/react-core": "1.85.0",
 		"@copilotkit/runtime": "1.85.0",
 		"@platform/appearance": "workspace:*",
@@ -24,12 +24,12 @@
 		"@platform/metering": "workspace:*",
 		"@platform/observability": "workspace:*",
 		"@platform/prompt": "workspace:*",
-		"next": "16.4.5",
+		"next": "16.4.6",
 		"next-auth": "^5.0.0-beta.32",
 		"next-intl": "^4.13.2",
 		"react": "19.3.1",
 		"react-dom": "19.3.1",
-		"rxjs": "7.8.1",
+		"rxjs": "7.8.2",
 		"streamdown": "^1.6.11",
 		"zod": "^4.6.6"
 	},
