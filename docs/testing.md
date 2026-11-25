@@ -164,4 +164,4 @@ Dependabot proposes the updates (`.github/dependabot.yml`): the actions, the ima
 
 Four protections are repository settings rather than files, and a repository made from this template starts without them (Settings → Advanced Security): Dependabot alerts; secret scanning with push protection; private vulnerability reporting, which [security policy](../SECURITY.md) sends a reporter to; and code scanning's default setup (CodeQL) for `javascript-typescript` and `actions`.
 
-There is no `what-if` in CI: it needs a credential on the subscription, which a pull request's code should not hold. `azd provision --preview` shows the plan from a signed-in machine of your own. Deploying is `azure-dev.yml`'s ([deployment](deployment.md#cicd)).
+There is no `what-if` in CI: it needs a credential on the subscription, which a pull request's code should not hold. `azd provision --preview` shows the plan from a signed-in machine of your own. Deploying is the two release workflows', `azure-development.yml` and `azure-production.yml` ([deployment](deployment.md#cicd)).

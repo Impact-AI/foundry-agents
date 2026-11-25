@@ -2,11 +2,13 @@ import { trace } from "@opentelemetry/api";
 import { resourceFromAttributes } from "@opentelemetry/resources";
 import { processSingleton, reportFailure } from "@platform/config";
 import { bridgeEvents } from "./events";
+import { ImpactCopy, type ImpactSettings, impactSettings } from "./impact";
 import {
 	installProbeFilter,
 	ScrubbingLogRecordProcessor,
 	ScrubbingSpanProcessor,
 } from "./pipeline";
+import { type Release, resourceAttributes } from "./release";
 import { isProbePath, pathOf, registerProbePaths } from "./scrub";
 import { connectionString, telemetrySettings } from "./settings";
 
@@ -26,13 +28,21 @@ import { connectionString, telemetrySettings } from "./settings";
  * The ratio is read once: the distro takes it at build and keeps it until the
  * next restart. A portal edit therefore reaches a Bun service live and a Next
  * server on its next revision.
+ *
+ * With impact.ai's endpoint and key handed in, the copy there (`./impact`)
+ * is registered after the scrub, so it copies each span as the scrub left
+ * it; every span carries the release (`./release`).
  */
 
 export interface NextTelemetryOptions {
 	/** `cloud_RoleName` in the portal. One per service. */
 	serviceName: string;
-	/** The image tag, when the process knows it. */
+	/** The image tag, when the process knows it: the version outside a release. */
 	serviceVersion?: string;
+	/** The release the process runs as, which every span carries. */
+	release?: Release;
+	/** The impact.ai product to copy every span to; without both values, no copy. */
+	impact?: Partial<ImpactSettings>;
 	/** Paths this service treats as probes, beyond the defaults. */
 	probePaths?: string[];
 }
@@ -78,6 +88,9 @@ export async function startNextTelemetry(
 		const { samplingRatio } = await telemetrySettings().read();
 		registerProbePaths(options.probePaths ?? []);
 
+		const impactTo = impactSettings(options.impact);
+		const impact = impactTo ? new ImpactCopy(impactTo) : undefined;
+
 		const http: HttpInstrumentationConfig = {
 			enabled: true,
 			ignoreIncomingRequestHook: (request) =>
@@ -86,12 +99,7 @@ export async function startNextTelemetry(
 
 		useAzureMonitor({
 			azureMonitorExporterOptions: { connectionString: connection },
-			resource: resourceFromAttributes({
-				"service.name": options.serviceName,
-				...(options.serviceVersion
-					? { "service.version": options.serviceVersion }
-					: {}),
-			}),
+			resource: resourceFromAttributes(resourceAttributes(options)),
 			samplingRatio,
 			// The distro's default rate limit of 5 traces per second silently
 			// overrides the ratio. Zero means "use the ratio".
@@ -101,7 +109,11 @@ export async function startNextTelemetry(
 			// attributes included, so that stream would carry what the scrub
 			// exists to remove.
 			enableLiveMetrics: false,
-			spanProcessors: [new ScrubbingSpanProcessor()],
+			// In this order: the scrub edits the span in place, then the copy reads it.
+			spanProcessors: [
+				new ScrubbingSpanProcessor(),
+				...(impact ? [impact] : []),
+			],
 			logRecordProcessors: [new ScrubbingLogRecordProcessor()],
 			instrumentationOptions: {
 				http,
@@ -121,6 +133,8 @@ export async function startNextTelemetry(
 		}
 		bridgeEvents();
 		held.started = true;
+		// Not awaited: the server starts whether or not the SDK does.
+		void impact?.connect(trace.getTracerProvider(), options.serviceName);
 		return true;
 	} catch (err) {
 		reportFailure(

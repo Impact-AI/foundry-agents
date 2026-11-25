@@ -26,8 +26,10 @@ const nextConfig: NextConfig = {
 		},
 	},
 	// The Azure Monitor distro patches `node:http` at require time; a bundled
-	// copy patches a module graph nothing resolves to.
-	serverExternalPackages: ["@azure/monitor-opentelemetry"],
+	// copy patches a module graph nothing resolves to. The Impact SDK, which
+	// copies spans to impact.ai when that is configured, loads its optional
+	// integrations by name at run time, which a bundle cannot resolve.
+	serverExternalPackages: ["@azure/monitor-opentelemetry", "impact-ai"],
 	outputFileTracingRoot: path.join(import.meta.dirname, "../.."),
 	async headers() {
 		// The policy for what answers with no document. A page's own, with

@@ -74,6 +74,14 @@ Set with `azd env set NAME value`. azd substitutes each into `infra/main.paramet
 | `SEED_SAMPLE_LIBRARY` | `seedSampleLibrary` | `true` | Load the sample library's documents on every deploy. `false` removes them on the next deploy ([documents](documents.md#the-sample-library)). |
 | `AUTH_MODE` | `authMode` | `local` | `local`: a name and no password, every sign-in a new person. `entra`: Microsoft Entra ID. Hardened mode always runs `entra`. |
 | `AUTH_REQUIRE_ROLE` | `authRequireRole` | `false` | Refuse a sign-in whose token carries neither app role `user` nor `premium`. Hardened mode always requires one. |
+| `IMPACT_RELEASE_ID` | `releaseId` | empty, set by a release workflow | The release the images a provision names are, which every span of both apps carries ([the release on every span](#the-release-on-every-span)). A provision that names no image ignores it: each app keeps the release it runs, as it keeps its image. |
+| `IMPACT_RELEASE_VERSION` | `releaseVersion` | empty, set by a release workflow | The release's version, the Development run number that built it. |
+| `IMPACT_RELEASE_ENVIRONMENT` | `releaseEnvironment` | empty, set by a release workflow | `development` or `production`. |
+| `IMPACT_REVISION_SUFFIX` | `revisionSuffix` | empty: Container Apps names the revision | The suffix of the revision a provision that names the images makes of each app, which Production's release sets (`v<N>-p<run number>`, [the Production pin](deployment.md#the-production-pin)). A provision that names no image ignores it. |
+| `IMPACT_ENDPOINT` | `impactEndpoint` | empty: each app keeps the one it runs | impact.ai's OTLP traces URL for the product, ending in `/v1/traces`: both apps copy every span there beside Azure Monitor. Set it once per environment from your own machine ([connect the workflows](deployment.md#connect-the-workflows)); a run that carries none, as every pipeline run, changes nothing. With none, nothing is copied. |
+| `IMPACT_API_KEY` | `impactApiKey` | empty: the vault keeps its own | The product's ingest key, written to Key Vault as `impact-api-key`; both apps hold a reference. Until somebody supplies one the vault holds the placeholder `unset`, which the apps read as no key. Never a workflow's secret: clear it from the azd environment after the provision that writes it. |
+
+**`IMPACT_IMAGE_TAG`** is read by `azure.yaml`, not the parameter file: the tag `azd deploy` gives both images. The Development workflow sets it to the release's (`v<N>-<short commit>`); unset, azd tags with its own.
 
 **`ENTRA_APP_SETUP`** is read by the hooks, not the parameter file: `true` by default, and `false` stops `preprovision` making the sign-in app registration and `postprovision` adding its redirect URI, for a tenant where somebody else owns registrations. Set `AUTH_MICROSOFT_ENTRA_ID_ID` and `AUTH_MICROSOFT_ENTRA_ID_SECRET` by hand then ([deployment](deployment.md#by-hand)).
 
@@ -161,7 +169,10 @@ Each app's environment is exactly what its `.env.example` lists ([backend](../ap
 | --- | --- | --- |
 | `AZURE_CLIENT_ID` | the backend identity's client id | Picks the user-assigned identity `DefaultAzureCredential` signs in as. Template only. |
 | `PORT` | `4111` | The port the server binds. |
-| `IMAGE_TAG` | the image's tag | Reported as the service version in telemetry. |
+| `IMAGE_TAG` | the image's tag | Reported as the service version in telemetry, outside a release. |
+| `IMPACT_RELEASE_ID` | the release the image is, kept from the running app | On every span as `impact.release.id` ([the release on every span](#the-release-on-every-span)). Empty outside a release. |
+| `IMPACT_RELEASE_VERSION` | its version, kept as the id is | On every span as `impact.release.version`, and the service version while set. |
+| `IMPACT_RELEASE_ENVIRONMENT` | `development` or `production`, kept as the id is | On every span as `deployment.environment.name`. |
 | `APP_CONFIG_ENDPOINT` | the App Configuration endpoint | Unset on a checkout: every settings document is its compiled-in default. |
 | `APP_CONFIG_KEY_PREFIX` | empty: `app/` | The key prefix of every settings document. |
 | `APP_CONFIG_TIMEOUT_MS` | empty: `2000` | One read of the store. |
@@ -221,6 +232,8 @@ Each app's environment is exactly what its `.env.example` lists ([backend](../ap
 | `METERING_UNAVAILABLE_LOG_SECONDS` | empty: `60` | One "bucket unavailable" line per this many seconds; `0` logs every one. |
 | `SSE_HEARTBEAT_MS` | `15000` | Keep-alive comment frames on streamed answers; `0` switches them off. |
 | `APPLICATIONINSIGHTS_CONNECTION_STRING` | the Application Insights resource | Unset: no telemetry at all. |
+| `IMPACT_ENDPOINT` | impact.ai's OTLP traces URL, kept from the running app | With `IMPACT_API_KEY`, every span is also copied there. Empty: no copy. |
+| `IMPACT_API_KEY` | Key Vault `impact-api-key` | The product's ingest key. The vault's placeholder `unset` reads as no key. |
 | `PROBLEM_LOG` | empty: on | `0` switches the `problem` line off. |
 | `LLM_USAGE_LOG` | empty: on | `0` switches the `llm_usage` line off. |
 
@@ -238,7 +251,10 @@ The migrate job runs the backend's image with the backend's environment, except 
 
 | Variable | Template | What it is |
 | --- | --- | --- |
-| `IMAGE_TAG` | the image's tag | Reported as the service version. |
+| `IMAGE_TAG` | the image's tag | Reported as the service version, outside a release. |
+| `IMPACT_RELEASE_ID` | as the backend's | As the backend's. |
+| `IMPACT_RELEASE_VERSION` | as the backend's | As the backend's. |
+| `IMPACT_RELEASE_ENVIRONMENT` | as the backend's | As the backend's. |
 | `AUTH_URL` | the public origin | Auth.js's own: the origin written into the sign-in redirect, which behind Front Door is not the host the replica sees, and the origin a write must come from. Template only. Without it a write's origin is held to the host the proxy forwards (`X-Forwarded-Host`) under the scheme it forwards (`X-Forwarded-Proto`), or `https` when it names a host and no scheme. |
 | `BACKEND_URL` | the backend's internal URL | Server-side only; the browser never calls the backend. |
 | `AUTH_SECRET` | Key Vault `auth-secret` | Signs the session cookie and the caller assertions; must equal the backend's. |
@@ -250,8 +266,28 @@ The migrate job runs the backend's image with the backend's environment, except 
 | `HARDENED` | `true` or `false` | As the backend's. |
 | `SSE_HEARTBEAT_MS` | `15000` | Keep-alive frames on relayed streams; `0` switches them off. |
 | `APPLICATIONINSIGHTS_CONNECTION_STRING` | the Application Insights resource | Unset: no telemetry. |
+| `IMPACT_ENDPOINT` | as the backend's | As the backend's. |
+| `IMPACT_API_KEY` | Key Vault `impact-api-key` | As the backend's. |
 
 The frontend holds no fact the backend owns: the agent's id, the stage's tools and every byte bound come from the backend's `GET /identity/me` and `GET /voice/capability`.
+
+### The release on every span
+
+Both apps put the release they run on the resource of every span they export, to Application Insights and, when connected, to impact.ai, so which version runs can be read from the spans alone:
+
+| Attribute | Value |
+| --- | --- |
+| `service.name` | the backend's service name (`assistant-backend`, the product's); `frontend` |
+| `service.version` | the release's version while one is set, else the image's tag (`IMAGE_TAG`) |
+| `impact.release.id` | `IMPACT_RELEASE_ID` |
+| `impact.release.version` | `IMPACT_RELEASE_VERSION` |
+| `impact.release.revision` | `CONTAINER_APP_REVISION`, the revision serving the span, which Container Apps sets |
+| `deployment.environment.name` | `IMPACT_RELEASE_ENVIRONMENT` |
+| `cloud.provider`, `cloud.platform` | `azure`, `azure_container_apps`, on Container Apps (where it sets a revision) |
+
+An attribute without a value is left out. `azd deploy` sets the three release variables on each app's new revision with its image (`azure.yaml`, each service's `env`), and a provision that names the images sets them with those; a provision that names none keeps what each app runs. So a revision's spans carry the release of the image it runs, and outside a release they carry none. A release names the revision too (`<app>--v<N>`, [releases](deployment.md#releases)), and the confirmation names the same one, so impact.ai matches each span to its release by `impact.release.revision`.
+
+With `IMPACT_ENDPOINT` and `IMPACT_API_KEY` both set, each app copies every span to impact.ai through the Impact SDK (`impact-ai`), in the SDK's mode that leaves the app's own OpenTelemetry provider in charge: Application Insights gets what it got before, and the copy is of each span as the scrub left it ([privacy](privacy.md#what-is-stored)). The SDK instruments nothing of its own and its content categories are off, so the copy adds no span and carries no text the scrub left in an error's message. Without both, the SDK is not loaded.
 
 ### Set by the images
 
@@ -272,7 +308,7 @@ Never set by the template; each is read by a tool, a test or a launcher.
 | `BICEP_CLI` | the template's tests | Path to the Bicep CLI the template tests compile with. |
 | `VERIFY_SESSION_COOKIE` | the deployment check (`scripts/verify-deployment.ts`) | A test user's session cookie as the browser holds it (`name=value`): under `entra`, where a script cannot sign in, it runs the signed-in checks as that user, whose account the run never erases. Without it an `entra` run refuses to start unless `--signed-out-only` is given. The report names the cookie, never its value. |
 
-The platform also sets `CONTAINER_APP_NAME` and `HOSTNAME` on every replica; the deployment guard reads the first, the turn claim the second (in the frontend's container the image's own `HOSTNAME` is the one its server reads).
+The platform also sets `CONTAINER_APP_NAME`, `CONTAINER_APP_REVISION` and `HOSTNAME` on every replica; the deployment guard reads the first, both apps put the second on every span ([the release on every span](#the-release-on-every-span)), the turn claim reads the third (in the frontend's container the image's own `HOSTNAME` is the one its server reads).
 
 ## Settings documents
 

@@ -310,7 +310,10 @@ it("no key crosses a module boundary or leaves as an output, and no new secret i
 		.filter(([, p]) => /^secure/i.test(p.type))
 		.map(([name]) => name)
 		.sort();
-	expect(secure).toEqual(["authSecret", "entraClientSecret"]);
+	// Each of these goes straight to Key Vault (modules/vault.bicep), and the
+	// apps hold a reference: the session secret, the sign-in registration's
+	// secret and impact.ai's ingest key.
+	expect(secure).toEqual(["authSecret", "entraClientSecret", "impactApiKey"]);
 });
 
 for (const [overrides, injected] of [

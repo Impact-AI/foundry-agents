@@ -1,0 +1,190 @@
+# Production: a merge to `production` that changes releases/production.json
+# runs the version the pin names, its images as Development built them,
+# never rebuilt. The release action's prepare step verifies the pin first:
+# its run is a successful Development run of this repository whose number is
+# the pin's version, and its images carry that version's tag. Then the job
+# signs in with the Production environment's federated credential,
+# provisions, copies the two pinned images into Production's registry,
+# provisions again with them, so each app takes its image, its release and
+# the release's revision name in one revision, runs the migrate job's steps
+# on the pinned backend image, and confirms: a promotion or a rollback, as
+# the pin says (docs/deployment.md, The Production pin).
+name: Azure Production
+
+on:
+  push:
+    branches: [production]
+    paths: [releases/production.json]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: azure-production
+  cancel-in-progress: false
+
+jobs:
+  release:
+    if: github.ref == 'refs/heads/production'
+    runs-on: ubuntu-latest
+    environment: Production
+    timeout-minutes: 180
+    permissions:
+      contents: read
+      actions: read
+      checks: write
+      id-token: write
+    env:
+      AZURE_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
+      AZURE_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
+      AZURE_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+      AZURE_ENV_NAME: ${{ vars.AZURE_ENV_NAME }}
+      AZURE_LOCATION: ${{ vars.AZURE_LOCATION }}
+      HARDENED: ${{ vars.HARDENED }}
+      PRIVATE_NETWORKING: ${{ vars.PRIVATE_NETWORKING }}
+      USE_FRONT_DOOR: ${{ vars.USE_FRONT_DOOR }}
+      LOCK_DATA_RESOURCES: ${{ vars.LOCK_DATA_RESOURCES }}
+      KEY_VAULT_PURGE_PROTECTION: ${{ vars.KEY_VAULT_PURGE_PROTECTION }}
+      ZONE_REDUNDANT: ${{ vars.ZONE_REDUNDANT }}
+      PUBLIC_ORIGIN: ${{ vars.PUBLIC_ORIGIN }}
+      AZURE_SEARCH_LOCATION: ${{ vars.AZURE_SEARCH_LOCATION }}
+      SEARCH_REPLICAS: ${{ vars.SEARCH_REPLICAS }}
+      BACKEND_MIN_REPLICAS: ${{ vars.BACKEND_MIN_REPLICAS }}
+      FRONTEND_MIN_REPLICAS: ${{ vars.FRONTEND_MIN_REPLICAS }}
+      OPERATOR_PRINCIPAL_ID: ${{ vars.OPERATOR_PRINCIPAL_ID }}
+      OPERATOR_PRINCIPAL_TYPE: ${{ vars.OPERATOR_PRINCIPAL_TYPE }}
+      AUTH_MODE: ${{ vars.AUTH_MODE }}
+      AUTH_REQUIRE_ROLE: ${{ vars.AUTH_REQUIRE_ROLE }}
+      AUTH_MICROSOFT_ENTRA_ID_ID: ${{ vars.AUTH_MICROSOFT_ENTRA_ID_ID }}
+      SEED_SAMPLE_LIBRARY: ${{ vars.SEED_SAMPLE_LIBRARY }}
+      KNOWLEDGE_BASE: ${{ vars.KNOWLEDGE_BASE }}
+      MEMORY_STORE: ${{ vars.MEMORY_STORE }}
+      HISTORY_STORE: ${{ vars.HISTORY_STORE }}
+      RETRIEVAL_ENGINE: ${{ vars.RETRIEVAL_ENGINE }}
+      VOICE_ENGINE: ${{ vars.VOICE_ENGINE }}
+      RECORDS_API_URL: ${{ vars.RECORDS_API_URL }}
+      RECORDS_API_SCOPE: ${{ vars.RECORDS_API_SCOPE }}
+      DEVELOPER_ACCESS: ${{ vars.DEVELOPER_ACCESS }}
+      DEVELOPER_ACCESS_SSH_KEY: ${{ vars.DEVELOPER_ACCESS_SSH_KEY }}
+      DEVELOPER_VM_SIZE: ${{ vars.DEVELOPER_VM_SIZE }}
+      AGENT_EGRESS: ${{ vars.AGENT_EGRESS }}
+      PRIVATE_TELEMETRY: ${{ vars.PRIVATE_TELEMETRY }}
+      AGENT_TRACING: ${{ vars.AGENT_TRACING }}
+      POLICY_AUDIT: ${{ vars.POLICY_AUDIT }}
+      REALTIME_CAPACITY: ${{ vars.REALTIME_CAPACITY }}
+      REALTIME_ALTERNATE_CAPACITY: ${{ vars.REALTIME_ALTERNATE_CAPACITY }}
+      KNOWLEDGE_BASE_CAPACITY: ${{ vars.KNOWLEDGE_BASE_CAPACITY }}
+    steps:
+      # The merged pin and the template it deploys with come from this branch.
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # The pin's placeholder commit is azure-development.yml's, replaced with it.
+      - name: Prepare the release
+        id: prepare
+        uses: Impact-AI/impact-ai-release-action@0000000000000000000000000000000000000000 # v1.1.0
+        with:
+          kind: application
+          environment: production
+          mode: prepare
+
+      - name: Log in the Azure CLI
+        uses: azure/login@a641126d1b8aa4d1fa005f4f92df94a3a4c4c906 # v3.1.0
+        with:
+          client-id: ${{ steps.prepare.outputs.client-id }}
+          tenant-id: ${{ steps.prepare.outputs.tenant-id }}
+          subscription-id: ${{ steps.prepare.outputs.subscription-id }}
+
+      - name: Install azd
+        uses: Azure/setup-azd@0b7e3a35ab00f2eee7080c845eb39c3f0ebfa553 # v2.4.0
+
+      - name: Log in azd with the federated credential
+        run: |
+          azd auth login \
+            --client-id "$AZURE_CLIENT_ID" \
+            --federated-credential-provider "github" \
+            --tenant-id "$AZURE_TENANT_ID"
+
+      # As in Development: each app keeps the image and the release it runs,
+      # and the provision writes the environment's outputs, the registry among
+      # them, into the runner's azd environment.
+      - name: Provision
+        run: azd provision --no-prompt
+        env:
+          AUTH_SECRET: ${{ secrets.AUTH_SECRET }}
+          AUTH_MICROSOFT_ENTRA_ID_SECRET: ${{ secrets.AUTH_MICROSOFT_ENTRA_ID_SECRET }}
+
+      # Registry to registry, by Azure Resource Manager: the same image, its
+      # digest unchanged, under the same repository and tag. The Production
+      # identity needs pull on Development's registry for this (docs/deployment.md).
+      - name: Copy the pinned images into Production's registry
+        id: images
+        shell: bash
+        env:
+          BACKEND_IMAGE: ${{ steps.prepare.outputs.backend-image }}
+          FRONTEND_IMAGE: ${{ steps.prepare.outputs.frontend-image }}
+        run: |
+          registry="$(azd env get-value AZURE_CONTAINER_REGISTRY_ENDPOINT)"
+          for service in backend frontend; do
+            source="$BACKEND_IMAGE"
+            [ "$service" = frontend ] && source="$FRONTEND_IMAGE"
+            repository="${source#*/}"
+            az acr import --subscription "$AZURE_SUBSCRIPTION_ID" --name "${registry%%.*}" \
+              --source "$source" --image "$repository" --force --only-show-errors
+            echo "$service=$registry/$repository" >> "$GITHUB_OUTPUT"
+          done
+
+      # `v<N>`, then this Production run's own mark: a version Production ran
+      # before, which a rollback or a second promotion returns to, already
+      # holds a revision of that name, and a suffix names one revision for good.
+      - name: Name the release's revision
+        id: revision
+        shell: bash
+        env:
+          REVISION_SUFFIX: ${{ steps.prepare.outputs.revision-suffix }}
+        run: |
+          suffix="$REVISION_SUFFIX-p$GITHUB_RUN_NUMBER"
+          [ "$GITHUB_RUN_ATTEMPT" = 1 ] || suffix="${suffix}a$GITHUB_RUN_ATTEMPT"
+          echo "suffix=$suffix" >> "$GITHUB_OUTPUT"
+
+      # The images named: each app takes its pinned image, the release the
+      # action put in the job's environment, and the revision's name, in one
+      # revision. The migrate job's steps follow on the backend's.
+      - name: Deploy the pinned version
+        id: deploy
+        run: azd provision --no-prompt
+        env:
+          AUTH_SECRET: ${{ secrets.AUTH_SECRET }}
+          AUTH_MICROSOFT_ENTRA_ID_SECRET: ${{ secrets.AUTH_MICROSOFT_ENTRA_ID_SECRET }}
+          SERVICE_BACKEND_IMAGE_NAME: ${{ steps.images.outputs.backend }}
+          SERVICE_FRONTEND_IMAGE_NAME: ${{ steps.images.outputs.frontend }}
+          IMPACT_REVISION_SUFFIX: ${{ steps.revision.outputs.suffix }}
+
+      - name: Run the deploy's steps on the pinned backend
+        run: azd hooks run postdeploy --no-prompt
+        env:
+          SERVICE_BACKEND_IMAGE_NAME: ${{ steps.images.outputs.backend }}
+
+      - name: Install Bun
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version-file: .bun-version
+
+      # Production reruns no test: Development's run of this version is the
+      # check, and the receipt holds none.
+      - name: Write the application receipt
+        if: always() && steps.deploy.outcome == 'success'
+        env:
+          IMAGE_TAG: ${{ steps.prepare.outputs.image-tag }}
+          REVISION_SUFFIX: ${{ steps.revision.outputs.suffix }}
+        run: bun scripts/application-receipt.ts --out out/application-receipt.json --image-tag "$IMAGE_TAG" --revision-suffix "$REVISION_SUFFIX"
+
+      - name: Confirm the release
+        if: always()
+        uses: Impact-AI/impact-ai-release-action@0000000000000000000000000000000000000000 # v1.1.0
+        with:
+          kind: application
+          environment: production
+          mode: finish

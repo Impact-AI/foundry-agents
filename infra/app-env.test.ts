@@ -34,6 +34,12 @@ const PROCESS_SET = new Set(["VOICE_RELAY_KEY"]);
 /** Set by the frontend's image, never by the template: where its server listens (`apps/frontend/Dockerfile`). */
 const IMAGE_SET = new Set(["PORT", "HOSTNAME"]);
 /**
+ * Set by Container Apps on every replica it runs, never by the template: the
+ * revision serving the process, which every span carries as the release's
+ * revision.
+ */
+const PLATFORM_SET = new Set(["CONTAINER_APP_REVISION"]);
+/**
  * Read with the runtime's own default and set by nobody: an operator's
  * override, documented under "Read outside a deployment" in
  * docs/configuration.md and commented out in the example.
@@ -178,6 +184,43 @@ for (const service of ["backend", "frontend"]) {
 	});
 }
 
+for (const service of ["backend", "frontend"]) {
+	it(`${service}: impact.ai's ingest key is the vault's impact-api-key, and the endpoint and the release are plain values`, () => {
+		const { configuration, template } = app(service);
+		const env = new Map(template.containers[0].env.map((e) => [e.name, e]));
+		expect(env.get("IMPACT_API_KEY")?.value).toBeUndefined();
+		expect(env.get("IMPACT_API_KEY")?.secretRef).toBe("impact-api-key");
+		expect(
+			configuration.secrets.find((s) => s.name === "impact-api-key")
+				?.keyVaultUrl,
+		).toContain("secrets/impact-api-key");
+		for (const name of [
+			"IMPACT_ENDPOINT",
+			"IMPACT_RELEASE_ID",
+			"IMPACT_RELEASE_VERSION",
+			"IMPACT_RELEASE_ENVIRONMENT",
+		]) {
+			expect(env.has(name), name).toBe(true);
+			expect(env.get(name)?.secretRef, name).toBeUndefined();
+		}
+	});
+}
+
+it("the migrate job holds every vault secret its environment names", () => {
+	const d = sampleDeployment();
+	if (!d) return;
+	const job = allResources(d).find(
+		(r) => r.type === "Microsoft.App/jobs" && r.condition,
+	)?.properties as App | undefined;
+	if (!job) throw new Error("no migrate job");
+	const held = new Set(job.configuration.secrets.map((s) => s.name));
+	const named = job.template.containers[0].env.flatMap((e) =>
+		e.secretRef ? [e.secretRef] : [],
+	);
+	expect(named.filter((name) => !held.has(name))).toEqual([]);
+	expect(named).toContain("impact-api-key");
+});
+
 it("the migrate job runs with the backend's environment, differing only in its identity and what it sets up", () => {
 	const d = sampleDeployment();
 	if (!d) return;
@@ -253,6 +296,7 @@ for (const service of ["backend", "frontend"]) {
 			...LIBRARY[service],
 			...FRAMEWORK_READS,
 			...PROCESS_SET,
+			...PLATFORM_SET,
 			...(service === "frontend" ? [...IMAGE_SET, ...OPERATOR_ONLY] : []),
 		]);
 		const reads = sourceReads(service);

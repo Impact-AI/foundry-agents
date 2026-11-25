@@ -821,6 +821,9 @@ class Evaluator {
 					args[1],
 				);
 			case "toobject": {
+				// An app's own settings read back from it: an object only the live deployment answers.
+				if (isOpaque(args[0]))
+					return new Opaque(`toObject(${stringOf(args[0])})`);
 				const out: Record<string, unknown> = {};
 				for (const x of args[0] as unknown[]) {
 					const key = stringOf((args[1] as (...v: unknown[]) => unknown)(x));

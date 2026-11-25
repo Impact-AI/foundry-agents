@@ -1,0 +1,213 @@
+# Development: every merge to `development` releases one version. The job
+# signs in to Azure with the Development environment's federated credential,
+# provisions, builds both images and rolls a new revision of each app, runs
+# the application's own tests, and confirms what runs through the impact.ai
+# release action, which completes the check run `impact.ai / release
+# confirmed` on the merged commit. impact.ai holds no credential for this:
+# the job is the repository's, and so is every value it reads.
+#
+# The version is this workflow's run number. The action's prepare step names
+# the release (its id, the version, the image tag and the revision suffix)
+# and puts IMPACT_RELEASE_ID, IMPACT_RELEASE_VERSION and
+# IMPACT_RELEASE_ENVIRONMENT in the job's environment; `azd deploy` puts them
+# on each app with the new image (azure.yaml), so every span of the new
+# revision carries them. The ids and the variables are the Development
+# environment's own (docs/deployment.md, CI/CD); pipeline.test.ts holds the
+# lists equal to azure.yaml's `pipeline` block.
+name: Azure Development
+
+on:
+  push:
+    branches: [development]
+
+permissions:
+  contents: read
+
+# Two releases of one environment must never overlap, and one must never be
+# cancelled half way.
+concurrency:
+  group: azure-development
+  cancel-in-progress: false
+
+jobs:
+  release:
+    if: github.ref == 'refs/heads/development'
+    runs-on: ubuntu-latest
+    environment: Development
+    # A first hardened provision takes about an hour; a run that has not
+    # ended in three is stuck.
+    timeout-minutes: 180
+    permissions:
+      contents: read
+      # The action reads this run's earlier attempts and writes its check run;
+      # the OIDC token is the job's proof of who it is, to Azure and impact.ai.
+      actions: read
+      checks: write
+      id-token: write
+    # The application's own suites that need Redis run against this one.
+    services:
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    env:
+      AZURE_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
+      AZURE_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
+      AZURE_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+      AZURE_ENV_NAME: ${{ vars.AZURE_ENV_NAME }}
+      AZURE_LOCATION: ${{ vars.AZURE_LOCATION }}
+      HARDENED: ${{ vars.HARDENED }}
+      PRIVATE_NETWORKING: ${{ vars.PRIVATE_NETWORKING }}
+      USE_FRONT_DOOR: ${{ vars.USE_FRONT_DOOR }}
+      LOCK_DATA_RESOURCES: ${{ vars.LOCK_DATA_RESOURCES }}
+      KEY_VAULT_PURGE_PROTECTION: ${{ vars.KEY_VAULT_PURGE_PROTECTION }}
+      ZONE_REDUNDANT: ${{ vars.ZONE_REDUNDANT }}
+      PUBLIC_ORIGIN: ${{ vars.PUBLIC_ORIGIN }}
+      AZURE_SEARCH_LOCATION: ${{ vars.AZURE_SEARCH_LOCATION }}
+      SEARCH_REPLICAS: ${{ vars.SEARCH_REPLICAS }}
+      BACKEND_MIN_REPLICAS: ${{ vars.BACKEND_MIN_REPLICAS }}
+      FRONTEND_MIN_REPLICAS: ${{ vars.FRONTEND_MIN_REPLICAS }}
+      OPERATOR_PRINCIPAL_ID: ${{ vars.OPERATOR_PRINCIPAL_ID }}
+      OPERATOR_PRINCIPAL_TYPE: ${{ vars.OPERATOR_PRINCIPAL_TYPE }}
+      AUTH_MODE: ${{ vars.AUTH_MODE }}
+      AUTH_REQUIRE_ROLE: ${{ vars.AUTH_REQUIRE_ROLE }}
+      AUTH_MICROSOFT_ENTRA_ID_ID: ${{ vars.AUTH_MICROSOFT_ENTRA_ID_ID }}
+      SEED_SAMPLE_LIBRARY: ${{ vars.SEED_SAMPLE_LIBRARY }}
+      KNOWLEDGE_BASE: ${{ vars.KNOWLEDGE_BASE }}
+      MEMORY_STORE: ${{ vars.MEMORY_STORE }}
+      HISTORY_STORE: ${{ vars.HISTORY_STORE }}
+      RETRIEVAL_ENGINE: ${{ vars.RETRIEVAL_ENGINE }}
+      VOICE_ENGINE: ${{ vars.VOICE_ENGINE }}
+      RECORDS_API_URL: ${{ vars.RECORDS_API_URL }}
+      RECORDS_API_SCOPE: ${{ vars.RECORDS_API_SCOPE }}
+      DEVELOPER_ACCESS: ${{ vars.DEVELOPER_ACCESS }}
+      DEVELOPER_ACCESS_SSH_KEY: ${{ vars.DEVELOPER_ACCESS_SSH_KEY }}
+      DEVELOPER_VM_SIZE: ${{ vars.DEVELOPER_VM_SIZE }}
+      AGENT_EGRESS: ${{ vars.AGENT_EGRESS }}
+      PRIVATE_TELEMETRY: ${{ vars.PRIVATE_TELEMETRY }}
+      AGENT_TRACING: ${{ vars.AGENT_TRACING }}
+      POLICY_AUDIT: ${{ vars.POLICY_AUDIT }}
+      REALTIME_CAPACITY: ${{ vars.REALTIME_CAPACITY }}
+      REALTIME_ALTERNATE_CAPACITY: ${{ vars.REALTIME_ALTERNATE_CAPACITY }}
+      KNOWLEDGE_BASE_CAPACITY: ${{ vars.KNOWLEDGE_BASE_CAPACITY }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # The release action's pin is the same commit in every step of both
+      # workflows (pipeline.test.ts). Until v1.1.0 of the action is published
+      # the commit is a placeholder of forty zeros, which GitHub cannot
+      # resolve: the release that publishes it replaces every one.
+      - name: Prepare the release
+        id: prepare
+        uses: Impact-AI/impact-ai-release-action@0000000000000000000000000000000000000000 # v1.1.0
+        with:
+          kind: application
+          environment: development
+          mode: prepare
+
+      - name: Log in the Azure CLI
+        uses: azure/login@a641126d1b8aa4d1fa005f4f92df94a3a4c4c906 # v3.1.0
+        with:
+          client-id: ${{ steps.prepare.outputs.client-id }}
+          tenant-id: ${{ steps.prepare.outputs.tenant-id }}
+          subscription-id: ${{ steps.prepare.outputs.subscription-id }}
+
+      - name: Install azd
+        uses: Azure/setup-azd@0b7e3a35ab00f2eee7080c845eb39c3f0ebfa553 # v2.4.0
+
+      # The hooks call the Azure CLI, and azd signs in as the same identity.
+      - name: Log in azd with the federated credential
+        run: |
+          azd auth login \
+            --client-id "$AZURE_CLIENT_ID" \
+            --federated-credential-provider "github" \
+            --tenant-id "$AZURE_TENANT_ID"
+
+      # No image is named: each app keeps the image it runs and the release
+      # that image is, so a change to the template reaches the running
+      # version, and only the deploy below changes either.
+      - name: Provision
+        run: azd provision --no-prompt
+        env:
+          AUTH_SECRET: ${{ secrets.AUTH_SECRET }}
+          AUTH_MICROSOFT_ENTRA_ID_SECRET: ${{ secrets.AUTH_MICROSOFT_ENTRA_ID_SECRET }}
+
+      # Builds both images in the environment's registry, tagged with the
+      # release, and rolls one new revision of each app onto its image and the
+      # release together; postdeploy then runs the migrate job's steps.
+      - name: Deploy one version
+        id: deploy
+        run: azd deploy --no-prompt
+        env:
+          AUTH_SECRET: ${{ secrets.AUTH_SECRET }}
+          AUTH_MICROSOFT_ENTRA_ID_SECRET: ${{ secrets.AUTH_MICROSOFT_ENTRA_ID_SECRET }}
+          IMPACT_IMAGE_TAG: ${{ steps.prepare.outputs.image-tag }}
+
+      # azd names the revision it rolls (`azd-<time>`); the release names it
+      # `v<N>`, and a rerun of the run `v<N>-a<attempt>`, since a suffix names
+      # one revision for good. One more revision of each app, the same image
+      # and release under the release's name, so the confirmation and every
+      # span after it name the same revision. A merge patch at the API
+      # version postdeploy sends: everything else on the app stays.
+      - name: Name each app's revision for the release
+        id: revision
+        shell: bash
+        env:
+          REVISION_SUFFIX: ${{ steps.prepare.outputs.revision-suffix }}
+        run: |
+          suffix="$REVISION_SUFFIX"
+          [ "$GITHUB_RUN_ATTEMPT" = 1 ] || suffix="$suffix-a$GITHUB_RUN_ATTEMPT"
+          group="$(azd env get-value AZURE_RESOURCE_GROUP)"
+          for name in "$(azd env get-value BACKEND_APP_NAME)" "$(azd env get-value FRONTEND_APP_NAME)"; do
+            az rest --subscription "$AZURE_SUBSCRIPTION_ID" --method patch \
+              --url "/subscriptions/$AZURE_SUBSCRIPTION_ID/resourceGroups/$group/providers/Microsoft.App/containerApps/$name" \
+              --url-parameters api-version=2026-01-01 \
+              --body "{\"properties\": {\"template\": {\"revisionSuffix\": \"$suffix\"}}}" -o none
+          done
+          echo "suffix=$suffix" >> "$GITHUB_OUTPUT"
+
+      - name: Install Bun
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version-file: .bun-version
+
+      - run: bun install --frozen-lockfile
+
+      # The version's own tests, each app's suite, counted for the receipt.
+      # Both run whatever the first answers; either failing fails the release.
+      - name: Run the application's own tests
+        env:
+          REDIS_URL: redis://localhost:6379
+        run: |
+          mkdir -p out/tests
+          status=0
+          for app in backend frontend; do
+            bun test "apps/$app" --reporter=junit --reporter-outfile="out/tests/$app.xml" || status=1
+          done
+          exit "$status"
+
+      # What runs, read back from Azure: each app's revision the release
+      # named, once it is ready, and its image, with the counts of the tests
+      # above. Written whatever the tests said, so the confirmation says both.
+      - name: Write the application receipt
+        if: always() && steps.revision.outcome == 'success'
+        env:
+          IMPACT_IMAGE_TAG: ${{ steps.prepare.outputs.image-tag }}
+          REVISION_SUFFIX: ${{ steps.revision.outputs.suffix }}
+        run: bun scripts/application-receipt.ts --out out/application-receipt.json --image-tag "$IMPACT_IMAGE_TAG" --revision-suffix "$REVISION_SUFFIX" --tests out/tests
+
+      - name: Confirm the release
+        if: always()
+        uses: Impact-AI/impact-ai-release-action@0000000000000000000000000000000000000000 # v1.1.0
+        with:
+          kind: application
+          environment: development
+          mode: finish

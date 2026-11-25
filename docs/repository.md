@@ -11,7 +11,8 @@ Agent on Azure is a Bun workspace: reusable packages under `platform/`, two apps
 ├── hooks/                preprovision, postprovision, postdeploy, predown, and the entra, job and private helpers, each in bash with a PowerShell version; the stand-in az and the runner their tests put both the shell and the PowerShell version through
 ├── scripts/              ingest (load your documents), smoke (check a deployment), each in bash with a PowerShell version; the test preload and the repository-wide checks
 ├── docs/                 this documentation and the tests that keep it true
-├── .github/              the workflows, dependabot.yml, CODEOWNERS, the issue forms and the pull request template
+├── .github/              the workflows (CI, the audit, the site, and the Development and Production releases), dependabot.yml, CODEOWNERS, the issue forms and the pull request template
+├── releases/             production.json, the version Production runs, once a pull request to production pins one
 ├── .devcontainer/        Ubuntu with az, azd, Docker and the pinned Bun
 ├── .githooks/            pre-commit: Biome over the staged files; an install points core.hooksPath here
 ├── .fallowrc.jsonc       dead code, duplication and import cycles

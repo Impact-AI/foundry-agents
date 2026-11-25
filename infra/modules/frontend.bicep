@@ -1,4 +1,4 @@
-import { Identity } from '../types.bicep'
+import { Identity, Release } from '../types.bicep'
 
 param name string
 param location string
@@ -18,6 +18,12 @@ param insightsConnectionString string
 param hardened bool
 param authMode string
 param authRequireRole bool
+@description('The release the named image is, which every span the app exports carries. With no image named, the app keeps the release it runs, as it keeps its image.')
+param release Release
+@description('The suffix of the revision this provision makes when it names the image: the release names its revision. Ignored with no image named.')
+param revisionSuffix string
+@description('impact.ai\'s OTLP traces URL for the product, which the app copies every span to. Empty, the app keeps the one it runs.')
+param impactEndpoint string
 
 var port = 3000
 // With no image named, an app that exists keeps the one it runs; one that
@@ -31,6 +37,17 @@ var effectiveImage = !empty(image)
   : exists ? running!.properties.template.containers[0].image : placeholder
 var deployed = effectiveImage != placeholder
 var imageTag = deployed ? last(split(effectiveImage, ':')) : ''
+// With no image named, the app keeps the release it runs and the endpoint it
+// copies to (modules/backend.bicep says why).
+var held = toObject(exists ? running!.properties.template.containers[0].env : [], e => e.name, e => e.?value ?? '')
+var stamp = !empty(image)
+  ? release
+  : {
+      id: held.?IMPACT_RELEASE_ID ?? ''
+      version: held.?IMPACT_RELEASE_VERSION ?? ''
+      environment: held.?IMPACT_RELEASE_ENVIRONMENT ?? ''
+    }
+var copyTo = !empty(impactEndpoint) ? impactEndpoint : held.?IMPACT_ENDPOINT ?? ''
 
 func vaultSecret(vault string, identityId string, name string) object => {
   name: name
@@ -44,6 +61,9 @@ func vaultSecret(vault string, identityId string, name string) object => {
 // edge is not the host the replica sees.
 var env = [
   { name: 'IMAGE_TAG', value: imageTag }
+  { name: 'IMPACT_RELEASE_ID', value: stamp.id }
+  { name: 'IMPACT_RELEASE_VERSION', value: stamp.version }
+  { name: 'IMPACT_RELEASE_ENVIRONMENT', value: stamp.environment }
   { name: 'AUTH_URL', value: publicOrigin }
   { name: 'BACKEND_URL', value: backendUrl }
   { name: 'AUTH_SECRET', secretRef: 'auth-secret' }
@@ -55,6 +75,8 @@ var env = [
   { name: 'HARDENED', value: string(hardened) }
   { name: 'SSE_HEARTBEAT_MS', value: '15000' }
   { name: 'APPLICATIONINSIGHTS_CONNECTION_STRING', value: insightsConnectionString }
+  { name: 'IMPACT_ENDPOINT', value: copyTo }
+  { name: 'IMPACT_API_KEY', secretRef: 'impact-api-key' }
 ]
 
 // The probes an app running a built image answers; on the placeholder, none
@@ -93,6 +115,7 @@ module app 'br/public:avm/res/app/container-app:0.23.0' = {
       vaultSecret(vaultUri, identity.resourceId, 'entra-client-id')
       vaultSecret(vaultUri, identity.resourceId, 'entra-client-secret')
       vaultSecret(vaultUri, identity.resourceId, 'entra-issuer')
+      vaultSecret(vaultUri, identity.resourceId, 'impact-api-key')
     ]
     ingressExternal: true
     ingressTargetPort: port
@@ -105,6 +128,7 @@ module app 'br/public:avm/res/app/container-app:0.23.0' = {
     // A replica going away closes each relayed live socket as going away and
     // gives the streams it holds 25 s before it exits: the grace covers that.
     terminationGracePeriodSeconds: 30
+    revisionSuffix: !empty(image) && !empty(revisionSuffix) ? revisionSuffix : null
     containers: [
       {
         name: 'frontend'

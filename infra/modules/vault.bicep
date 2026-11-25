@@ -16,12 +16,17 @@ param entraClientId string
 @secure()
 param entraClientSecret string
 param entraIssuer string
+@description('The product\'s ingest key in impact.ai, which both apps copy their spans with.')
+@secure()
+param impactApiKey string
 @description('The names of the secrets the vault already holds.')
 param held string[]
 
 // The apps reference every secret by name at creation, so each exists from
 // the first provision; a sign-in value nobody has set yet is a placeholder
-// that fails the sign-in, not the deployment. A placeholder is written only
+// that fails the sign-in, not the deployment, and an ingest key nobody has
+// set is a placeholder the apps read as no key, copying nothing to
+// impact.ai. A placeholder is written only
 // while the vault does not hold the secret: a provision whose environment
 // carries no value for one leaves the vault's alone, whether it was set by an
 // earlier provision or rotated in the vault. The secrets are written through
@@ -39,6 +44,7 @@ var wanted = [
   { name: 'entra-client-id', value: entraClientId }
   { name: 'entra-client-secret', value: entraClientSecret }
   { name: 'entra-issuer', value: entraIssuer }
+  { name: 'impact-api-key', value: impactApiKey }
 ]
 var written = filter(wanted, s => !empty(s.value) || !contains(held, s.name))
 

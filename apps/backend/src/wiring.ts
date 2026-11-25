@@ -45,6 +45,16 @@ export function wire(
 	const telemetry = startBunTelemetry({
 		serviceName: product.serviceName,
 		serviceVersion: envString("IMAGE_TAG"),
+		release: {
+			id: envString("IMPACT_RELEASE_ID"),
+			version: envString("IMPACT_RELEASE_VERSION"),
+			environment: envString("IMPACT_RELEASE_ENVIRONMENT"),
+			revision: envString("CONTAINER_APP_REVISION"),
+		},
+		impact: {
+			endpoint: envString("IMPACT_ENDPOINT"),
+			apiKey: envString("IMPACT_API_KEY"),
+		},
 		probePaths: PROBE_PATHS,
 	});
 	// The agent's own namespace and memo, so every key of this service sits under one name.
