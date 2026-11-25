@@ -4,7 +4,7 @@
  * each app runs, which azd keeps only on the machine that deployed, with the
  * release that image is and the impact.ai endpoint the app copies to; and a
  * Key Vault secret whose value the run's environment does not carry, the
- * session secret and the ingest key among them. A first
+ * session secret and the optional route's ingest key among them. A first
  * provision still gets the placeholder image and the placeholder secrets the
  * apps' references need.
  */
@@ -252,7 +252,6 @@ const ALL = [
 	"entra-client-id",
 	"entra-client-secret",
 	"entra-issuer",
-	"impact-api-key",
 ];
 
 it("a first provision writes every secret the apps reference, a placeholder where no value is set", () => {
@@ -264,16 +263,25 @@ it("a first provision writes every secret the apps reference, a placeholder wher
 		"auth-secret": "auth",
 		"entra-client-id": "unset",
 		"entra-client-secret": "unset",
-		"impact-api-key": "unset",
 	});
 });
 
-it("impact.ai's ingest key is written when a provision carries it, and kept from the vault by one that does not", () => {
+it("impact.ai's ingest key, the optional route's, is written only when a provision carries it, never as a placeholder", () => {
+	expect(secrets().map((s) => s.name)).not.toContain("impact-api-key");
 	expect(
-		secrets({ vaultHolds: ALL.join(","), impactApiKey: "ingest" }),
+		secrets({ vaultHolds: "none", impactApiKey: "ingest" }),
 	).toContainEqual({ name: "impact-api-key", value: "ingest" });
 	expect(
-		secrets({ vaultHolds: ALL.join(",") }).map((s) => s.name),
+		secrets({
+			vaultHolds: [...ALL, "impact-api-key"].join(","),
+			impactApiKey: "ingest",
+		}),
+	).toContainEqual({ name: "impact-api-key", value: "ingest" });
+	// A vault that holds one keeps it.
+	expect(
+		secrets({ vaultHolds: [...ALL, "impact-api-key"].join(",") }).map(
+			(s) => s.name,
+		),
 	).not.toContain("impact-api-key");
 });
 
@@ -410,14 +418,13 @@ it("a provision with no session secret and a vault that holds none is refused by
 			"AUTH_SECRET is empty and the vault holds no auth-secret",
 		);
 	}
-	// The others keep their placeholder: a sign-in nobody set up fails the
-	// sign-in, not the provision, and an ingest key nobody set copies nothing.
+	// The other three keep their placeholder: a sign-in nobody set up fails
+	// the sign-in, not the provision. impact.ai's key has none.
 	const placed = vaultSecrets(
 		provisioned({ KEY_VAULT_HOLDS: "none", AUTH_SECRET: "a".repeat(64) }),
 	);
 	expect(placed.filter((s) => s.value === "unset").map((s) => s.name)).toEqual([
 		"entra-client-id",
 		"entra-client-secret",
-		"impact-api-key",
 	]);
 });

@@ -24,6 +24,8 @@ param release Release
 param revisionSuffix string
 @description('impact.ai\'s OTLP traces URL for the product, which the app copies every span to. Empty, the app keeps the one it runs.')
 param impactEndpoint string
+@description('Whether the vault holds impact.ai\'s ingest key, or this provision writes it: only then does the app reference it.')
+param impactKeyHeld bool
 
 var port = 3000
 // With no image named, an app that exists keeps the one it runs; one that
@@ -48,6 +50,11 @@ var stamp = !empty(image)
       environment: held.?IMPACT_RELEASE_ENVIRONMENT ?? ''
     }
 var copyTo = !empty(impactEndpoint) ? impactEndpoint : held.?IMPACT_ENDPOINT ?? ''
+// The optional route's key: a vault reference where there is one, else
+// empty, and the app copies nothing.
+var ingestKey = impactKeyHeld
+  ? { name: 'IMPACT_API_KEY', secretRef: 'impact-api-key' }
+  : { name: 'IMPACT_API_KEY', value: '' }
 
 func vaultSecret(vault string, identityId string, name string) object => {
   name: name
@@ -76,7 +83,7 @@ var env = [
   { name: 'SSE_HEARTBEAT_MS', value: '15000' }
   { name: 'APPLICATIONINSIGHTS_CONNECTION_STRING', value: insightsConnectionString }
   { name: 'IMPACT_ENDPOINT', value: copyTo }
-  { name: 'IMPACT_API_KEY', secretRef: 'impact-api-key' }
+  ingestKey
 ]
 
 // The probes an app running a built image answers; on the placeholder, none
@@ -110,13 +117,15 @@ module app 'br/public:avm/res/app/container-app:0.23.0' = {
     environmentResourceId: environmentId
     managedIdentities: { userAssignedResourceIds: [identity.resourceId] }
     registries: [{ server: registryServer, identity: identity.resourceId }]
-    secrets: [
-      vaultSecret(vaultUri, identity.resourceId, 'auth-secret')
-      vaultSecret(vaultUri, identity.resourceId, 'entra-client-id')
-      vaultSecret(vaultUri, identity.resourceId, 'entra-client-secret')
-      vaultSecret(vaultUri, identity.resourceId, 'entra-issuer')
-      vaultSecret(vaultUri, identity.resourceId, 'impact-api-key')
-    ]
+    secrets: concat(
+      [
+        vaultSecret(vaultUri, identity.resourceId, 'auth-secret')
+        vaultSecret(vaultUri, identity.resourceId, 'entra-client-id')
+        vaultSecret(vaultUri, identity.resourceId, 'entra-client-secret')
+        vaultSecret(vaultUri, identity.resourceId, 'entra-issuer')
+      ],
+      impactKeyHeld ? [vaultSecret(vaultUri, identity.resourceId, 'impact-api-key')] : []
+    )
     ingressExternal: true
     ingressTargetPort: port
     ingressTransport: 'auto'

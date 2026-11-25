@@ -10,15 +10,18 @@ import { reportFailure } from "@platform/config";
 import type { ContentOptions } from "impact-ai";
 
 /**
- * Every span to impact.ai as well as to Azure Monitor, through the Impact
- * SDK's OTLP destination, and the SDK's own capture of the model calls the
- * process makes, with their content, to impact.ai alone.
+ * The optional Impact SDK route: every span to impact.ai as well as to Azure
+ * Monitor, through the SDK's OTLP destination, and the SDK's own capture of
+ * the model calls the process makes, with their content, to impact.ai alone.
+ * The default is Azure Monitor by itself, which impact.ai reads through the
+ * customer's Azure connection.
  *
  * Off unless the app hands in both the product's OTLP traces URL and its
  * ingest key (the template's `IMPACT_ENDPOINT` and `IMPACT_API_KEY`): then
  * nothing is loaded, nothing is sent, and nothing is instrumented. The
- * template keeps the key in Key Vault, whose placeholder for a secret nobody
- * supplied (`unset`) reads as no key.
+ * template keeps the key in Key Vault only once one is given; the vault's
+ * placeholder for a secret nobody supplied (`unset`) reads as no key all
+ * the same.
  *
  * Two routes, so Azure Monitor gets exactly what it got before:
  *

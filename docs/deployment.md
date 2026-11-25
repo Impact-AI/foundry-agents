@@ -474,7 +474,8 @@ Once per environment, from a machine signed in with `azd auth login` and `gh aut
    ```
 
    For an app registration, `az ad app federated-credential create --id "$client"` with the same issuer, subject and audience.
-5. Connect impact.ai, once, before or after the first release: the product's OpenTelemetry exporter URL and its ingest key. The key goes to the environment's Key Vault as `impact-api-key` and the URL onto both apps, and every later provision keeps both, so neither workflow carries either ([the release on every span](configuration.md#the-release-on-every-span)). Provision from an azd environment that names no deployed image, as a fresh one does, so each app keeps the image and the release that run (the two `SERVICE_*_IMAGE_NAME` lines are for a machine that once ran `azd deploy` itself):
+5. Let impact.ai read the environment's telemetry. The apps send everything to the environment's own Application Insights, each span stamped with its release ([the release on every span](configuration.md#the-release-on-every-span)), and impact.ai reads it there, with queries over Application Insights, through the read-only Azure connection its release setup asks for: nothing to set in the repository, and neither workflow carries a key. impact.ai reads the turns' content only if the team records it there with `AGENT_TRACING` ([what goes to impact.ai](privacy.md#what-goes-to-impactai)).
+6. Optional, the Impact SDK route: both apps also send impact.ai, directly, their spans and the SDK's capture of the model calls with their content. Set the product's OpenTelemetry exporter URL and ingest key once, from an azd environment that names no deployed image, as a fresh one does, so each app keeps the image and the release that run (the two `SERVICE_*_IMAGE_NAME` lines are for a machine that once ran `azd deploy` itself). The key goes to the environment's Key Vault as `impact-api-key` and the URL onto both apps, and every later provision keeps both, so neither workflow carries either:
 
    ```sh
    azd env set SERVICE_BACKEND_IMAGE_NAME "" -e dev
@@ -485,7 +486,7 @@ Once per environment, from a machine signed in with `azd auth login` and `gh aut
    azd env set IMPACT_API_KEY "" -e dev
    ```
 
-   From the next revision both apps send impact.ai their traces and the model calls' content: [what goes to impact.ai](privacy.md#what-goes-to-impactai) says what that is, and how to send it without content. The last line keeps the key out of a later `azd pipeline config`, which copies every parameter the azd environment holds a value for into GitHub; the vault keeps it. To rotate the key, set it in the vault (`impact-api-key`) and restart each app's revision, or run the lines again.
+   [What goes to impact.ai](privacy.md#what-goes-to-impactai) says what the route sends, when to choose it, and how to send less. The last line keeps the key out of a later `azd pipeline config`, which copies every parameter the azd environment holds a value for into GitHub; the vault keeps it. To rotate the key, set it in the vault (`impact-api-key`) and restart each app's revision, or run the lines again. Without the route, no `impact-api-key` secret exists and nothing asks for one.
 
 Run steps 2 and 3 again after changing any value the pipeline should see. `azd pipeline config --provider azdo` connects Azure Pipelines instead, which these workflows do not cover.
 

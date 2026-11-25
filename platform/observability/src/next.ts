@@ -8,7 +8,11 @@ import {
 	ScrubbingLogRecordProcessor,
 	ScrubbingSpanProcessor,
 } from "./pipeline";
-import { type Release, resourceAttributes } from "./release";
+import {
+	type Release,
+	ReleaseStampProcessor,
+	resourceAttributes,
+} from "./release";
 import { isProbePath, pathOf, registerProbePaths } from "./scrub";
 import { connectionString, telemetrySettings } from "./settings";
 
@@ -111,8 +115,10 @@ export async function startNextTelemetry(
 			// attributes included, so that stream would carry what the scrub
 			// exists to remove.
 			enableLiveMetrics: false,
-			// In this order: the scrub edits the span in place, then the copy reads it.
+			// In this order: the stamp goes on each span as it starts; the scrub
+			// edits it in place as it ends, then the copy reads it.
 			spanProcessors: [
+				new ReleaseStampProcessor(options.release),
 				new ScrubbingSpanProcessor(),
 				...(impact ? [impact] : []),
 			],

@@ -52,6 +52,8 @@ param release Release
 param revisionSuffix string
 @description('impact.ai\'s OTLP traces URL for the product, which the app copies every span to. Empty, the app keeps the one it runs.')
 param impactEndpoint string
+@description('Whether the vault holds impact.ai\'s ingest key, or this provision writes it: only then does the app reference it.')
+param impactKeyHeld bool
 
 var port = 4111
 // Until azd has deployed, a public placeholder keeps the app provisionable;
@@ -85,11 +87,16 @@ var stamp = !empty(image)
       environment: held.?IMPACT_RELEASE_ENVIRONMENT ?? ''
     }
 var copyTo = !empty(impactEndpoint) ? impactEndpoint : held.?IMPACT_ENDPOINT ?? ''
+// The optional route's key: a vault reference where there is one, else
+// empty, and the app copies nothing.
+var ingestKey = impactKeyHeld
+  ? { name: 'IMPACT_API_KEY', secretRef: 'impact-api-key' }
+  : { name: 'IMPACT_API_KEY', value: '' }
 
-func secrets(vault string, identityId string) array => [
-  { name: 'auth-secret', keyVaultUrl: '${vault}secrets/auth-secret', identity: identityId }
-  { name: 'impact-api-key', keyVaultUrl: '${vault}secrets/impact-api-key', identity: identityId }
-]
+func secrets(vault string, identityId string, ingestKey bool) array => concat(
+  [{ name: 'auth-secret', keyVaultUrl: '${vault}secrets/auth-secret', identity: identityId }],
+  ingestKey ? [{ name: 'impact-api-key', keyVaultUrl: '${vault}secrets/impact-api-key', identity: identityId }] : []
+)
 
 // Exactly apps/backend/.env.example, bootstrap only; empty means the
 // compiled-in default. AZURE_CLIENT_ID is the SDK's own: it picks this
@@ -161,7 +168,7 @@ var env = [
   { name: 'SSE_HEARTBEAT_MS', value: '15000' }
   { name: 'APPLICATIONINSIGHTS_CONNECTION_STRING', value: insightsConnectionString }
   { name: 'IMPACT_ENDPOINT', value: copyTo }
-  { name: 'IMPACT_API_KEY', secretRef: 'impact-api-key' }
+  ingestKey
   { name: 'PROBLEM_LOG', value: '' }
   { name: 'LLM_USAGE_LOG', value: '' }
 ]
@@ -211,7 +218,7 @@ module app 'br/public:avm/res/app/container-app:0.23.0' = {
     environmentResourceId: environmentId
     managedIdentities: { userAssignedResourceIds: [identity.resourceId] }
     registries: [{ server: registryServer, identity: identity.resourceId }]
-    secrets: secrets(vaultUri, identity.resourceId)
+    secrets: secrets(vaultUri, identity.resourceId, impactKeyHeld)
     ingressExternal: false
     ingressTargetPort: port
     ingressTransport: 'auto'
@@ -248,7 +255,7 @@ module migrate 'br/public:avm/res/app/job:0.7.2' = {
     environmentResourceId: environmentId
     managedIdentities: { userAssignedResourceIds: [migrateIdentity.resourceId] }
     registries: [{ server: registryServer, identity: migrateIdentity.resourceId }]
-    secrets: secrets(vaultUri, migrateIdentity.resourceId)
+    secrets: secrets(vaultUri, migrateIdentity.resourceId, impactKeyHeld)
     triggerType: 'Manual'
     manualTriggerConfig: { parallelism: 1, replicaCompletionCount: 1 }
     replicaRetryLimit: 0

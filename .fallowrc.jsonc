@@ -6,16 +6,18 @@
 	// the frontend's server, which its build bundles and its image runs
 	// rather than anything imports; the two voice worklets, which the page
 	// loads by URL (`audioWorklet.addModule` in live-link.ts) rather than
-	// imports; and four files suites run as processes rather than import: the
+	// imports; and five files suites run as processes rather than import: the
 	// broker's replica it can kill (owner-process.ts), the relay on Node
 	// (relay-harness.ts), the Mermaid parser with its DOM (mermaid-parse.ts),
-	// and the Impact SDK, which starts once per process (impact-capture.ts).
+	// the Impact SDK, which starts once per process (impact-capture.ts), and
+	// Azure Monitor's exporter against a local TLS endpoint (azure-capture.ts).
 	"entry": [
 		"apps/backend/src/testing/dev-fake.ts",
 		"apps/frontend/public/voice/capture-worklet.js",
 		"apps/frontend/public/voice/playback-worklet.js",
 		"apps/frontend/server/main.ts",
 		"apps/frontend/server/testing/relay-harness.ts",
+		"platform/observability/src/testing/azure-capture.ts",
 		"platform/observability/src/testing/impact-capture.ts",
 		"platform/voice/src/broker/testing/owner-process.ts",
 		"scripts/mermaid-parse.ts"

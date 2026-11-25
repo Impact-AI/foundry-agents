@@ -78,8 +78,8 @@ Set with `azd env set NAME value`. azd substitutes each into `infra/main.paramet
 | `IMPACT_RELEASE_VERSION` | `releaseVersion` | empty, set by a release workflow | The release's version, the Development run number that built it. |
 | `IMPACT_RELEASE_ENVIRONMENT` | `releaseEnvironment` | empty, set by a release workflow | `development` or `production`. |
 | `IMPACT_REVISION_SUFFIX` | `revisionSuffix` | empty: Container Apps names the revision | The suffix of the revision a provision that names the images makes of each app, which Production's release sets (`v<N>-p<run number>`, [the Production pin](deployment.md#the-production-pin)). A provision that names no image ignores it. |
-| `IMPACT_ENDPOINT` | `impactEndpoint` | empty: each app keeps the one it runs | impact.ai's OTLP traces URL for the product, ending in `/v1/traces`: both apps copy every span there beside Azure Monitor. Set it once per environment from your own machine ([connect the workflows](deployment.md#connect-the-workflows)); a run that carries none, as every pipeline run, changes nothing. With none, nothing is copied. |
-| `IMPACT_API_KEY` | `impactApiKey` | empty: the vault keeps its own | The product's ingest key, written to Key Vault as `impact-api-key`; both apps hold a reference. Until somebody supplies one the vault holds the placeholder `unset`, which the apps read as no key. Never a workflow's secret: clear it from the azd environment after the provision that writes it. |
+| `IMPACT_ENDPOINT` | `impactEndpoint` | empty: each app keeps the one it runs | The optional Impact SDK route ([the release on every span](#the-release-on-every-span)): impact.ai's OTLP traces URL for the product, ending in `/v1/traces`. With `IMPACT_API_KEY` too, both apps send impact.ai their spans and the SDK's capture of their model calls directly. Set once per environment from your own machine ([connect the workflows](deployment.md#connect-the-workflows)); a run that carries none, as every pipeline run, changes nothing. Empty, Azure Monitor alone, which impact.ai reads through the Azure connection. |
+| `IMPACT_API_KEY` | `impactApiKey` | empty: no secret | The optional route's ingest key, written to Key Vault as `impact-api-key` only when given; both apps then hold a reference. Empty, no secret is made and none is referenced, unless the vault already holds one, which it keeps (`KEY_VAULT_HOLDS`). Never a workflow's secret: clear it from the azd environment after the provision that writes it. |
 
 **`IMPACT_IMAGE_TAG`** is read by `azure.yaml`, not the parameter file: the tag `azd deploy` gives both images. The Development workflow sets it to the release's (`v<N>-<short commit>`); unset, azd tags with its own.
 
@@ -232,8 +232,8 @@ Each app's environment is exactly what its `.env.example` lists ([backend](../ap
 | `METERING_UNAVAILABLE_LOG_SECONDS` | empty: `60` | One "bucket unavailable" line per this many seconds; `0` logs every one. |
 | `SSE_HEARTBEAT_MS` | `15000` | Keep-alive comment frames on streamed answers; `0` switches them off. |
 | `APPLICATIONINSIGHTS_CONNECTION_STRING` | the Application Insights resource | Unset: no telemetry at all. |
-| `IMPACT_ENDPOINT` | impact.ai's OTLP traces URL, kept from the running app | With `IMPACT_API_KEY`, every span is also copied there. Empty: no copy. |
-| `IMPACT_API_KEY` | Key Vault `impact-api-key` | The product's ingest key. The vault's placeholder `unset` reads as no key. |
+| `IMPACT_ENDPOINT` | impact.ai's OTLP traces URL for the optional route, kept from the running app; else empty | With `IMPACT_API_KEY`, the Impact SDK route. Empty: Azure Monitor alone. |
+| `IMPACT_API_KEY` | Key Vault `impact-api-key` where the vault holds one; else empty | The optional route's ingest key. Empty sends nothing and loads no SDK. |
 | `PROBLEM_LOG` | empty: on | `0` switches the `problem` line off. |
 | `LLM_USAGE_LOG` | empty: on | `0` switches the `llm_usage` line off. |
 
@@ -267,7 +267,7 @@ The migrate job runs the backend's image with the backend's environment, except 
 | `SSE_HEARTBEAT_MS` | `15000` | Keep-alive frames on relayed streams; `0` switches them off. |
 | `APPLICATIONINSIGHTS_CONNECTION_STRING` | the Application Insights resource | Unset: no telemetry. |
 | `IMPACT_ENDPOINT` | as the backend's | As the backend's. |
-| `IMPACT_API_KEY` | Key Vault `impact-api-key` | As the backend's. |
+| `IMPACT_API_KEY` | Key Vault `impact-api-key` where the vault holds one; else empty | As the backend's. |
 
 The frontend holds no fact the backend owns: the agent's id, the stage's tools and every byte bound come from the backend's `GET /identity/me` and `GET /voice/capability`.
 
@@ -287,7 +287,11 @@ Both apps put the release they run on the resource of every span they export, to
 
 An attribute without a value is left out. `azd deploy` sets the three release variables on each app's new revision with its image (`azure.yaml`, each service's `env`), and a provision that names the images sets them with those; a provision that names none keeps what each app runs. So a revision's spans carry the release of the image it runs, and outside a release they carry none. A release names the revision too (`<app>--v<N>`, [releases](deployment.md#releases)), and the confirmation names the same one, so impact.ai matches each span to its release by `impact.release.revision`.
 
-With `IMPACT_ENDPOINT` and `IMPACT_API_KEY` both set, each app sends impact.ai two things through the Impact SDK (`impact-ai`). A copy of every span it exports, as the scrub leaves it, through the SDK's mode that leaves the app's own OpenTelemetry provider in charge. And the SDK's own capture of the model calls the app makes through the OpenAI client, with their inputs, outputs and tool content, within the SDK's limits, on a provider whose one destination is impact.ai. Application Insights gets exactly what it got before. The SDK's capture control is `content` beside the endpoint and the key where each app starts its telemetry; [what goes to impact.ai](privacy.md#what-goes-to-impactai) says what is sent and how to send less. Without both values, the SDK is not loaded.
+The stamp is on each span twice: on the process's resource, and as attributes of the span's own, which a span processor puts on every span as it starts. Azure Monitor's exporter writes a span's own attributes into its row's `customDimensions`, in `requests` and `dependencies`. Of a resource it keeps only the service's name, as the role (`cloud_RoleName`), and its version, as the application's (`application_Version`); the rest of a resource reaches Application Insights only as one `_OTELRESOURCE_` row in `customMetrics` per export, which no span row points to. So a query of Application Insights reads each span's release from the span itself.
+
+**impact.ai reads Application Insights.** The apps' telemetry is Azure's own: everything above goes to the deployment's Application Insights alone, and a product in impact.ai connected to the deployment's Azure reads it there, through the read-only connection its release setup asks for. Nothing here holds a key or a value of impact.ai's. What it reads, and how to add the turns' content to it, is in [what goes to impact.ai](privacy.md#what-goes-to-impactai).
+
+**The Impact SDK route, optional.** With `IMPACT_ENDPOINT` and `IMPACT_API_KEY` both set, each app also sends impact.ai, through the Impact SDK (`impact-ai`), a copy of every span it exports, as the scrub leaves it, in the SDK's mode that leaves the app's own OpenTelemetry provider in charge, and the SDK's own capture of the model calls the app makes through the OpenAI client, content included within the SDK's limits, on a provider whose one destination is impact.ai. Application Insights gets exactly what it gets without it. The SDK's capture control is `content` beside the endpoint and the key where each app starts its telemetry. Without both values, the SDK is not loaded and no secret is needed.
 
 ### Set by the images
 

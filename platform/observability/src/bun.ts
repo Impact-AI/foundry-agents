@@ -23,7 +23,11 @@ import {
 	FanOutSpanProcessor,
 	ScrubbingSpanProcessor,
 } from "./pipeline";
-import { type Release, resourceAttributes } from "./release";
+import {
+	type Release,
+	ReleaseStampProcessor,
+	resourceAttributes,
+} from "./release";
 import {
 	isProbePath,
 	pathOf,
@@ -106,6 +110,7 @@ export function startBunTelemetry(options: BunTelemetryOptions): boolean {
 			resource,
 			sampler: new ConfiguredSampler(),
 			spanProcessors: [
+				new ReleaseStampProcessor(options.release),
 				new ScrubbingSpanProcessor({
 					delegate: impact ? new FanOutSpanProcessor([batch, impact]) : batch,
 				}),

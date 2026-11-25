@@ -472,14 +472,7 @@ export const SECRETS = [
 	"entra-client-id",
 	"entra-client-secret",
 	"entra-issuer",
-	"impact-api-key",
 ] as const;
-
-/**
- * Those whose value the sign-in needs. impact.ai's ingest key may stay the
- * placeholder: the apps read it as no key, and copy nothing.
- */
-const SIGN_IN_SECRETS = SECRETS.filter((name) => name !== "impact-api-key");
 
 /** The data roles the template gives the operator, by the names Azure lists them under. */
 export const OPERATOR_ROLES = [
@@ -1105,11 +1098,10 @@ const CONTROL: Check[] = [
 			);
 			if (ctx.mode.private)
 				return pass(
-					"all five held. Their VALUES WERE NOT READ: the vault is closed to the network this run asks from. The session secret's value is held by the backend, which refuses to start on the placeholder (the revision check shows it started); the Entra client id by the sign-in redirect check; the Entra client secret by the frontend, which refuses to start on the placeholder (the revision check shows it started). A wrong secret that is not the placeholder shows only when someone signs in",
+					"all four held. Their VALUES WERE NOT READ: the vault is closed to the network this run asks from. The session secret's value is held by the backend, which refuses to start on the placeholder (the revision check shows it started); the Entra client id by the sign-in redirect check; the Entra client secret by the frontend, which refuses to start on the placeholder (the revision check shows it started). A wrong secret that is not the placeholder shows only when someone signs in",
 				);
 			const placeholders: string[] = [];
-			const values =
-				ctx.mode.authMode === "entra" ? SIGN_IN_SECRETS : ["auth-secret"];
+			const values = ctx.mode.authMode === "entra" ? SECRETS : ["auth-secret"];
 			for (const name of values) {
 				const secret = (await ctx.az(call.secret(vault.name, name))) as {
 					value?: string;
@@ -1123,7 +1115,7 @@ const CONTROL: Check[] = [
 				`placeholder values: ${placeholders.join(", ")}`,
 			);
 			return pass(
-				`all five held; ${values.join(", ")} carry real values (not printed)`,
+				`all four held; ${values.join(", ")} carry real values (not printed)`,
 			);
 		},
 	},

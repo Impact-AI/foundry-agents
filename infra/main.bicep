@@ -200,11 +200,13 @@ var release = { id: releaseId, version: releaseVersion, environment: releaseEnvi
 @description('The suffix of the revision a provision that names the images makes of each app (`v<version>`, and a run\'s own mark after it), so its spans and the release\'s confirmation name the same revision. Ignored by a provision that names no image; empty, Container Apps names the revision.')
 param revisionSuffix string = ''
 
-@description('impact.ai\'s OTLP traces URL for the product: both apps copy every span there beside Azure Monitor, through the Impact SDK. Empty, each app keeps the one it runs, so a pipeline\'s run, which never carries it, changes nothing; with none, the apps export to Azure Monitor alone.')
+@description('The optional Impact SDK route: impact.ai\'s OTLP traces URL for the product, to which both apps then send every span and the SDK\'s capture of their model calls beside Azure Monitor. Empty, each app keeps the one it runs, so a pipeline\'s run, which never carries it, changes nothing; with none, the apps export to Azure Monitor alone, which impact.ai reads through the Azure connection.')
 param impactEndpoint string = ''
-@description('The product\'s ingest key in impact.ai, written to Key Vault as `impact-api-key`; both apps hold a reference. Empty, the vault keeps what it holds (`KEY_VAULT_HOLDS`): the placeholder, which the apps read as no key, until somebody supplies one.')
+@description('The optional route\'s ingest key, written to Key Vault as `impact-api-key` when given; both apps then hold a reference. Empty, the vault keeps one it holds (`KEY_VAULT_HOLDS`) and writes none: the default deployment has no such secret.')
 @secure()
 param impactApiKey string = ''
+// Whether the apps hold a reference to the key: only where the vault holds one or this provision writes one.
+var impactKeyHeld = !empty(impactApiKey) || contains(split(vaultHolds, ','), 'impact-api-key')
 
 // The deployments as the account makes them: the realtime roles and the
 // knowledge base's planner take the capacity this environment was given, and
@@ -665,6 +667,7 @@ module backendApp 'modules/backend.bicep' = {
     release: release
     revisionSuffix: revisionSuffix
     impactEndpoint: impactEndpoint
+    impactKeyHeld: impactKeyHeld
   }
 }
 
@@ -692,6 +695,7 @@ module frontendApp 'modules/frontend.bicep' = {
     release: release
     revisionSuffix: revisionSuffix
     impactEndpoint: impactEndpoint
+    impactKeyHeld: impactKeyHeld
   }
 }
 
