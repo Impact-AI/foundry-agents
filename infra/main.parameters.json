@@ -45,6 +45,12 @@
 		"entraClientSecret": { "value": "${AUTH_MICROSOFT_ENTRA_ID_SECRET=}" },
 		"authMode": { "value": "${AUTH_MODE=local}" },
 		"authRequireRole": { "value": "${AUTH_REQUIRE_ROLE=false}" },
+		"releaseId": { "value": "${IMPACT_RELEASE_ID=}" },
+		"releaseVersion": { "value": "${IMPACT_RELEASE_VERSION=}" },
+		"releaseEnvironment": { "value": "${IMPACT_RELEASE_ENVIRONMENT=}" },
+		"revisionSuffix": { "value": "${IMPACT_REVISION_SUFFIX=}" },
+		"impactEndpoint": { "value": "${IMPACT_ENDPOINT=}" },
+		"impactApiKey": { "value": "${IMPACT_API_KEY=}" },
 		"realtimeCapacity": { "value": "${REALTIME_CAPACITY=1}" },
 		"realtimeAlternateCapacity": {
 			"value": "${REALTIME_ALTERNATE_CAPACITY=1}"

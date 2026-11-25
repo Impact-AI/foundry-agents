@@ -1,10 +1,12 @@
 /**
  * The workflows under .github. Every action is pinned to a commit, because a
- * tag can be moved to code nobody reviewed. The deploy workflow hands each azd
- * step exactly the variables and secrets `azd pipeline config` sets: azd's own
- * and those azure.yaml's `pipeline` block names. A name in the block the
- * workflow never passes reaches the repository and then nothing; a name the
+ * tag can be moved to code nobody reviewed. The two release workflows hand
+ * each azd step exactly the variables and secrets `azd pipeline config` sets:
+ * azd's own and those azure.yaml's `pipeline` block names. A name in the block
+ * a workflow never passes reaches the repository and then nothing; a name a
  * workflow passes that the block does not list is never set, so reads empty.
+ * Beyond those, a step is handed the release alone, and never anything of
+ * impact.ai's.
  */
 import { expect, test } from "bun:test";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
@@ -75,42 +77,338 @@ test("every action is pinned to a full commit, with the release it is", () => {
 	expect(unpinned).toEqual([]);
 });
 
-const deploy = () => {
-	const found = workflows.find((w) => w.file === "azure-dev.yml");
-	if (!found) throw new Error("azure-dev.yml is missing");
+const workflow = (file: string) => {
+	const found = workflows.find((w) => w.file === file);
+	if (!found) throw new Error(`${file} is missing`);
 	return found;
 };
 
-test("the deploy workflow runs by hand only, until pipeline config has given it an identity", () => {
-	expect(Object.keys(deploy().parsed.on)).toEqual(["workflow_dispatch"]);
+/**
+ * The two release workflows, one per GitHub environment: what impact.ai's
+ * OIDC allowlist names (the file and the environment), the branch each runs
+ * on, and the release action they call.
+ */
+const RELEASES = [
+	{
+		file: "azure-development.yml",
+		environment: "Development",
+		action: "development",
+		on: { push: { branches: ["development"] } },
+	},
+	{
+		file: "azure-production.yml",
+		environment: "Production",
+		action: "production",
+		on: {
+			push: { branches: ["production"], paths: ["releases/production.json"] },
+		},
+	},
+] as const;
+
+const RELEASE_ACTION = "Impact-AI/impact-ai-release-action";
+/** The action's version both workflows run; its commit is the release's to set (azure-development.yml). */
+const RELEASE_ACTION_VERSION = "v1.1.0";
+
+type ReleaseJob = Job & {
+	environment?: string;
+	permissions?: Record<string, string>;
+	steps: (Step & { id?: string; name?: string; if?: string })[];
+};
+
+const releaseJob = (file: string): ReleaseJob => {
+	const jobs = Object.values(workflow(file).parsed.jobs);
+	expect(jobs).toHaveLength(1);
+	return jobs[0] as ReleaseJob;
+};
+
+test("only the two release workflows deploy: the manual one they replace is gone", () => {
+	const deploying = workflows
+		.filter(({ text }) => /\bazd (provision|deploy)\b/.test(text))
+		.map(({ file }) => file)
+		.sort();
+	expect(deploying).toEqual(RELEASES.map((r) => r.file).sort());
+	expect(existsSync(join(WORKFLOWS, "azure-dev.yml"))).toBe(false);
 });
 
-test("each azd step of the deploy workflow gets exactly what pipeline config sets", () => {
-	const steps = Object.values(deploy().parsed.jobs).flatMap((job) =>
-		(job.steps ?? [])
-			.filter((step) => /^azd (provision|deploy)\b/.test(step.run ?? ""))
-			.map((step) => ({ run: step.run, env: { ...job.env, ...step.env } })),
+for (const release of RELEASES) {
+	test(`${release.file} runs on its branch, in the ${release.environment} environment, one run at a time, with only what the release action needs`, () => {
+		const { parsed } = workflow(release.file);
+		expect(parsed.on).toEqual(release.on);
+		const job = releaseJob(release.file);
+		expect(job.environment).toBe(release.environment);
+		expect(job.permissions).toEqual({
+			contents: "read",
+			actions: "read",
+			checks: "write",
+			"id-token": "write",
+		});
+		expect((parsed as { permissions?: unknown }).permissions).toEqual({
+			contents: "read",
+		});
+		expect((parsed as { concurrency?: unknown }).concurrency).toEqual({
+			group: release.file.replace(/\.yml$/, ""),
+			"cancel-in-progress": false,
+		});
+	});
+
+	test(`${release.file} prepares through the release action before Azure and confirms through it last, always`, () => {
+		const steps = releaseJob(release.file).steps;
+		const calls = steps.filter((s) => s.uses?.startsWith(`${RELEASE_ACTION}@`));
+		expect(calls.map((s) => s.with)).toEqual([
+			{ kind: "application", environment: release.action, mode: "prepare" },
+			{ kind: "application", environment: release.action, mode: "finish" },
+		]);
+		const prepare = steps.indexOf(calls[0] as (typeof steps)[number]);
+		const login = steps.findIndex((s) => s.uses?.startsWith("azure/login@"));
+		expect(calls[0]?.id).toBe("prepare");
+		expect(prepare).toBeLessThan(login);
+		expect(steps.at(-1)).toBe(calls[1]);
+		expect(calls[1]?.if).toBe("always()");
+		expect(steps[login]?.with).toEqual({
+			"client-id": `\${{ steps.prepare.outputs.client-id }}`,
+			"tenant-id": `\${{ steps.prepare.outputs.tenant-id }}`,
+			"subscription-id": `\${{ steps.prepare.outputs.subscription-id }}`,
+		});
+		// The receipt is written before the confirmation reads it.
+		const receipt = steps.findIndex((s) =>
+			s.run?.startsWith(
+				"bun scripts/application-receipt.ts --out out/application-receipt.json",
+			),
+		);
+		expect(receipt).toBeGreaterThan(login);
+		expect(receipt).toBe(steps.length - 2);
+	});
+}
+
+test("both workflows run one commit of the release action, at the version the release names", () => {
+	const pins = new Set(
+		workflows.flatMap(({ text }) =>
+			[
+				...text.matchAll(
+					new RegExp(
+						`uses: (${RELEASE_ACTION}@[0-9a-f]{40}) # (v[\\d.]+)`,
+						"g",
+					),
+				),
+			].map((m) => `${m[1]} # ${m[2]}`),
+		),
 	);
-	expect(steps.map((s) => s.run?.split(" ")[1])).toEqual([
-		"provision",
-		"deploy",
-	]);
+	expect(pins.size).toBe(1);
+	expect([...pins][0]).toEndWith(` # ${RELEASE_ACTION_VERSION}`);
+});
+
+test("Development's own tests run after its deploy, and its receipt counts them", () => {
+	const steps = releaseJob("azure-development.yml").steps;
+	const deploy = steps.findIndex((s) => s.run === "azd deploy --no-prompt");
+	const tests = steps.findIndex((s) => s.run?.includes("bun test"));
+	expect(deploy).toBeGreaterThan(-1);
+	expect(tests).toBeGreaterThan(deploy);
+	expect(steps[tests]?.run).toContain("for app in backend frontend");
+	expect(steps[tests]?.run).toContain(
+		'--reporter=junit --reporter-outfile="out/tests/$app.xml"',
+	);
+	expect(steps.at(-2)?.run).toContain("--tests out/tests");
+	// Production reruns none.
+	expect(
+		releaseJob("azure-production.yml").steps.some((s) =>
+			s.run?.includes("bun test"),
+		),
+	).toBe(false);
+});
+
+/**
+ * Beyond what `azd pipeline config` sets, an azd step is handed only what the
+ * release names: the image tag from the action's prepare step, and, in
+ * Production, the copied pinned images and the revision's name. The release
+ * itself (`IMPACT_RELEASE_ID`, `IMPACT_RELEASE_VERSION`,
+ * `IMPACT_RELEASE_ENVIRONMENT`) the prepare step puts in the job's
+ * environment, where every later step reads it.
+ */
+const RELEASE_VALUES: Record<string, RegExp> = {
+	IMPACT_IMAGE_TAG: /^\$\{\{ steps\.prepare\.outputs\.image-tag \}\}$/,
+	SERVICE_BACKEND_IMAGE_NAME: /^\$\{\{ steps\.images\.outputs\.backend \}\}$/,
+	SERVICE_FRONTEND_IMAGE_NAME: /^\$\{\{ steps\.images\.outputs\.frontend \}\}$/,
+	IMPACT_REVISION_SUFFIX: /^\$\{\{ steps\.revision\.outputs\.suffix \}\}$/,
+};
+const FROM_THE_ACTION = [
+	"IMPACT_RELEASE_ID",
+	"IMPACT_RELEASE_VERSION",
+	"IMPACT_RELEASE_ENVIRONMENT",
+];
+
+/** Every azd provision and deploy of both release workflows, with the environment each step sees. */
+const azdSteps = () =>
+	RELEASES.flatMap(({ file, action }) => {
+		const job = releaseJob(file);
+		return job.steps
+			.filter((step) => /^azd (provision|deploy)\b/.test(step.run ?? ""))
+			.map((step) => ({
+				file,
+				action,
+				run: step.run as string,
+				env: { ...job.env, ...step.env } as Record<string, string>,
+			}));
+	});
+
+test("Development provisions then deploys; Production provisions, then provisions with the pinned images", () => {
+	const runs = (file: string) =>
+		azdSteps()
+			.filter((s) => s.file === file)
+			.map((s) => s.run.split(" ")[1]);
+	expect(runs("azure-development.yml")).toEqual(["provision", "deploy"]);
+	expect(runs("azure-production.yml")).toEqual(["provision", "provision"]);
+});
+
+test("each azd step gets exactly what pipeline config sets, and beyond it only the release", () => {
 	const passed = (env: Record<string, string>, kind: "vars" | "secrets") =>
 		Object.entries(env)
 			.filter(([name, value]) => value === `\${{ ${kind}.${name} }}`)
 			.map(([name]) => name)
 			.sort();
-	for (const { env } of steps) {
-		expect(Object.keys(env).sort()).toEqual(
-			[...passed(env, "vars"), ...passed(env, "secrets")].sort(),
-		);
-		expect(passed(env, "vars")).toEqual(
+	for (const { file, run, env } of azdSteps()) {
+		const at = `${file}: ${run}`;
+		expect(passed(env, "vars"), at).toEqual(
 			[...AZD_VARIABLES, ...project.pipeline.variables].sort(),
 		);
-		expect(passed(env, "secrets")).toEqual(
+		expect(passed(env, "secrets"), at).toEqual(
 			[...project.pipeline.secrets].sort(),
 		);
+		const rest = Object.entries(env).filter(
+			([name, value]) =>
+				value !== `\${{ vars.${name} }}` && value !== `\${{ secrets.${name} }}`,
+		);
+		for (const [name, value] of rest) {
+			expect(Object.keys(RELEASE_VALUES), `${at}: ${name}`).toContain(name);
+			expect(value, `${at}: ${name}`).toMatch(RELEASE_VALUES[name] as RegExp);
+		}
+		for (const name of FROM_THE_ACTION)
+			expect(env, `${at}: ${name} is the action's`).not.toHaveProperty(name);
 	}
+	// Development's deploy alone tags images; Production's second provision
+	// alone names images, and the revision with them.
+	const naming = (name: string) =>
+		azdSteps()
+			.filter((s) => name in s.env)
+			.map((s) => `${s.file}: ${s.run}`);
+	expect(naming("IMPACT_IMAGE_TAG")).toEqual([
+		"azure-development.yml: azd deploy --no-prompt",
+	]);
+	for (const name of [
+		"SERVICE_BACKEND_IMAGE_NAME",
+		"SERVICE_FRONTEND_IMAGE_NAME",
+		"IMPACT_REVISION_SUFFIX",
+	])
+		expect(naming(name), name).toEqual([
+			"azure-production.yml: azd provision --no-prompt",
+		]);
+	expect(
+		azdSteps().filter((s) => s.file === "azure-production.yml")[1]?.env,
+	).toHaveProperty("IMPACT_REVISION_SUFFIX");
+});
+
+test("each release's revision is named from the action's suffix, after the deploy and before the receipt reads it", () => {
+	for (const { file } of RELEASES) {
+		const steps = releaseJob(file).steps;
+		const naming = steps.findIndex((s) => s.id === "revision");
+		const step = steps[naming];
+		expect(step?.env?.REVISION_SUFFIX, file).toBe(
+			`\${{ steps.prepare.outputs.revision-suffix }}`,
+		);
+		// The version's suffix first, a run's own mark only after it.
+		expect(step?.run, file).toMatch(/^\s*suffix="\$REVISION_SUFFIX/);
+		const receipt = steps.at(-2);
+		expect(receipt?.env?.REVISION_SUFFIX, file).toBe(
+			`\${{ steps.revision.outputs.suffix }}`,
+		);
+		expect(receipt?.run, file).toContain(
+			'--revision-suffix "$REVISION_SUFFIX"',
+		);
+		expect(naming, file).toBeLessThan(steps.length - 2);
+	}
+	// Development renames what azd deploy rolled; Production names it in the
+	// provision that takes the images.
+	const development = releaseJob("azure-development.yml").steps;
+	expect(development.findIndex((s) => s.id === "revision")).toBeGreaterThan(
+		development.findIndex((s) => s.id === "deploy"),
+	);
+	expect(development.find((s) => s.id === "revision")?.run).toContain(
+		'revisionSuffix\\": \\"$suffix',
+	);
+	const production = releaseJob("azure-production.yml").steps;
+	expect(production.findIndex((s) => s.id === "revision")).toBeLessThan(
+		production.findIndex((s) => s.id === "deploy"),
+	);
+});
+
+test("each service's deploy carries the release and the tag the Development workflow names", () => {
+	const yaml = YAML.parse(read("azure.yaml")) as {
+		services: Record<
+			string,
+			{ env?: Record<string, string>; docker: { tag?: string } }
+		>;
+	};
+	for (const [name, service] of Object.entries(yaml.services)) {
+		expect(service.docker.tag, name).toBe(`\${IMPACT_IMAGE_TAG}`);
+		expect(service.env, name).toEqual({
+			IMPACT_RELEASE_ID: `\${IMPACT_RELEASE_ID}`,
+			IMPACT_RELEASE_VERSION: `\${IMPACT_RELEASE_VERSION}`,
+			IMPACT_RELEASE_ENVIRONMENT: `\${IMPACT_RELEASE_ENVIRONMENT}`,
+		});
+	}
+});
+
+/**
+ * What no run carries: impact.ai's endpoint and the product's ingest key. A
+ * person sets them once per environment, from their own machine; each app
+ * keeps the endpoint it runs, and the vault keeps the key. Neither workflow
+ * needs a key, a variable or a secret from impact.ai.
+ */
+const KEPT_OUT_OF_RUNS = ["IMPACT_ENDPOINT", "IMPACT_API_KEY"];
+
+test("no workflow carries impact.ai's endpoint, its key, or any value named for impact.ai", () => {
+	for (const { file, text } of workflows) {
+		for (const name of KEPT_OUT_OF_RUNS) expect(text, file).not.toContain(name);
+		expect(text, file).not.toMatch(/\b(vars|secrets)\.IMPACT_/);
+	}
+});
+
+/** The example pin in docs/deployment.md, under "The Production pin". */
+function documentedPin(): Record<string, unknown> {
+	const page = read("docs", "deployment.md");
+	const at = page.indexOf("### The Production pin");
+	expect(at).toBeGreaterThan(-1);
+	const block = /```json\n([\s\S]*?)\n```/.exec(page.slice(at))?.[1];
+	if (!block) throw new Error("no JSON example under The Production pin");
+	return JSON.parse(block) as Record<string, unknown>;
+}
+
+test("the documented pin is one the release action takes: the contract's keys, and images tagged with its version", () => {
+	const pin = documentedPin();
+	expect(Object.keys(pin).sort()).toEqual([
+		"action",
+		"format",
+		"images",
+		"releaseId",
+		"sourceRunId",
+		"version",
+	]);
+	expect(pin.format).toBe("impact-application-production/v1");
+	expect(["promote", "rollback"]).toContain(pin.action as string);
+	expect(Number.isInteger(pin.version) && (pin.version as number) >= 1).toBe(
+		true,
+	);
+	expect(pin.releaseId).toMatch(/^rel_[0-9a-f]{24}$/);
+	expect(Number.isSafeInteger(pin.sourceRunId)).toBe(true);
+	const images = pin.images as Record<string, string>;
+	expect(Object.keys(images).sort()).toEqual(["backend", "frontend"]);
+	for (const image of Object.values(images))
+		expect(image).toMatch(new RegExp(`:v${pin.version}-[0-9a-f]{7}$`));
+	// Production takes the images from the action, which verified the pin.
+	const production = releaseJob("azure-production.yml").steps;
+	expect(production.find((s) => s.id === "images")?.env).toEqual({
+		BACKEND_IMAGE: `\${{ steps.prepare.outputs.backend-image }}`,
+		FRONTEND_IMAGE: `\${{ steps.prepare.outputs.frontend-image }}`,
+	});
 });
 
 test("every value the parameter file reads reaches a pipeline run", () => {
@@ -125,11 +423,14 @@ test("every value the parameter file reads reaches a pipeline run", () => {
 		.join("\n");
 	const services = Object.keys(project.services).map((s) => s.toUpperCase());
 	// azd sets the principal from the signed-in identity and, at each
-	// provision, whether each service's container app exists.
+	// provision, whether each service's container app exists; a release
+	// workflow hands its azd steps the release.
 	const reaching = new Set([
 		...AZD_VARIABLES,
 		"AZURE_PRINCIPAL_ID",
 		...services.map((service) => `SERVICE_${service}_RESOURCE_EXISTS`),
+		...azdSteps().flatMap((s) => Object.keys(s.env)),
+		...FROM_THE_ACTION,
 		// A hook sets a value by azd's own command, or through the function it wraps it in.
 		...[...hooks.matchAll(/(?:azd env set|set_value) ([A-Z_]+)/g)].map(
 			(m) => m[1],
@@ -144,9 +445,17 @@ test("every value the parameter file reads reaches a pipeline run", () => {
 	const images = services.map((service) => `SERVICE_${service}_IMAGE_NAME`);
 	expect(
 		[...referenced].filter(
-			(name) => !reaching.has(name) && !images.includes(name),
+			(name) =>
+				!reaching.has(name) &&
+				!images.includes(name) &&
+				!KEPT_OUT_OF_RUNS.includes(name),
 		),
 	).toEqual([]);
+	// And those two never reach one.
+	for (const name of KEPT_OUT_OF_RUNS) {
+		expect(referenced.has(name), name).toBe(true);
+		expect(reaching.has(name), name).toBe(false);
+	}
 	for (const service of services)
 		if (referenced.has(`SERVICE_${service}_IMAGE_NAME`))
 			expect([...referenced]).toContain(`SERVICE_${service}_RESOURCE_EXISTS`);
@@ -175,12 +484,6 @@ test("the workflows, the images and the dev container run one Bun", () => {
 		if (text.includes("setup-bun"))
 			expect(text).toContain("bun-version-file: .bun-version");
 });
-
-const workflow = (file: string) => {
-	const found = workflows.find((w) => w.file === file);
-	if (!found) throw new Error(`${file} is missing`);
-	return found;
-};
 
 /** The folders that hold a lockfile: the root, or one folder down from it. */
 const lockfiles = () =>

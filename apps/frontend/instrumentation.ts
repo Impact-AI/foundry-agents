@@ -39,6 +39,18 @@ export async function register(): Promise<void> {
 		await startNextTelemetry({
 			serviceName: "frontend",
 			serviceVersion: envString("IMAGE_TAG"),
+			release: {
+				id: envString("IMPACT_RELEASE_ID"),
+				version: envString("IMPACT_RELEASE_VERSION"),
+				environment: envString("IMPACT_RELEASE_ENVIRONMENT"),
+				revision: envString("CONTAINER_APP_REVISION"),
+			},
+			// The optional Impact SDK route, off unless both are set; its capture
+			// control is `content` here, as in the backend's wiring (docs/privacy.md).
+			impact: {
+				endpoint: envString("IMPACT_ENDPOINT"),
+				apiKey: envString("IMPACT_API_KEY"),
+			},
 		});
 	}
 }

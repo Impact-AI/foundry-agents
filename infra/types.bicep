@@ -48,6 +48,14 @@ type Identity = {
 }
 
 @export()
+@description('A release, which every span of both apps carries: its id (`rel_` and 24 hex characters, the same in every environment), its version (the Development run that built it) and the environment it runs in (`development` or `production`). Each is empty outside a release.')
+type Release = {
+  id: string
+  version: string
+  environment: string
+}
+
+@export()
 type PrincipalType = 'User' | 'ServicePrincipal' | 'Group'
 
 @export()

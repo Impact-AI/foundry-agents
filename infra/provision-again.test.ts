@@ -1,9 +1,10 @@
 /**
- * A provision of an environment that already runs. Two things a run can lack
- * and the deployment already holds, and neither is taken from it: the image
- * each app runs, which azd keeps only on the machine that deployed, and a
+ * A provision of an environment that already runs. Three things a run can
+ * lack and the deployment already holds, and none is taken from it: the image
+ * each app runs, which azd keeps only on the machine that deployed, with the
+ * release that image is and the impact.ai endpoint the app copies to; and a
  * Key Vault secret whose value the run's environment does not carry, the
- * session secret among them. A first
+ * session secret and the optional route's ingest key among them. A first
  * provision still gets the placeholder image and the placeholder secrets the
  * apps' references need.
  */
@@ -58,8 +59,21 @@ function jobImage(d: Deployment): unknown {
 	return job.template.containers[0]?.image;
 }
 
-const tagOf = (c: Container) =>
-	c.env.find((e) => e.name === "IMAGE_TAG")?.value;
+const envValue = (c: Container, name: string) =>
+	c.env.find((e) => e.name === name)?.value;
+const tagOf = (c: Container) => envValue(c, "IMAGE_TAG");
+
+const RELEASE = {
+	releaseId: "rel_0123456789abcdef01234567",
+	releaseVersion: "7",
+	releaseEnvironment: "production",
+};
+const RELEASE_VARIABLES = [
+	"IMPACT_RELEASE_ID",
+	"IMPACT_RELEASE_VERSION",
+	"IMPACT_RELEASE_ENVIRONMENT",
+];
+const ENDPOINT = "https://ingest.example/v1/traces";
 
 for (const service of ["backend", "frontend"] as const) {
 	const image = `${service}Image`;
@@ -130,6 +144,71 @@ for (const service of ["backend", "frontend"] as const) {
 			);
 	});
 
+	it(`${service}: an app that exists and is given no image keeps the release it runs and the endpoint it copies to, whatever release the run carries`, () => {
+		// Development's provision runs before its deploy: the release it
+		// carries is the next image's, which azd deploy puts on with it.
+		const c = container(
+			deployment({ [exists]: true, ...RELEASE, impactEndpoint: "" }),
+			service,
+		);
+		for (const name of [...RELEASE_VARIABLES, "IMPACT_ENDPOINT"]) {
+			const value = String(envValue(c, name));
+			expect(value, name).toContain("template.containers.0.env");
+			expect(value, name).toContain(name);
+		}
+	});
+
+	it(`${service}: a named image carries the release the provision names, and an endpoint given replaces the one it runs`, () => {
+		for (const overrides of [
+			{ [image]: "registry/app:v7-0123abc" },
+			{ [image]: "registry/app:v7-0123abc", [exists]: true },
+		]) {
+			const c = container(
+				deployment({ ...overrides, ...RELEASE, impactEndpoint: ENDPOINT }),
+				service,
+			);
+			expect(RELEASE_VARIABLES.map((name) => envValue(c, name))).toEqual(
+				Object.values(RELEASE),
+			);
+			expect(envValue(c, "IMPACT_ENDPOINT")).toBe(ENDPOINT);
+			expect(tagOf(c)).toBe("v7-0123abc");
+		}
+	});
+
+	it(`${service}: a provision that names the image names the revision as the release says, and one that names none leaves it to Container Apps`, () => {
+		const suffixOf = (overrides: Record<string, unknown>) => {
+			const app = allResources(deployment(overrides)).find(
+				(r) =>
+					r.type === "Microsoft.App/containerApps" &&
+					r.condition &&
+					(r.tags as Record<string, string>)["azd-service-name"] === service,
+			);
+			if (!app) throw new Error(`no ${service} app`);
+			const { template } = app.properties as {
+				template: { revisionSuffix?: unknown };
+			};
+			return template.revisionSuffix ?? null;
+		};
+		expect(
+			suffixOf({ [image]: "registry/app:v7-0123abc", revisionSuffix: "v7-p3" }),
+		).toBe("v7-p3");
+		// Development's provision runs before its deploy, which names its own.
+		expect(suffixOf({ [exists]: true, revisionSuffix: "v7-p3" })).toBeNull();
+		expect(suffixOf({ [image]: "registry/app:v7-0123abc" })).toBeNull();
+	});
+
+	it(`${service}: a first provision carries no release and no endpoint it was not given`, () => {
+		const c = container(deployment(), service);
+		for (const name of [...RELEASE_VARIABLES, "IMPACT_ENDPOINT"])
+			expect(envValue(c, name), name).toBe("");
+		expect(
+			envValue(
+				container(deployment({ impactEndpoint: ENDPOINT }), service),
+				"IMPACT_ENDPOINT",
+			),
+		).toBe(ENDPOINT);
+	});
+
 	it(`${service}: a named image is the one deployed, whether or not the app exists`, () => {
 		for (const overrides of [
 			{ [image]: "registry/app:7" },
@@ -185,6 +264,25 @@ it("a first provision writes every secret the apps reference, a placeholder wher
 		"entra-client-id": "unset",
 		"entra-client-secret": "unset",
 	});
+});
+
+it("impact.ai's ingest key, the optional route's, is written only when a provision carries it, never as a placeholder", () => {
+	expect(secrets().map((s) => s.name)).not.toContain("impact-api-key");
+	expect(
+		secrets({ vaultHolds: "none", impactApiKey: "ingest" }),
+	).toContainEqual({ name: "impact-api-key", value: "ingest" });
+	expect(
+		secrets({
+			vaultHolds: [...ALL, "impact-api-key"].join(","),
+			impactApiKey: "ingest",
+		}),
+	).toContainEqual({ name: "impact-api-key", value: "ingest" });
+	// A vault that holds one keeps it.
+	expect(
+		secrets({ vaultHolds: [...ALL, "impact-api-key"].join(",") }).map(
+			(s) => s.name,
+		),
+	).not.toContain("impact-api-key");
 });
 
 it("a secret the vault holds is left alone by a provision that carries no value for it", () => {
@@ -320,7 +418,8 @@ it("a provision with no session secret and a vault that holds none is refused by
 			"AUTH_SECRET is empty and the vault holds no auth-secret",
 		);
 	}
-	// The other three keep their placeholder: a sign-in nobody set up fails the sign-in, not the provision.
+	// The other three keep their placeholder: a sign-in nobody set up fails
+	// the sign-in, not the provision. impact.ai's key has none.
 	const placed = vaultSecrets(
 		provisioned({ KEY_VAULT_HOLDS: "none", AUTH_SECRET: "a".repeat(64) }),
 	);

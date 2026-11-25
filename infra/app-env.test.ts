@@ -34,6 +34,12 @@ const PROCESS_SET = new Set(["VOICE_RELAY_KEY"]);
 /** Set by the frontend's image, never by the template: where its server listens (`apps/frontend/Dockerfile`). */
 const IMAGE_SET = new Set(["PORT", "HOSTNAME"]);
 /**
+ * Set by Container Apps on every replica it runs, never by the template: the
+ * revision serving the process, which every span carries as the release's
+ * revision.
+ */
+const PLATFORM_SET = new Set(["CONTAINER_APP_REVISION"]);
+/**
  * Read with the runtime's own default and set by nobody: an operator's
  * override, documented under "Read outside a deployment" in
  * docs/configuration.md and commented out in the example.
@@ -178,6 +184,78 @@ for (const service of ["backend", "frontend"]) {
 	});
 }
 
+/** Each app's container and secrets in a deployment with these parameters. */
+function appIn(service: string, overrides: Record<string, unknown>): App {
+	const d = sampleDeployment(overrides);
+	if (!d) throw new Error("no template");
+	const found = allResources(d).find(
+		(r) =>
+			r.type === "Microsoft.App/containerApps" &&
+			r.condition &&
+			(r.tags as Record<string, string>)["azd-service-name"] === service,
+	);
+	if (!found) throw new Error(`no ${service} app`);
+	return found.properties as App;
+}
+
+for (const service of ["backend", "frontend"]) {
+	it(`${service}: by default no impact.ai key is referenced, and the endpoint and the release are plain values`, () => {
+		const { configuration, template } = app(service);
+		const env = new Map(template.containers[0].env.map((e) => [e.name, e]));
+		expect(env.get("IMPACT_API_KEY")).toEqual({
+			name: "IMPACT_API_KEY",
+			value: "",
+		});
+		expect(configuration.secrets.map((s) => s.name)).not.toContain(
+			"impact-api-key",
+		);
+		for (const name of [
+			"IMPACT_ENDPOINT",
+			"IMPACT_RELEASE_ID",
+			"IMPACT_RELEASE_VERSION",
+			"IMPACT_RELEASE_ENVIRONMENT",
+		]) {
+			expect(env.has(name), name).toBe(true);
+			expect(env.get(name)?.secretRef, name).toBeUndefined();
+		}
+	});
+
+	it(`${service}: with the optional route's key in the vault, or carried by the provision, the app holds a reference to it`, () => {
+		for (const overrides of [
+			{ impactApiKey: "ingest" },
+			{ vaultHolds: "auth-secret,impact-api-key" },
+		]) {
+			const { configuration, template } = appIn(service, overrides);
+			const key = template.containers[0].env.find(
+				(e) => e.name === "IMPACT_API_KEY",
+			);
+			expect(key?.value, JSON.stringify(overrides)).toBeUndefined();
+			expect(key?.secretRef).toBe("impact-api-key");
+			expect(
+				configuration.secrets.find((s) => s.name === "impact-api-key")
+					?.keyVaultUrl,
+			).toContain("secrets/impact-api-key");
+		}
+	});
+}
+
+it("the migrate job holds every vault secret its environment names, the optional key with the backend's", () => {
+	for (const overrides of [{}, { impactApiKey: "ingest" }]) {
+		const d = sampleDeployment(overrides);
+		if (!d) return;
+		const job = allResources(d).find(
+			(r) => r.type === "Microsoft.App/jobs" && r.condition,
+		)?.properties as App | undefined;
+		if (!job) throw new Error("no migrate job");
+		const held = new Set(job.configuration.secrets.map((s) => s.name));
+		const named = job.template.containers[0].env.flatMap((e) =>
+			e.secretRef ? [e.secretRef] : [],
+		);
+		expect(named.filter((name) => !held.has(name))).toEqual([]);
+		expect(named.includes("impact-api-key")).toBe("impactApiKey" in overrides);
+	}
+});
+
 it("the migrate job runs with the backend's environment, differing only in its identity and what it sets up", () => {
 	const d = sampleDeployment();
 	if (!d) return;
@@ -253,6 +331,7 @@ for (const service of ["backend", "frontend"]) {
 			...LIBRARY[service],
 			...FRAMEWORK_READS,
 			...PROCESS_SET,
+			...PLATFORM_SET,
 			...(service === "frontend" ? [...IMAGE_SET, ...OPERATOR_ONLY] : []),
 		]);
 		const reads = sourceReads(service);

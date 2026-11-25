@@ -1,4 +1,4 @@
-import { Identity, Models } from '../types.bicep'
+import { Identity, Models, Release } from '../types.bicep'
 
 param name string
 param migrateJobName string
@@ -46,6 +46,14 @@ param records { url: string, scope: string }
 @description('How people sign in: entra, the identity provider, or local, a named demo sign-in. Hardened forces entra.')
 param authMode string
 param authRequireRole bool
+@description('The release the named image is, which every span the app exports carries. With no image named, the app keeps the release it runs, as it keeps its image.')
+param release Release
+@description('The suffix of the revision this provision makes when it names the image: the release names its revision. Ignored with no image named.')
+param revisionSuffix string
+@description('impact.ai\'s OTLP traces URL for the product, which the app copies every span to. Empty, the app keeps the one it runs.')
+param impactEndpoint string
+@description('Whether the vault holds impact.ai\'s ingest key, or this provision writes it: only then does the app reference it.')
+param impactKeyHeld bool
 
 var port = 4111
 // Until azd has deployed, a public placeholder keeps the app provisionable;
@@ -64,10 +72,31 @@ var effectiveImage = !empty(image)
 // which answers on neither probe's port.
 var deployed = effectiveImage != placeholder
 var imageTag = deployed ? last(split(effectiveImage, ':')) : ''
+// What the running app's container is given, by name. A provision that names
+// no image keeps the release it runs and the endpoint it copies to, as it
+// keeps the image: `azd deploy` sets the release with each new image
+// (azure.yaml), so a provision between two deploys never puts one version's
+// release on another's image, and a pipeline's run, which carries neither,
+// changes neither.
+var held = toObject(exists ? running!.properties.template.containers[0].env : [], e => e.name, e => e.?value ?? '')
+var stamp = !empty(image)
+  ? release
+  : {
+      id: held.?IMPACT_RELEASE_ID ?? ''
+      version: held.?IMPACT_RELEASE_VERSION ?? ''
+      environment: held.?IMPACT_RELEASE_ENVIRONMENT ?? ''
+    }
+var copyTo = !empty(impactEndpoint) ? impactEndpoint : held.?IMPACT_ENDPOINT ?? ''
+// The optional route's key: a vault reference where there is one, else
+// empty, and the app copies nothing.
+var ingestKey = impactKeyHeld
+  ? { name: 'IMPACT_API_KEY', secretRef: 'impact-api-key' }
+  : { name: 'IMPACT_API_KEY', value: '' }
 
-func secrets(vault string, identityId string) array => [
-  { name: 'auth-secret', keyVaultUrl: '${vault}secrets/auth-secret', identity: identityId }
-]
+func secrets(vault string, identityId string, ingestKey bool) array => concat(
+  [{ name: 'auth-secret', keyVaultUrl: '${vault}secrets/auth-secret', identity: identityId }],
+  ingestKey ? [{ name: 'impact-api-key', keyVaultUrl: '${vault}secrets/impact-api-key', identity: identityId }] : []
+)
 
 // Exactly apps/backend/.env.example, bootstrap only; empty means the
 // compiled-in default. AZURE_CLIENT_ID is the SDK's own: it picks this
@@ -76,6 +105,9 @@ var env = [
   { name: 'AZURE_CLIENT_ID', value: identity.clientId }
   { name: 'PORT', value: string(port) }
   { name: 'IMAGE_TAG', value: imageTag }
+  { name: 'IMPACT_RELEASE_ID', value: stamp.id }
+  { name: 'IMPACT_RELEASE_VERSION', value: stamp.version }
+  { name: 'IMPACT_RELEASE_ENVIRONMENT', value: stamp.environment }
   { name: 'APP_CONFIG_ENDPOINT', value: settingsEndpoint }
   { name: 'APP_CONFIG_KEY_PREFIX', value: '' }
   { name: 'APP_CONFIG_TIMEOUT_MS', value: '' }
@@ -135,6 +167,8 @@ var env = [
   { name: 'METERING_UNAVAILABLE_LOG_SECONDS', value: '' }
   { name: 'SSE_HEARTBEAT_MS', value: '15000' }
   { name: 'APPLICATIONINSIGHTS_CONNECTION_STRING', value: insightsConnectionString }
+  { name: 'IMPACT_ENDPOINT', value: copyTo }
+  ingestKey
   { name: 'PROBLEM_LOG', value: '' }
   { name: 'LLM_USAGE_LOG', value: '' }
 ]
@@ -184,7 +218,7 @@ module app 'br/public:avm/res/app/container-app:0.23.0' = {
     environmentResourceId: environmentId
     managedIdentities: { userAssignedResourceIds: [identity.resourceId] }
     registries: [{ server: registryServer, identity: identity.resourceId }]
-    secrets: secrets(vaultUri, identity.resourceId)
+    secrets: secrets(vaultUri, identity.resourceId, impactKeyHeld)
     ingressExternal: false
     ingressTargetPort: port
     ingressTransport: 'auto'
@@ -199,6 +233,7 @@ module app 'br/public:avm/res/app/container-app:0.23.0' = {
     // the voice document's `live.drainGraceMs` (10 s), then settles each
     // within `live.settleWaitMs` (5 s): the grace covers both, with room.
     terminationGracePeriodSeconds: 30
+    revisionSuffix: !empty(image) && !empty(revisionSuffix) ? revisionSuffix : null
     containers: [
       {
         name: 'backend'
@@ -220,7 +255,7 @@ module migrate 'br/public:avm/res/app/job:0.7.2' = {
     environmentResourceId: environmentId
     managedIdentities: { userAssignedResourceIds: [migrateIdentity.resourceId] }
     registries: [{ server: registryServer, identity: migrateIdentity.resourceId }]
-    secrets: secrets(vaultUri, migrateIdentity.resourceId)
+    secrets: secrets(vaultUri, migrateIdentity.resourceId, impactKeyHeld)
     triggerType: 'Manual'
     manualTriggerConfig: { parallelism: 1, replicaCompletionCount: 1 }
     replicaRetryLimit: 0

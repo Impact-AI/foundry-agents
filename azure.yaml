@@ -4,11 +4,17 @@ name: agent-sample
 requiredVersions:
   azd: ">= 1.37.1"
 metadata:
-  template: agent-sample@0.1.0
+  template: agent-sample@0.2.0
 
 # Service paths are relative to this file, at the repository root.
 # `docker.context` is relative to each project directory and resolves to the
 # repository root; each Dockerfile builds from there.
+#
+# A release workflow names the image's tag and the release it is
+# (.github/workflows/azure-development.yml): `azd deploy` tags the image with
+# IMPACT_IMAGE_TAG and puts the release on the app's new revision with the
+# image, so every span of that revision carries it and none of another's
+# does. Outside a release the tag is azd's own and the release is empty.
 services:
   backend:
     project: ./apps/backend
@@ -18,6 +24,11 @@ services:
       path: Dockerfile
       context: ../../
       remoteBuild: true
+      tag: ${IMPACT_IMAGE_TAG}
+    env:
+      IMPACT_RELEASE_ID: ${IMPACT_RELEASE_ID}
+      IMPACT_RELEASE_VERSION: ${IMPACT_RELEASE_VERSION}
+      IMPACT_RELEASE_ENVIRONMENT: ${IMPACT_RELEASE_ENVIRONMENT}
   frontend:
     project: ./apps/frontend
     host: containerapp
@@ -26,6 +37,11 @@ services:
       path: Dockerfile
       context: ../../
       remoteBuild: true
+      tag: ${IMPACT_IMAGE_TAG}
+    env:
+      IMPACT_RELEASE_ID: ${IMPACT_RELEASE_ID}
+      IMPACT_RELEASE_VERSION: ${IMPACT_RELEASE_VERSION}
+      IMPACT_RELEASE_ENVIRONMENT: ${IMPACT_RELEASE_ENVIRONMENT}
 
 hooks:
   # azd up resolves the template's parameters before its provision step runs

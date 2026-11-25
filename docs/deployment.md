@@ -363,20 +363,132 @@ The template creates every resource it uses; there are no parameters for pointin
 
 ## CI/CD
 
-Two workflows ship under `.github/workflows`.
+Three workflows ship under `.github/workflows`, beside the dependency audit and the documentation site's.
 
 - **`ci.yml`** runs on every pull request and push to `main`, with no Azure credential: lint, typecheck, the Bicep lint, every test with a real Redis and the Cosmos DB emulator, the end-to-end suite, both image builds, and fallow. See [testing](testing.md#ci).
-- **`azure-dev.yml`** deploys when run by hand (`workflow_dispatch`): it signs in with a federated credential and runs `azd provision` then `azd deploy`. Runs queue; none is canceled halfway. It is manual because the sign-in needs the identity and the repository variables that `azd pipeline config` creates (below). Once that has been run, add `push: branches: [main]` under the workflow's `on` to deploy every push to `main`. Change the trigger `pipeline.test.ts` expects in the same commit, since the test holds the workflow to the manual trigger. A run provisions and then deploys on a fresh runner, whose environment holds no deployed image name: the provision keeps the image each app runs, and the run's deploy step rolls them to the new one. The pipeline's identity provisions; name the person or group who operates the deployment with `OPERATOR_PRINCIPAL_ID` and `OPERATOR_PRINCIPAL_TYPE`, or the data-plane roles and the jump VM's sign-in are the pipeline's own ([identities and roles](architecture.md#identities-and-roles)).
+- **`azure-development.yml`** releases every merge to `development` to the Development environment: it signs in with the environment's federated credential, runs `azd provision` then `azd deploy`, runs the application's own tests, and confirms what runs ([releases](#releases)).
+- **`azure-production.yml`** runs, in the Production environment, the version `releases/production.json` names, when a merge to `production` changes that file: the images Development built, never rebuilt ([the Production pin](#the-production-pin)).
 
-To connect the deploy workflow, once, from a machine signed in with `azd auth login`, in the environment to deploy:
-
-```sh
-azd pipeline config
-```
-
-`azd pipeline config` creates an identity for the pipeline (a user-assigned managed identity by default, or an app registration). It gives the identity federated credentials for the repository and assigns it Contributor and User Access Administrator on the subscription. It sets the repository variables `AZURE_CLIENT_ID`, `AZURE_TENANT_ID`, `AZURE_SUBSCRIPTION_ID`, `AZURE_ENV_NAME` and `AZURE_LOCATION`. It also sets every name in `azure.yaml`'s `pipeline.variables` that has a value as a variable, and every name in `pipeline.secrets` as a secret, so a run never regenerates the session secret. You need Owner (or User Access Administrator beside Contributor) on the subscription. Run it again after changing any value the pipeline should see. `pipeline.test.ts` fails when the workflow and the `pipeline` block disagree. `azd pipeline config --provider azdo` connects Azure Pipelines instead.
+Runs of one workflow queue; none is canceled halfway. A run provisions on a fresh runner, whose environment holds no deployed image name: the provision keeps the image each app runs, and the release it is. The pipeline's identity provisions; name the person or group who operates the deployment with `OPERATOR_PRINCIPAL_ID` and `OPERATOR_PRINCIPAL_TYPE`, or the data-plane roles and the jump VM's sign-in are the pipeline's own ([identities and roles](architecture.md#identities-and-roles)).
 
 **Hardened from CI.** GitHub's hosted runners deploy hardened mode too: no self-hosted runner and no route into the network are needed, because every data-plane step runs in the migrate job.
+
+### Releases
+
+Each release workflow calls the impact.ai release action (`Impact-AI/impact-ai-release-action`, as an `application`) twice: first to prepare, before any Azure sign-in, and last, always, to confirm. The action holds no Azure credential and impact.ai holds none for this repository: the job signs in to Azure as the environment's own identity, and the confirmation is a check run, `impact.ai / release confirmed`, on the run's commit, written with the job's own GitHub token and read by impact.ai through its GitHub App.
+
+- **The version** is the Development workflow's run number, N. The prepare step names the release: its version, its id (`rel_` and 24 hex characters, the same for a commit of this repository in every environment), the image tag `v<N>-<short commit>` and the revision suffix `v<N>`. It puts the release in the job's environment (`IMPACT_RELEASE_ID`, `IMPACT_RELEASE_VERSION`, `IMPACT_RELEASE_ENVIRONMENT`), where `azd` reads it.
+- **The images** are built by `azd deploy`, tagged with that tag (`azure.yaml`, `docker.tag`). It rolls one new revision of each app with its image and the release together (`azure.yaml`, each service's `env`), so every span of the new revision carries the release and no span of the old one does ([the release on every span](configuration.md#the-release-on-every-span)). The provision before it names no image, so each app keeps the image and the release it runs.
+- **The revision.** azd names the revision it rolls `<app>--azd-<time>`. The next step names a revision of each app `<app>--v<N>`, the same image and release, so the confirmation and every span from then on name the same revision. A rerun of the run adds its attempt (`v<N>-a2`), since a suffix names one revision for good. Spans of the azd revision, in the minute between, carry the release under the azd revision's name.
+- **The application's own tests** run after the deploy: `bun test apps/backend` and `bun test apps/frontend`, with a Redis service beside the job. A failure fails the release, and the confirmation says which counts it read.
+- **The receipt.** [`scripts/application-receipt.ts`](../scripts/application-receipt.ts) waits until each app's latest revision is the one the release named and is ready, checks that it runs the image the run deployed, and writes `out/application-receipt.json`: each service's image and revision, and, in Development, each suite's passed and total counts. Production reruns no test, and its receipt holds none. The action's confirm step publishes the receipt with the release's id, version, commit and run, and refuses one whose images do not carry the release's tag or whose revisions do not carry its suffix.
+
+```json
+{
+  "format": "impact-application-receipt/v1",
+  "services": [
+    { "name": "backend", "image": "cr4n7x2q9w1e3r5.azurecr.io/agent-sample/backend-dev:v12-4f2a9c1", "revision": "ca-backend-4n7x2q9w1e3r5--v12" },
+    { "name": "frontend", "image": "cr4n7x2q9w1e3r5.azurecr.io/agent-sample/frontend-dev:v12-4f2a9c1", "revision": "ca-frontend-4n7x2q9w1e3r5--v12" }
+  ],
+  "tests": [
+    { "suite": "backend", "command": "bun test apps/backend", "passed": 212, "total": 212 },
+    { "suite": "frontend", "command": "bun test apps/frontend", "passed": 64, "total": 64 }
+  ]
+}
+```
+
+**The action's pin.** Both workflows run the action pinned to one commit, with its version as a comment (`# v1.1.0`); `pipeline.test.ts` holds every call to the same commit and that version. The commit in this repository is a placeholder of forty zeros until that version of the action is published: a template made from it replaces the zeros with the published commit in both files before its first release, and GitHub cannot run either workflow until it does.
+
+### The Production pin
+
+`releases/production.json` names the one version Production runs. Write it in a pull request to `production`; merging it runs `azure-production.yml`. Until the file exists, Production runs nothing from this repository.
+
+```json
+{
+  "format": "impact-application-production/v1",
+  "action": "promote",
+  "version": 12,
+  "releaseId": "rel_5f0c3a9e2b7d4c18a6e0f1d2",
+  "sourceRunId": 19476203385,
+  "images": {
+    "backend": "cr4n7x2q9w1e3r5.azurecr.io/agent-sample/backend-dev:v12-4f2a9c1",
+    "frontend": "cr4n7x2q9w1e3r5.azurecr.io/agent-sample/frontend-dev:v12-4f2a9c1"
+  }
+}
+```
+
+| Field | What it holds |
+| --- | --- |
+| `format` | `impact-application-production/v1`. |
+| `action` | `promote` moves Production to a version Development ran; `rollback` returns it to an earlier one. The steps are the same; the confirmation says which. |
+| `version` | The version, N: the Development run number that built the images. |
+| `releaseId` | The release's id, as Development's confirmation and its spans name it. |
+| `sourceRunId` | The Development workflow run that built and released the images, as GitHub numbers runs (its id, not its number). |
+| `images` | The two images that run, `backend` and `frontend`, exactly as Development's receipt names them: in Development's registry, tagged `v<N>-<short commit>`. |
+
+The release action's prepare step verifies the pin before Azure is signed in to: no other key, format or action; `sourceRunId` a successful push run of `azure-development.yml` on `development` in this repository, whose run number is `version` and whose commit gives `releaseId`; and both images tagged with that version and commit. It hands the two images on. The workflow then provisions, as Development does, keeping what runs; copies the two images into Production's registry with `az acr import`, registry to registry, digest unchanged; provisions again with the copies named, so each app takes its pinned image, its release and the revision's name, `<app>--v<N>-p<production run number>`, in one revision; runs `postdeploy` (`azd hooks run postdeploy`) for the migrate job's steps on the pinned backend image; and confirms. The run's own mark after the version is there because a version Production ran before, which a rollback or a second promotion returns to, already holds a revision named for it. Production provisions with the template on `production`: merge `development` into `production` in the pull request that moves the pin, so the template is the version's own. A rollback runs the earlier images with the template the branch holds.
+
+The import reads Development's registry as Production's identity. Give that identity the role once, where `<production client id>` is the Production environment's `AZURE_CLIENT_ID`:
+
+```sh
+az role assignment create --assignee <production client id> \
+  --role "Container Registry Data Importer and Data Reader" \
+  --scope "$(az acr show -n <development registry name> --query id -o tsv)"
+```
+
+### Connect the workflows
+
+Once per environment, from a machine signed in with `azd auth login` and `gh auth login`. The steps below are for Development, from the azd environment `dev`; repeat them for Production, from the environment `prod` that holds it, with `Production` for `Development`. Finish one environment before you start the other: the first step writes repository variables that the next environment's would replace.
+
+1. Create the branches `development` and `production`, and the GitHub environments **Development** and **Production**. Allow only the matching branch to deploy to each (the environment's deployment branches), and require a reviewer for Production.
+2. Make the pipeline's identity and its values:
+
+   ```sh
+   azd pipeline config -e dev
+   ```
+
+   It creates an identity for the pipeline (a user-assigned managed identity by default, or an app registration), gives it federated credentials for the current branch, `main` and pull requests, and assigns it Contributor and User Access Administrator on the subscription. It sets the repository variables `AZURE_CLIENT_ID`, `AZURE_TENANT_ID`, `AZURE_SUBSCRIPTION_ID`, `AZURE_ENV_NAME` and `AZURE_LOCATION`, every name in `azure.yaml`'s `pipeline.variables` that has a value, and every name in `pipeline.secrets` as a secret, so a run never regenerates the session secret. You need Owner (or User Access Administrator beside Contributor) on the subscription. `pipeline.test.ts` fails when the workflows and the `pipeline` block disagree.
+3. Move what it set into the environment, since azd writes repository-level values and each environment needs its own (a repository-level one would reach the other environment's runs). On a repository whose only repository variables are azd's:
+
+   ```sh
+   environment=Development
+   gh api --method PUT "repos/{owner}/{repo}/environments/$environment" --silent
+   for name in $(gh variable list --json name --jq '.[].name'); do
+     gh variable set "$name" --env "$environment" --body "$(gh variable get "$name")" && gh variable delete "$name"
+   done
+   for name in AUTH_SECRET AUTH_MICROSOFT_ENTRA_ID_SECRET; do
+     value="$(azd env get-value "$name" -e dev 2>/dev/null)" && [ -n "$value" ] &&
+       gh secret set "$name" --env "$environment" --body "$value"
+     gh secret delete "$name" 2>/dev/null || true
+   done
+   ```
+
+4. Give the identity a federated credential for the environment. A job that names a GitHub environment presents the subject `repo:<owner>/<repository>:environment:Development`, which none of the credentials azd made matches. A repository whose OIDC subject carries its immutable ids uses the `sub_claim_prefix` that `gh api repos/<owner>/<repository>/actions/oidc/customization/sub` returns in place of `repo:<owner>/<repository>`. For the default, a managed identity:
+
+   ```sh
+   client="$(gh variable get AZURE_CLIENT_ID --env Development)"
+   read -r name group < <(az identity list --query "[?clientId=='$client'] | [0].[name, resourceGroup]" -o tsv)
+   az identity federated-credential create -g "$group" --identity-name "$name" -n github-Development \
+     --issuer https://token.actions.githubusercontent.com \
+     --subject "repo:<owner>/<repository>:environment:Development" --audiences api://AzureADTokenExchange
+   ```
+
+   For an app registration, `az ad app federated-credential create --id "$client"` with the same issuer, subject and audience.
+5. Let impact.ai read the environment's telemetry. The apps send everything to the environment's own Application Insights, each span stamped with its release ([the release on every span](configuration.md#the-release-on-every-span)), and impact.ai reads it there, with queries over Application Insights, through the read-only Azure connection its release setup asks for: nothing to set in the repository, and neither workflow carries a key. impact.ai reads the turns' content only if the team records it there with `AGENT_TRACING` ([what goes to impact.ai](privacy.md#what-goes-to-impactai)).
+6. Optional, the Impact SDK route: both apps also send impact.ai, directly, their spans and the SDK's capture of the model calls with their content. Set the product's OpenTelemetry exporter URL and ingest key once, from an azd environment that names no deployed image, as a fresh one does, so each app keeps the image and the release that run (the two `SERVICE_*_IMAGE_NAME` lines are for a machine that once ran `azd deploy` itself). The key goes to the environment's Key Vault as `impact-api-key` and the URL onto both apps, and every later provision keeps both, so neither workflow carries either:
+
+   ```sh
+   azd env set SERVICE_BACKEND_IMAGE_NAME "" -e dev
+   azd env set SERVICE_FRONTEND_IMAGE_NAME "" -e dev
+   azd env set IMPACT_ENDPOINT <the product's OTLP traces URL, ending in /v1/traces> -e dev
+   azd env set IMPACT_API_KEY <the product's ingest key> -e dev
+   azd provision -e dev
+   azd env set IMPACT_API_KEY "" -e dev
+   ```
+
+   [What goes to impact.ai](privacy.md#what-goes-to-impactai) says what the route sends, when to choose it, and how to send less. The last line keeps the key out of a later `azd pipeline config`, which copies every parameter the azd environment holds a value for into GitHub; the vault keeps it. To rotate the key, set it in the vault (`impact-api-key`) and restart each app's revision, or run the lines again. Without the route, no `impact-api-key` secret exists and nothing asks for one.
+
+Run steps 2 and 3 again after changing any value the pipeline should see. `azd pipeline config --provider azdo` connects Azure Pipelines instead, which these workflows do not cover.
 
 ## Developer access
 

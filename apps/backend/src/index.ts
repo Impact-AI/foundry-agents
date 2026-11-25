@@ -4,7 +4,11 @@ import { envInt } from "@platform/config/env";
 import { closeCosmos, cosmosDeploymentRules } from "@platform/cosmos";
 import { identityDeploymentRules } from "@platform/identity";
 import { checkChunkIndex } from "@platform/knowledge";
-import { stopTelemetry, withRequestSpan } from "@platform/observability/bun";
+import {
+	impactCopyRunning,
+	stopTelemetry,
+	withRequestSpan,
+} from "@platform/observability/bun";
 import {
 	assertRedisReachable,
 	closeRedis,
@@ -30,6 +34,10 @@ const wiring = wire(product, host);
 // applied — Cosmos DB, the search index, the agent service — is waited for
 // rather than crash-looped on, with the readiness route answering 503.
 const startup = startWhenAdmitted(async () => {
+	// The Impact SDK instruments the model clients the host makes only when it
+	// has started first; it never fails the start, and is waited for ten
+	// seconds at most. Without impact.ai configured this answers at once.
+	await impactCopyRunning();
 	// A search service that is configured and cannot answer is
 	// misconfiguration, as the cache is. The index itself is the job's
 	// `index` step to make, with the indexer that fills it; a replica starts

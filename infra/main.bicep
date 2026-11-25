@@ -190,6 +190,24 @@ param authRequireRole bool = false
 var signInMode = hardened ? 'entra' : authMode
 var roleRequired = hardened || authRequireRole
 
+@description('The release the named images are, which every span of both apps carries (`impact.release.id`): a release workflow sets it, the same in Development and Production. A provision that names no image keeps the release each app runs, as it keeps the image; `azd deploy` sets it with each new image (azure.yaml).')
+param releaseId string = ''
+@description('The release\'s version, the Development run that built it (`impact.release.version`, and `service.version` while set).')
+param releaseVersion string = ''
+@description('The environment the release runs in, `development` or `production` (`deployment.environment.name`).')
+param releaseEnvironment string = ''
+var release = { id: releaseId, version: releaseVersion, environment: releaseEnvironment }
+@description('The suffix of the revision a provision that names the images makes of each app (`v<version>`, and a run\'s own mark after it), so its spans and the release\'s confirmation name the same revision. Ignored by a provision that names no image; empty, Container Apps names the revision.')
+param revisionSuffix string = ''
+
+@description('The optional Impact SDK route: impact.ai\'s OTLP traces URL for the product, to which both apps then send every span and the SDK\'s capture of their model calls beside Azure Monitor. Empty, each app keeps the one it runs, so a pipeline\'s run, which never carries it, changes nothing; with none, the apps export to Azure Monitor alone, which impact.ai reads through the Azure connection.')
+param impactEndpoint string = ''
+@description('The optional route\'s ingest key, written to Key Vault as `impact-api-key` when given; both apps then hold a reference. Empty, the vault keeps one it holds (`KEY_VAULT_HOLDS`) and writes none: the default deployment has no such secret.')
+@secure()
+param impactApiKey string = ''
+// Whether the apps hold a reference to the key: only where the vault holds one or this provision writes one.
+var impactKeyHeld = !empty(impactApiKey) || contains(split(vaultHolds, ','), 'impact-api-key')
+
 // The deployments as the account makes them: the realtime roles and the
 // knowledge base's planner take the capacity this environment was given, and
 // the planner is made only for a deployment with the knowledge base. Without
@@ -384,6 +402,7 @@ module vault 'modules/vault.bicep' = {
     entraClientId: entraClientId
     entraClientSecret: entraClientSecret
     entraIssuer: entraIssuer
+    impactApiKey: impactApiKey
     held: filter(split(vaultHolds, ','), name => !empty(name))
     roleAssignments: [
       assignment(backend.principalId, 'ServicePrincipal', 'Key Vault Secrets User')
@@ -645,6 +664,10 @@ module backendApp 'modules/backend.bicep' = {
     records: { url: recordsApiUrl, scope: recordsApiScope }
     authMode: signInMode
     authRequireRole: roleRequired
+    release: release
+    revisionSuffix: revisionSuffix
+    impactEndpoint: impactEndpoint
+    impactKeyHeld: impactKeyHeld
   }
 }
 
@@ -669,6 +692,10 @@ module frontendApp 'modules/frontend.bicep' = {
     hardened: hardened
     authMode: signInMode
     authRequireRole: roleRequired
+    release: release
+    revisionSuffix: revisionSuffix
+    impactEndpoint: impactEndpoint
+    impactKeyHeld: impactKeyHeld
   }
 }
 

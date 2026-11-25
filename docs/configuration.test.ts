@@ -104,10 +104,27 @@ interface TemplateVariable {
 	secret: boolean;
 }
 
-/** The `env` list of an app module, in the order the template writes it. */
+/**
+ * The `env` list of an app module, in the order the template writes it. An
+ * entry the deployment decides is a variable of its own, written `var x =
+ * <condition>` with a `?` branch on the next line; it is read as that branch,
+ * the vault reference it is where it is set.
+ */
 function templateEnvironment(module: string): TemplateVariable[] {
 	const text = read(join(INFRA, "modules", module));
-	const list = /^var env = \[\n([\s\S]*?)^\]/m.exec(text)?.[1] ?? "";
+	const list = (/^var env = \[\n([\s\S]*?)^\]/m.exec(text)?.[1] ?? "")
+		.split("\n")
+		.map((line) => {
+			const named = /^\s+(\w+)\s*$/.exec(line)?.[1];
+			if (!named) return line;
+			return (
+				new RegExp(
+					`^var ${named} = [^\\n]*\\n\\s+\\? (\\{[^\\n]*\\})`,
+					"m",
+				).exec(text)?.[1] ?? line
+			);
+		})
+		.join("\n");
 	return [
 		...list.matchAll(/\{ name: '(\w+)', (value|secretRef): ([^}]+) \}/g),
 	].map((m) => ({
