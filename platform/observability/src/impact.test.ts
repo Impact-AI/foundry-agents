@@ -1,4 +1,5 @@
 import { afterAll, beforeAll, expect, spyOn, test } from "bun:test";
+import { join } from "node:path";
 import { SpanKind } from "@opentelemetry/api";
 import {
 	InMemorySpanExporter,
@@ -16,7 +17,9 @@ import { CONNECTION_STRING_VAR } from "./settings";
 /**
  * The copy to impact.ai end to end on the Bun pipeline: the Impact SDK, as
  * installed, sending to an OTLP receiver on this machine, beside an
- * in-memory exporter where Azure Monitor would be.
+ * in-memory exporter where Azure Monitor would be. The SDK starts once per
+ * process, so its capture of model calls, on and off, runs in a process of
+ * its own each (`testing/impact-capture.ts`).
  */
 
 type Received = { path: string; authorization: string | null; body: string };
@@ -160,3 +163,57 @@ test("with both, every span the scrub hands on reaches Azure Monitor and impact.
 	expect(sent).not.toContain("8412");
 	expect(sent).not.toContain("/health");
 });
+
+/** What one run of the capture fixture saw: impact.ai's bodies as text, and Azure Monitor's spans. */
+type Capture = {
+	running: boolean;
+	answers: string[];
+	sent: string;
+	azure: { name: string; recorded: string }[];
+};
+
+function capture(mode: "on" | "off"): Capture {
+	const run = Bun.spawnSync(
+		[
+			process.execPath,
+			join(import.meta.dir, "testing", "impact-capture.ts"),
+			mode,
+		],
+		{ env: { ...process.env, [CONNECTION_STRING_VAR]: "" }, stderr: "pipe" },
+	);
+	if (run.exitCode !== 0)
+		throw new Error(`the capture fixture failed: ${run.stderr.toString()}`);
+	return JSON.parse(run.stdout.toString()) as Capture;
+}
+
+const QUESTION = "What is the capital of Fakeland?";
+const ANSWER = "Fakeville is the capital.";
+
+test("with the key set, the SDK's capture sends a model call's input and output to impact.ai, and Azure Monitor gets nothing it did not get before", () => {
+	const seen = capture("on");
+	expect(seen.running).toBe(true);
+	expect(seen.answers).toEqual([ANSWER, ANSWER]);
+	for (const value of [
+		QUESTION,
+		`${QUESTION} (streamed)`,
+		ANSWER,
+		"GET /api/turn",
+		RELEASE.id,
+	])
+		expect(seen.sent).toContain(value);
+	// Azure Monitor: the request, as before; no model call and no content.
+	expect(seen.azure.map((s) => s.name)).toEqual(["GET /api/turn"]);
+	expect(JSON.stringify(seen.azure)).not.toContain("Fakeland");
+	expect(JSON.stringify(seen.azure)).not.toContain(ANSWER);
+}, 60_000);
+
+test("with the SDK's capture turned off, impact.ai gets the calls but none of their content", () => {
+	const seen = capture("off");
+	expect(seen.running).toBe(true);
+	expect(seen.answers).toEqual([ANSWER, ANSWER]);
+	expect(seen.sent).toContain("GET /api/turn");
+	expect(seen.sent).toContain(RELEASE.id);
+	expect(seen.sent).not.toContain("Fakeland");
+	expect(seen.sent).not.toContain(ANSWER);
+	expect(seen.azure.map((s) => s.name)).toEqual(["GET /api/turn"]);
+}, 60_000);

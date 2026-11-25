@@ -48,7 +48,8 @@ import { connectionString, telemetrySettings } from "./settings";
  * in, {@link startBunTelemetry} builds nothing and {@link withRequestSpan}
  * hands the request straight to the handler. With impact.ai's endpoint and
  * key handed in as well, what the scrub hands the exporter is also copied
- * there (`./impact`); every span carries the release (`./release`).
+ * there, and the Impact SDK's own capture of the model calls goes there
+ * alone (`./impact`); every span carries the release (`./release`).
  */
 
 export interface BunTelemetryOptions {
@@ -100,8 +101,9 @@ export function startBunTelemetry(options: BunTelemetryOptions): boolean {
 		const impactTo = impactSettings(options.impact);
 		const impact = impactTo ? new ImpactCopy(impactTo) : undefined;
 		const batch = new BatchSpanProcessor(exporter);
+		const resource = resourceFromAttributes(resourceAttributes(options));
 		const provider = new BasicTracerProvider({
-			resource: resourceFromAttributes(resourceAttributes(options)),
+			resource,
 			sampler: new ConfiguredSampler(),
 			spanProcessors: [
 				new ScrubbingSpanProcessor({
@@ -121,7 +123,7 @@ export function startBunTelemetry(options: BunTelemetryOptions): boolean {
 		held.provider = provider;
 		// Not awaited: the server starts whether or not the SDK does, and the
 		// copy's shutdown waits for a start still under way.
-		held.impact = impact?.connect(provider, options.serviceName);
+		held.impact = impact?.connect(options.serviceName, resource);
 
 		bridgeEvents();
 		// Warm the sampling memo so the first request is sampled against the
@@ -143,11 +145,25 @@ export function telemetryRunning(): boolean {
 }
 
 /**
- * Whether the copy to impact.ai runs, once its start has settled; false when
- * it is not configured or telemetry is not running.
+ * Whether the copy to impact.ai runs, once its start has settled, or false
+ * after `deadlineMs`; false when it is not configured or telemetry is not
+ * running. A service awaits it before it makes its model clients, which the
+ * SDK instruments only when it has started first.
  */
-export async function impactCopyRunning(): Promise<boolean> {
-	return (await pipeline().impact) ?? false;
+export async function impactCopyRunning(deadlineMs = 10_000): Promise<boolean> {
+	const starting = pipeline().impact;
+	if (!starting) return false;
+	let timer: ReturnType<typeof setTimeout> | undefined;
+	try {
+		return await Promise.race([
+			starting,
+			new Promise<boolean>((resolve) => {
+				timer = setTimeout(() => resolve(false), deadlineMs);
+			}),
+		]);
+	} finally {
+		clearTimeout(timer);
+	}
 }
 
 /** Reads a W3C `traceparent` off an incoming request's headers. */

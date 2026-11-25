@@ -485,7 +485,7 @@ Once per environment, from a machine signed in with `azd auth login` and `gh aut
    azd env set IMPACT_API_KEY "" -e dev
    ```
 
-   The last line keeps the key out of a later `azd pipeline config`, which copies every parameter the azd environment holds a value for into GitHub; the vault keeps it. To rotate the key, set it in the vault (`impact-api-key`) and restart each app's revision, or run the lines again.
+   From the next revision both apps send impact.ai their traces and the model calls' content: [what goes to impact.ai](privacy.md#what-goes-to-impactai) says what that is, and how to send it without content. The last line keeps the key out of a later `azd pipeline config`, which copies every parameter the azd environment holds a value for into GitHub; the vault keeps it. To rotate the key, set it in the vault (`impact-api-key`) and restart each app's revision, or run the lines again.
 
 Run steps 2 and 3 again after changing any value the pipeline should see. `azd pipeline config --provider azdo` connects Azure Pipelines instead, which these workflows do not cover.
 

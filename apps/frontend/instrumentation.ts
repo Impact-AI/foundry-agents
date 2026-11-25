@@ -45,6 +45,8 @@ export async function register(): Promise<void> {
 				environment: envString("IMPACT_RELEASE_ENVIRONMENT"),
 				revision: envString("CONTAINER_APP_REVISION"),
 			},
+			// The copy to impact.ai; the SDK's capture control is `content`
+			// here, as in the backend's wiring (docs/privacy.md).
 			impact: {
 				endpoint: envString("IMPACT_ENDPOINT"),
 				apiKey: envString("IMPACT_API_KEY"),

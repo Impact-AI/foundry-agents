@@ -51,6 +51,10 @@ export function wire(
 			environment: envString("IMPACT_RELEASE_ENVIRONMENT"),
 			revision: envString("CONTAINER_APP_REVISION"),
 		},
+		// The copy to impact.ai, with the Impact SDK's capture of the model calls
+		// and their content. The SDK's capture control goes here: `content: {
+		// input: false, output: false, tools: false, retrieval: false, media:
+		// false }` leaves every category out (docs/privacy.md).
 		impact: {
 			endpoint: envString("IMPACT_ENDPOINT"),
 			apiKey: envString("IMPACT_API_KEY"),

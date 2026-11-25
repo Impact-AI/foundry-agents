@@ -31,7 +31,8 @@ import { connectionString, telemetrySettings } from "./settings";
  *
  * With impact.ai's endpoint and key handed in, the copy there (`./impact`)
  * is registered after the scrub, so it copies each span as the scrub left
- * it; every span carries the release (`./release`).
+ * it, and the Impact SDK's own capture goes there alone; every span carries
+ * the release (`./release`).
  */
 
 export interface NextTelemetryOptions {
@@ -90,6 +91,7 @@ export async function startNextTelemetry(
 
 		const impactTo = impactSettings(options.impact);
 		const impact = impactTo ? new ImpactCopy(impactTo) : undefined;
+		const resource = resourceFromAttributes(resourceAttributes(options));
 
 		const http: HttpInstrumentationConfig = {
 			enabled: true,
@@ -99,7 +101,7 @@ export async function startNextTelemetry(
 
 		useAzureMonitor({
 			azureMonitorExporterOptions: { connectionString: connection },
-			resource: resourceFromAttributes(resourceAttributes(options)),
+			resource,
 			samplingRatio,
 			// The distro's default rate limit of 5 traces per second silently
 			// overrides the ratio. Zero means "use the ratio".
@@ -134,7 +136,7 @@ export async function startNextTelemetry(
 		bridgeEvents();
 		held.started = true;
 		// Not awaited: the server starts whether or not the SDK does.
-		void impact?.connect(trace.getTracerProvider(), options.serviceName);
+		void impact?.connect(options.serviceName, resource);
 		return true;
 	} catch (err) {
 		reportFailure(
